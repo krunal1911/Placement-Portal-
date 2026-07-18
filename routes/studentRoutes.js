@@ -3,33 +3,31 @@ const multer  = require("multer");
 
 const studentController = require("../controllers/studentController");
 const { requireUser }   = require("../middleware/auth");
-const { profileStorage, resumeStorage } = require("../config/cloudinary");
 
 const router = express.Router();
 
-// Multer — PDF Resume upload → Cloudinary
+// Use memory storage — files stored as buffer, uploaded to Cloudinary in controller
+const memStorage = multer.memoryStorage();
+
+// Resume upload (PDF only, max 5MB)
 const upload = multer({
-    storage: resumeStorage,
+    storage: memStorage,
     limits: { fileSize: 5 * 1024 * 1024 },
-    fileFilter: function (req, file, cb) {
-        if (file.mimetype === "application/pdf") {
-            cb(null, true);
-        } else {
-            cb(new Error("Only PDF files are allowed."), false);
-        }
+    fileFilter: (req, file, cb) => {
+        file.mimetype === "application/pdf"
+            ? cb(null, true)
+            : cb(new Error("Only PDF files are allowed."), false);
     }
 });
 
-// Multer — Profile Image upload → Cloudinary
+// Profile image upload (JPG/PNG only, max 2MB)
 const profileUpload = multer({
-    storage: profileStorage,
+    storage: memStorage,
     limits: { fileSize: 2 * 1024 * 1024 },
-    fileFilter: function (req, file, cb) {
-        if (["image/png", "image/jpeg", "image/jpg"].includes(file.mimetype)) {
-            cb(null, true);
-        } else {
-            cb(new Error("Only JPG, JPEG and PNG images are allowed."), false);
-        }
+    fileFilter: (req, file, cb) => {
+        ["image/png", "image/jpeg", "image/jpg"].includes(file.mimetype)
+            ? cb(null, true)
+            : cb(new Error("Only JPG, JPEG and PNG images are allowed."), false);
     }
 });
 

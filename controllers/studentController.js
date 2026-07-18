@@ -1,6 +1,8 @@
 const path = require("path");
-const fs = require("fs");
+const fs   = require("fs");
 const PDFDocument = require("pdfkit");
+
+const { uploadToCloudinary } = require("../config/cloudinary");
 
 const User = require("../models/User");
 const Result = require("../models/result");
@@ -337,37 +339,49 @@ exports.updateProfile = async (req, res) => {
     }
 };
 
-// Upload student profile image
+// Upload student profile image → Cloudinary
 exports.uploadProfileImage = async (req, res) => {
     try {
-        if (!req.session.user) {
-            return res.redirect('/login');
-        }
+        if (!req.session.user) return res.redirect('/login');
+        if (!req.file) return res.status(400).send("No image file received.");
+
         const user = await User.findById(req.session.user._id);
-        if (!user) {
-            return res.send("User not found");
-        }
-        user.profileImage = req.file.path;  // Cloudinary URL
+        if (!user) return res.status(404).send("User not found");
+
+        // Upload buffer directly to Cloudinary
+        const cloudinaryUrl = await uploadToCloudinary(
+            req.file.buffer,
+            'placement-portal/profiles',
+            'image'
+        );
+
+        user.profileImage = cloudinaryUrl;
         const savedUser = await user.save();
         req.session.user.profileImage = savedUser.profileImage;
         res.redirect('/profile');
     } catch (err) {
-        console.log("ERROR:", err);
-        res.send("Profile Image Upload Failed");
+        console.error("Profile upload error:", err);
+        res.status(500).send("Profile Image Upload Failed: " + err.message);
     }
 };
 
-// Upload custom PDF resume
+// Upload custom PDF resume → Cloudinary
 exports.uploadResume = async (req, res) => {
     try {
-        if (!req.session.user) {
-            return res.redirect('/login');
-        }
+        if (!req.session.user) return res.redirect('/login');
+        if (!req.file) return res.status(400).send("No PDF file received.");
+
         const user = await User.findById(req.session.user._id);
-        if (!user) {
-            return res.send("User not found");
-        }
-        user.resume = req.file.path;  // Cloudinary URL
+        if (!user) return res.status(404).send("User not found");
+
+        // Upload PDF buffer directly to Cloudinary
+        const cloudinaryUrl = await uploadToCloudinary(
+            req.file.buffer,
+            'placement-portal/resumes',
+            'raw'
+        );
+
+        user.resume = cloudinaryUrl;
         await user.save();
 
         await Notification.create({
@@ -379,8 +393,8 @@ exports.uploadResume = async (req, res) => {
         req.session.user.resume = user.resume;
         res.redirect('/resume');
     } catch (err) {
-        console.log(err);
-        res.send("Resume Upload Failed");
+        console.error("Resume upload error:", err);
+        res.status(500).send("Resume Upload Failed: " + err.message);
     }
 };
 
