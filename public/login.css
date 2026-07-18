@@ -82,3 +82,33 @@ body{
     color:#1e3a8a;
     font-weight:bold;
 }
+
+/* Switch Portal Button (Top Right of Login Card) */
+.card-header-switch {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.card-header-switch h1 {
+    margin-bottom: 0 !important;
+    text-align: left !important;
+}
+
+.switch-portal-btn {
+    font-size: 13px;
+    padding: 6px 12px;
+    background: #eff6ff;
+    color: #2563eb !important;
+    border: 1px solid #bfdbfe;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.switch-portal-btn:hover {
+    background: #dbeafe;
+    border-color: #3b82f6;
+}
