@@ -70,37 +70,5 @@ router.post("/build-resume", requireUser, studentController.buildResume);
 router.post("/submit-test", requireUser, studentController.submitTest);
 router.post("/apply-company", requireUser, studentController.applyCompany);
 
-// ==========================================
-// DIAGNOSTIC (remove after fixing)
-// ==========================================
-router.get("/check-config", (req, res) => {
-    res.json({
-        cloudinary_cloud_name : process.env.CLOUDINARY_CLOUD_NAME ? "✅ Set" : "❌ MISSING",
-        cloudinary_api_key    : process.env.CLOUDINARY_API_KEY    ? "✅ Set" : "❌ MISSING",
-        cloudinary_api_secret : process.env.CLOUDINARY_API_SECRET ? "✅ Set" : "❌ MISSING",
-        mongodb_uri           : process.env.MONGODB_URI           ? "✅ Set" : "❌ MISSING",
-        session_secret        : process.env.SESSION_SECRET        ? "✅ Set" : "❌ MISSING",
-        node_env              : process.env.NODE_ENV || "not set"
-    });
-});
-
-const Question = require("../models/Question");
-const TechnicalQuestion = require("../models/TechnicalQuestion");
-
-router.get("/check-questions", async (req, res) => {
-    try {
-        const aptCount = await Question.countDocuments();
-        const techCount = await TechnicalQuestion.countDocuments();
-        const sampleApt = await Question.find().limit(5);
-        res.json({
-            aptitude_count: aptCount,
-            technical_count: techCount,
-            sample_aptitude_questions: sampleApt
-        });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
 module.exports = router;
 
