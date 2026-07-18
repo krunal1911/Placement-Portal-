@@ -628,9 +628,13 @@ exports.getUserCompletionData = async (req, res) => {
 
         const profileCompletion = Math.round((completed / total) * 100);
 
+        // Fetch actual companies applied count from the Application model
+        const companiesAppliedCount = await Application.countDocuments({ userId: user._id });
+
         res.json({
             ...user.toObject(),
-            profileCompletion
+            profileCompletion,
+            companiesApplied: companiesAppliedCount
         });
     } catch (err) {
         console.log(err);
