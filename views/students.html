@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registered Students | Admin Console</title>
+    <link rel="stylesheet" href="/dashboard.css">
+    <link rel="stylesheet" href="/admin-dashboard.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- Navigation Bar -->
+<nav>
+    <div class="logo">
+        🚀 Placement Portal
+    </div>
+    <ul>
+        <li><a href="/admin-dashboard">Dashboard</a></li>
+        <li><a href="/students">Students</a></li>
+        <li><a href="/applications">Applications</a></li>
+        <li><a href="/logout">Logout</a></li>
+    </ul>
+</nav>
+
+<div class="container">
+    <div style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <a href="/admin-dashboard" style="text-decoration: none; color: var(--text-muted); font-size: 14px; font-weight: 500;">← Back to Dashboard</a>
+            <h1 style="font-size: 28px; font-weight: 700; color: #1e3a8a; margin-top: 8px;">👨‍🎓 Registered Students</h1>
+            <p style="color: var(--text-muted); font-size: 14px;">View, filter, and export registered student records.</p>
+        </div>
+        <div>
+            <a href="/export-students" class="btn btn-success" style="text-decoration: none;">📊 Export to Excel</a>
+        </div>
+    </div>
+
+    <!-- Filters Control Bar -->
+    <div class="card" style="margin-bottom: 30px; text-align: left; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; padding: 20px;">
+        <div style="flex: 2; min-width: 200px;">
+            <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Search Keyword</label>
+            <input type="text" id="search" placeholder="Search by name or email..." onkeyup="filterStudents()" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;">
+        </div>
+
+        <div style="flex: 1; min-width: 150px;">
+            <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Engineering Branch</label>
+            <select id="branch" onchange="filterStudents()" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: white;">
+                <option value="">All Branches</option>
+                <option>Computer Engineering</option>
+                <option>Information Technology</option>
+                <option>Mechanical Engineering</option>
+                <option>Civil Engineering</option>
+                <option>Electrical Engineering</option>
+            </select>
+        </div>
+
+        <div style="flex: 1; min-width: 120px;">
+            <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Semester</label>
+            <select id="semester" onchange="filterStudents()" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: white;">
+                <option value="">All Semesters</option>
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>
+                <option>4</option>
+                <option>5</option>
+                <option>6</option>
+                <option>7</option>
+                <option>8</option>
+            </select>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <button class="btn btn-secondary" onclick="resetFilters()" style="padding: 11px 20px; font-size: 13px;">Reset Filters</button>
+        </div>
+    </div>
+
+    <!-- Students Data Table -->
+    <div style="background: white; border-radius: 16px; border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow-sm);">
+        <table style="margin: 0; border: none; box-shadow: none;">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Branch</th>
+                    <th>Semester</th>
+                    <th>Tests Taken</th>
+                    <th>Average Score</th>
+                </tr>
+            </thead>
+            <tbody id="studentTable">
+                <tr>
+                    <td colspan="6" style="text-align: center; color: var(--text-muted);">Loading students list...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+let students = [];
+
+async function loadStudents() {
+    try {
+        const response = await fetch("/students-data");
+        if (!response.ok) throw new Error("Unauthorized");
+        students = await response.json();
+        displayStudents(students);
+    } catch (e) {
+        console.error(e);
+        document.getElementById("studentTable").innerHTML = '<tr><td colspan="6" style="text-align:center; color:red;">Failed to load student records.</td></tr>';
+    }
+}
+
+function displayStudents(data) {
+    let html = "";
+    if (data.length === 0) {
+        html = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No student records match the filter criteria.</td></tr>`;
+    } else {
+        data.forEach(student => {
+            html += `
+                <tr>
+                    <td style="font-weight: 500;">${student.name}</td>
+                    <td>${student.email}</td>
+                    <td>${student.branch}</td>
+                    <td style="text-align: center;">${student.semester}</td>
+                    <td style="text-align: center;">${student.testsTaken || 0}</td>
+                    <td style="font-weight: 600; color: var(--primary);">${student.averageScore || 0}%</td>
+                </tr>
+            `;
+        });
+    }
+    document.getElementById("studentTable").innerHTML = html;
+}
+
+function filterStudents() {
+    const keyword = document.getElementById("search").value.toLowerCase();
+    const branch = document.getElementById("branch").value;
+    const semester = document.getElementById("semester").value;
+
+    const filtered = students.filter(student => {
+        const searchMatch = student.name.toLowerCase().includes(keyword) || student.email.toLowerCase().includes(keyword);
+        const branchMatch = branch === "" || student.branch === branch;
+        const semesterMatch = semester === "" || String(student.semester) === semester;
+        return searchMatch && branchMatch && semesterMatch;
+    });
+
+    displayStudents(filtered);
+}
+
+function resetFilters() {
+    document.getElementById("search").value = "";
+    document.getElementById("branch").value = "";
+    document.getElementById("semester").value = "";
+    displayStudents(students);
+}
+
+loadStudents();
+</script>
+
+</body>
+</html>

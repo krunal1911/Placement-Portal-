@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>AI Career Guidance</title>
+
+    <link rel="stylesheet" href="/dashboard.css">
+
+    <style>
+
+    .container{
+        width:80%;
+        margin:auto;
+        margin-top:40px;
+        text-align:center;
+    }
+
+    select{
+        padding:12px;
+        width:350px;
+        font-size:18px;
+    }
+
+    button{
+        padding:12px 25px;
+        margin-top:20px;
+        background:#1e40af;
+        color:white;
+        border:none;
+        border-radius:8px;
+        cursor:pointer;
+        font-size:18px;
+    }
+
+    #result{
+
+        margin-top:40px;
+        text-align:left;
+        background:white;
+        padding:25px;
+        border-radius:12px;
+        box-shadow:0 5px 15px rgba(0,0,0,.1);
+
+    }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🤖 AI Career Guidance</h1>
+
+<p>Select your dream career.</p>
+
+<select id="career">
+
+<option value="">Select Career</option>
+
+<option>Java Developer</option>
+
+<option>Web Developer</option>
+
+<option>Python Developer</option>
+
+<option>Data Analyst</option>
+
+<option>AI Engineer</option>
+
+<option>Cyber Security</option>
+
+<option>Cloud Engineer</option>
+
+</select>
+
+<br>
+
+<button onclick="getGuide()">
+
+Get AI Guidance
+
+</button>
+
+<div id="result"></div>
+
+</div>
+
+<script>
+
+async function getGuide(){
+
+let career=document.getElementById("career").value;
+
+if(career==""){
+
+alert("Please select career");
+
+return;
+
+}
+
+const response=await fetch("/career-guide/"+encodeURIComponent(career));
+
+const data=await response.json();
+
+document.getElementById("result").innerHTML=`
+
+<h2>${career}</h2>
+
+<h3>Skills Required</h3>
+
+<ul>
+
+${data.skills.map(s=>`<li>${s}</li>`).join("")}
+
+</ul>
+
+<h3>Learning Roadmap</h3>
+
+<ol>
+
+${data.roadmap.map(r=>`<li>${r}</li>`).join("")}
+
+</ol>
+
+<h3>Top Companies</h3>
+
+<ul>
+
+${data.companies.map(c=>`<li>${c}</li>`).join("")}
+
+</ul>
+
+`;
+
+}
+
+</script>
+
+</body>
+
+</html>

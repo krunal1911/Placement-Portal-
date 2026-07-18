@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Leaderboard</title>
+
+<link rel="stylesheet" href="/leaderboard.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+
+<!-- Navigation -->
+
+<nav>
+
+<div class="logo">
+
+🏆 Placement Portal
+
+</div>
+
+<ul>
+
+<li><a href="/dashboard">Dashboard</a></li>
+<li><a href="/profile">Profile</a></li>
+<li><a href="/placement-drives">Companies</a></li>
+<li><a href="/logout">Logout</a></li>
+
+</ul>
+
+</nav>
+
+<!-- Hero -->
+
+<section class="hero">
+
+<h1>🏆 Student Leaderboard</h1>
+
+<p>
+
+Compete with your classmates and improve your ranking by completing more tests.
+
+</p>
+
+</section>
+
+<!-- Search -->
+
+<section class="search-box">
+
+<input
+type="text"
+id="search"
+placeholder="🔍 Search Student...">
+
+</section>
+
+<!-- Top 3 -->
+
+<section id="topThree" class="top-three">
+
+</section>
+
+<!-- Leaderboard -->
+
+<div class="table-card">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Rank</th>
+
+<th>Name</th>
+
+<th>Tests</th>
+
+<th>Average</th>
+
+</tr>
+
+</thead>
+
+<tbody id="leaderboardTable">
+
+</tbody>
+
+</table>
+
+</div>
+
+<div class="back">
+
+<a href="/dashboard">
+
+← Back to Dashboard
+
+</a>
+
+</div>
+
+<script>
+
+let students=[];
+
+async function loadLeaderboard(){
+    const userRes = await fetch("/current-user");
+    if (!userRes.ok) {
+        document.body.innerHTML = '';
+        Swal.fire({
+            icon: "info",
+            title: "Login Required",
+            text: "Please login or register to view the student leaderboard.",
+            showCancelButton: true,
+            confirmButtonText: "Login Now",
+            cancelButtonText: "Go Back",
+            confirmButtonColor: "#3b82f6"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = "/login";
+            } else {
+                window.location.href = "/";
+            }
+        });
+        return;
+    }
+
+    const response=await fetch("/leaderboard-data");
+
+    students=await response.json();
+
+    displayLeaderboard(students);
+
+}
+
+function displayLeaderboard(data){
+
+let table="";
+
+let top="";
+
+data.forEach((student,index)=>{
+
+const medal=
+
+index==0?"🥇":
+
+index==1?"🥈":
+
+index==2?"🥉":"#"+(index+1);
+
+if(index<3){
+
+top+=`
+
+<div class="winner">
+
+<div class="medal">${medal}</div>
+
+<h2>${student.name}</h2>
+
+<p>${student.averageScore}% Average</p>
+
+<span>${student.testsTaken} Tests</span>
+
+</div>
+
+`;
+
+}
+
+table+=`
+
+<tr>
+
+<td>${medal}</td>
+
+<td>${student.name}</td>
+
+<td>${student.testsTaken}</td>
+
+<td>
+
+<div class="progress">
+
+<div class="fill"
+
+style="width:${student.averageScore}%">
+
+${student.averageScore}%
+
+</div>
+
+</div>
+
+</td>
+
+</tr>
+
+`;
+
+});
+
+document.getElementById("leaderboardTable").innerHTML=table;
+
+document.getElementById("topThree").innerHTML=top;
+
+}
+
+document.getElementById("search").addEventListener("keyup",function(){
+
+const key=this.value.toLowerCase();
+
+const filtered=students.filter(s=>
+
+s.name.toLowerCase().includes(key)
+
+);
+
+displayLeaderboard(filtered);
+
+});
+
+loadLeaderboard();
+
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Import Questions | Admin Console</title>
+    <link rel="stylesheet" href="/dashboard.css">
+    <link rel="stylesheet" href="/admin-dashboard.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .import-box {
+            border: 2px dashed var(--border);
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            background: var(--bg-main);
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 24px;
+        }
+        .import-box:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+        .excel-info {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 24px;
+            text-align: left;
+        }
+        .excel-info h4 {
+            color: #1e40af;
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        .excel-info ul {
+            font-size: 13px;
+            color: #1e3a8a;
+            padding-left: 20px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navigation Bar -->
+<nav>
+    <div class="logo">
+        🚀 Placement Portal
+    </div>
+    <ul>
+        <li><a href="/admin-dashboard">Dashboard</a></li>
+        <li><a href="/students">Students</a></li>
+        <li><a href="/applications">Applications</a></li>
+        <li><a href="/logout">Logout</a></li>
+    </ul>
+</nav>
+
+<div class="container" style="max-width: 700px; margin: 40px auto; padding: 0 24px;">
+    <div style="margin-bottom: 24px; text-align: center;">
+        <h1 style="font-size: 28px; font-weight: 700; color: #1e3a8a;">📥 Import Questions via Excel</h1>
+        <p style="color: var(--text-muted); font-size: 14px;">Upload an Excel spreadsheet (.xlsx or .xls) to bulk import aptitude questions.</p>
+    </div>
+
+    <div class="form-card" style="max-width: 100%;">
+        <form action="/import-questions" method="POST" enctype="multipart/form-data">
+            <div class="import-box" onclick="document.getElementById('excelFile').click()">
+                <div style="font-size: 40px; margin-bottom: 12px;">📊</div>
+                <div style="font-weight: 600; font-size: 15px; color: var(--text-main); margin-bottom: 4px;">Click to Select Spreadsheet</div>
+                <div style="font-size: 12px; color: var(--text-muted);">Supports .xlsx and .xls formats</div>
+                
+                <input type="file" id="excelFile" name="excelFile" accept=".xlsx,.xls" required style="display: none;" onchange="showFilename(this)">
+                <div id="selectedFilename" style="margin-top: 14px; font-size: 13px; font-weight: 600; color: var(--primary); display: none;"></div>
+            </div>
+
+            <div style="display: flex; gap: 16px;">
+                <button type="submit" class="btn btn-primary" style="flex: 2;">Import Questions</button>
+                <a href="/admin-dashboard" class="btn btn-secondary" style="flex: 1; text-decoration: none; text-align: center;">Cancel</a>
+            </div>
+        </form>
+
+        <div class="excel-info">
+            <h4>Spreadsheet Format Guideline:</h4>
+            <ul>
+                <li>The sheet must contain these column headers: <b>Question</b>, <b>Option A</b>, <b>Option B</b>, <b>Option C</b>, <b>Option D</b>, <b>Answer</b></li>
+                <li>The <b>Answer</b> column values must match the text of the correct option exactly.</li>
+                <li>Optional columns: <b>Explanation</b>, <b>Topic</b>, <b>Difficulty</b> (Easy, Medium, Hard).</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+function showFilename(input) {
+    const filenameDiv = document.getElementById("selectedFilename");
+    if (input.files && input.files.length > 0) {
+        filenameDiv.innerText = "📁 Selected: " + input.files[0].name;
+        filenameDiv.style.display = "block";
+    } else {
+        filenameDiv.style.display = "none";
+    }
+}
+</script>
+
+</body>
+</html>

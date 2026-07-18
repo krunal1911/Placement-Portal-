@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Registration | Placement Portal</title>
+    <link rel="stylesheet" href="/dashboard.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #f1f5f9;
+        }
+        .register-container {
+            width: 100%;
+            max-width: 480px;
+            padding: 20px;
+        }
+        .register-card {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-lg);
+        }
+        .register-card h1 {
+            font-size: 26px;
+            font-weight: 700;
+            color: #1e3a8a;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .register-card p.subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .register-card button {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        .register-card .footer-links {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+        .register-card .footer-links a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .register-card .footer-links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="register-container">
+    <div class="register-card">
+        <h1>Student Sign Up</h1>
+        <p class="subtitle">Create an account to start preparing and applying.</p>
+
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" placeholder="Enter full name" required>
+                <span style="font-size: 11px; color: var(--text-muted); display: block; margin-top: 4px;">Only letters & spaces, 3-50 characters.</span>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" placeholder="student@university.edu" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="At least 8 characters" required>
+                <span style="font-size: 11px; color: var(--text-muted); display: block; margin-top: 4px;">Minimum 8 characters.</span>
+            </div>
+
+            <div class="form-group">
+                <label for="branch">Engineering Branch</label>
+                <select id="branch" required>
+                    <option value="">Select Branch</option>
+                    <option>Computer Engineering</option>
+                    <option>Information Technology</option>
+                    <option>Mechanical Engineering</option>
+                    <option>Civil Engineering</option>
+                    <option>Electrical Engineering</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="semester">Current Semester</label>
+                <select id="semester" required>
+                    <option value="">Select Semester</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                    <option>6</option>
+                    <option>7</option>
+                    <option>8</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                Create Account
+            </button>
+        </form>
+
+        <div class="footer-links">
+            Already have an account? <a href="/login">Login here</a>
+            <div style="margin-top: 12px;">
+                <a href="/" style="color: var(--text-muted); font-size: 13px;">← Back to Home</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.getElementById("registerForm").addEventListener("submit", async function(event) {
+    event.preventDefault();
+
+    const name = document.getElementById("name").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const branch = document.getElementById("branch").value;
+    const semester = document.getElementById("semester").value;
+
+    const btn = event.target.querySelector("button[type='submit']");
+    btn.disabled = true;
+    btn.innerText = "Registering Account...";
+
+    try {
+        const response = await fetch("/register", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ name, email, password, branch, semester })
+        });
+
+        const message = await response.text();
+
+        if (response.ok) {
+            Swal.fire({
+                icon: "success",
+                title: "Registration Successful!",
+                text: "You can now log in using your credentials.",
+                confirmButtonColor: "#3b82f6"
+            }).then(() => {
+                window.location.href = "/login";
+            });
+        } else {
+            Swal.fire({
+                icon: "error",
+                title: "Registration Failed",
+                text: message,
+                confirmButtonColor: "#3b82f6"
+            });
+            btn.disabled = false;
+            btn.innerText = "Create Account";
+        }
+    } catch (error) {
+        Swal.fire({
+            icon: "error",
+            title: "Connection Error",
+            text: "Unable to reach the server. Please try again later.",
+            confirmButtonColor: "#3b82f6"
+        });
+        console.error(error);
+        btn.disabled = false;
+        btn.innerText = "Create Account";
+    }
+});
+</script>
+
+</body>
+</html>

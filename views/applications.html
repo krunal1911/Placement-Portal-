@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Applications | Admin Console</title>
+    <link rel="stylesheet" href="/dashboard.css">
+    <link rel="stylesheet" href="/admin-dashboard.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- Navigation Bar -->
+<nav>
+    <div class="logo">
+        🚀 Placement Portal
+    </div>
+    <ul>
+        <li><a href="/admin-dashboard">Dashboard</a></li>
+        <li><a href="/students">Students</a></li>
+        <li><a href="/applications">Applications</a></li>
+        <li><a href="/logout">Logout</a></li>
+    </ul>
+</nav>
+
+<div class="container">
+    <div style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <a href="/admin-dashboard" style="text-decoration: none; color: var(--text-muted); font-size: 14px; font-weight: 500;">← Back to Dashboard</a>
+            <h1 style="font-size: 28px; font-weight: 700; color: #1e3a8a; margin-top: 8px;">🏢 Company Applications</h1>
+            <p style="color: var(--text-muted); font-size: 14px;">Review student job applications, status streams, and candidate resumes.</p>
+        </div>
+    </div>
+
+    <!-- Filters Control Bar -->
+    <div class="card" style="margin-bottom: 30px; text-align: left; display: flex; gap: 16px; align-items: center; padding: 20px;">
+        <div style="flex: 1;">
+            <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Search Applications</label>
+            <input type="text" id="search" placeholder="🔍 Search by student, company, or job role..." onkeyup="searchApplications()" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;">
+        </div>
+        <div style="margin-top: 20px;">
+            <button class="btn btn-secondary" onclick="resetSearch()" style="padding: 11px 20px; font-size: 13px;">Clear Filter</button>
+        </div>
+    </div>
+
+    <!-- Applications Data Table -->
+    <div style="background: white; border-radius: 16px; border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow-sm);">
+        <table style="margin: 0; border: none; box-shadow: none;">
+            <thead>
+                <tr>
+                    <th>Student Name</th>
+                    <th>Email Address</th>
+                    <th>Company</th>
+                    <th>Job Role</th>
+                    <th>Application Status</th>
+                    <th>Resume Doc</th>
+                </tr>
+            </thead>
+            <tbody id="applicationTable">
+                <tr>
+                    <td colspan="6" style="text-align: center; color: var(--text-muted);">Loading applications list...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+let applications = [];
+
+async function loadApplications() {
+    try {
+        const response = await fetch("/applications-data");
+        if (!response.ok) throw new Error("Unauthorized");
+        applications = await response.json();
+        displayApplications(applications);
+    } catch (e) {
+        console.error(e);
+        document.getElementById("applicationTable").innerHTML = '<tr><td colspan="6" style="text-align:center; color:red;">Failed to load applications.</td></tr>';
+    }
+}
+
+function displayApplications(data) {
+    let html = "";
+    if (data.length === 0) {
+        html = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No placement applications found.</td></tr>`;
+    } else {
+        data.forEach(app => {
+            const userName = app.userId ? app.userId.name : "Unknown Student";
+            const userEmail = app.userId ? app.userId.email : "N/A";
+            const companyName = app.companyId ? app.companyId.companyName : "N/A";
+            const jobRole = app.companyId ? app.companyId.jobRole : "N/A";
+            const status = app.status || "Applied";
+            
+            // Format status badge class
+            let statusClass = "status-applied";
+            if (status === "Shortlisted") statusClass = "status-shortlisted";
+            else if (status === "Interview Scheduled") statusClass = "status-interview";
+            else if (status === "Selected") statusClass = "status-selected";
+            else if (status === "Rejected") statusClass = "status-rejected";
+
+            const resumeHtml = app.userId && app.userId.resume
+                ? `<a href="/uploads/${app.userId.resume}" target="_blank" class="btn" style="padding: 4px 8px; font-size:11px; background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; font-weight:600; text-decoration:none; border-radius:6px;">📄 View PDF</a>`
+                : `<span style="color:var(--text-muted); font-size:12px;">No Resume</span>`;
+
+            html += `
+                <tr>
+                    <td style="font-weight: 500;">${userName}</td>
+                    <td>${userEmail}</td>
+                    <td style="font-weight: 500; color: #1e3a8a;">${companyName}</td>
+                    <td>${jobRole}</td>
+                    <td>
+                        <span class="status-badge ${statusClass}">${status}</span>
+                    </td>
+                    <td>${resumeHtml}</td>
+                </tr>
+            `;
+        });
+    }
+    document.getElementById("applicationTable").innerHTML = html;
+}
+
+function searchApplications() {
+    const key = document.getElementById("search").value.toLowerCase();
+    const filtered = applications.filter(app => {
+        const name = app.userId ? app.userId.name.toLowerCase() : "";
+        const email = app.userId ? app.userId.email.toLowerCase() : "";
+        const comp = app.companyId ? app.companyId.companyName.toLowerCase() : "";
+        const role = app.companyId ? app.companyId.jobRole.toLowerCase() : "";
+        return name.includes(key) || email.includes(key) || comp.includes(key) || role.includes(key);
+    });
+    displayApplications(filtered);
+}
+
+function resetSearch() {
+    document.getElementById("search").value = "";
+    displayApplications(applications);
+}
+
+loadApplications();
+</script>
+
+</body>
+</html>

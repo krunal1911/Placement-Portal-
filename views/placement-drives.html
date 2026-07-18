@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Placement Drives</title>
+
+    <link rel="stylesheet" href="/placement-drives.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+
+<nav>
+
+    <div class="logo">
+        🚀 Placement Portal
+    </div>
+
+    <ul>
+
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/profile">Profile</a></li>
+        <li><a href="/leaderboard">Leaderboard</a></li>
+        <li><a href="/logout">Logout</a></li>
+
+    </ul>
+
+</nav>
+
+<section class="hero">
+
+    <h1>🏢 Placement Drives</h1>
+
+    <p>
+        Browse the latest companies visiting campus and apply with one click.
+    </p>
+
+</section>
+
+<section class="search-section">
+
+    <input
+        type="text"
+        id="search"
+        placeholder="🔍 Search company or job role...">
+
+</section>
+
+<section id="companyContainer" class="company-grid">
+
+</section>
+
+<div class="back">
+
+    <a href="/dashboard">
+        ← Back to Dashboard
+    </a>
+
+</div>
+
+<script>
+
+async function loadCompanies(){
+
+    const response = await fetch("/companies");
+
+    const companies = await response.json();
+
+    displayCompanies(companies);
+
+}
+
+function displayCompanies(companies){
+
+    const container=document.getElementById("companyContainer");
+
+    container.innerHTML="";
+
+    companies.forEach(company=>{
+
+        container.innerHTML+=`
+
+        <div class="company-card">
+
+            <div class="top">
+
+                <div>
+
+                    <h2>${company.companyName}</h2>
+
+                    <span>${company.jobRole}</span>
+
+                </div>
+
+                <div class="salary">
+
+                    ₹ ${company.package}
+                </div>
+
+            </div>
+
+            <div class="details">
+
+                <p>📍 ${company.location}</p>
+
+                <p>🎓 ${company.eligibility}</p>
+
+                <p>📅 Last Date : ${company.lastDate}</p>
+
+            </div>
+
+            <button onclick="applyCompany('${company._id}')">
+
+                Apply Now
+
+            </button>
+
+        </div>
+
+        `;
+
+    });
+
+}
+
+async function applyCompany(id){
+    const userRes = await fetch("/current-user");
+    if (!userRes.ok) {
+        Swal.fire({
+            icon: "info",
+            title: "Login Required",
+            text: "Please login or register to apply for placement drives.",
+            showCancelButton: true,
+            confirmButtonText: "Login Now",
+            cancelButtonText: "Cancel",
+            confirmButtonColor: "#3b82f6"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = "/login";
+            }
+        });
+        return;
+    }
+
+    const response = await fetch("/apply-company",{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body: JSON.stringify({
+            companyId: id
+        })
+    });
+
+    const msg = await response.text();
+    Swal.fire({
+        icon: response.ok ? "success" : "warning",
+        title: response.ok ? "Application Saved!" : "Application Blocked",
+        text: msg,
+        confirmButtonColor: "#3b82f6"
+    });
+}
+
+document.getElementById("search").addEventListener("keyup",async function(){
+
+    const text=this.value.toLowerCase();
+
+    const response=await fetch("/companies");
+
+    const companies=await response.json();
+
+    const filtered=companies.filter(c=>
+
+        c.companyName.toLowerCase().includes(text) ||
+
+        c.jobRole.toLowerCase().includes(text)
+
+    );
+
+    displayCompanies(filtered);
+
+});
+
+async function checkUserSession() {
+    const userRes = await fetch("/current-user");
+    if (!userRes.ok) {
+        document.body.innerHTML = '';
+        Swal.fire({
+            icon: "info",
+            title: "Login Required",
+            text: "Please login or register to view placement drives.",
+            showCancelButton: true,
+            confirmButtonText: "Login Now",
+            cancelButtonText: "Go Back",
+            confirmButtonColor: "#3b82f6"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = "/login";
+            } else {
+                window.location.href = "/";
+            }
+        });
+    }
+}
+checkUserSession();
+loadCompanies();
+
+</script>
+
+</body>
+</html>

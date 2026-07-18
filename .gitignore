@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Environment Variables (NEVER commit these)
+.env
+.env.local
+.env.production
+
+# Uploaded user files (resumes, profile images, excel files)
+uploads/
+
+# IDE / Editor settings
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Scratch / temp scripts
+scratch/
+
+# Logs
+*.log
+npm-debug.log*

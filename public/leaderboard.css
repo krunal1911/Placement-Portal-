@@ -1,0 +1,232 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Segoe UI',sans-serif;
+}
+
+body{
+    background:#f4f7fc;
+}
+
+/* ================= NAVBAR ================= */
+
+nav{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:18px 8%;
+    background:#fff;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+}
+
+.logo{
+    font-size:28px;
+    font-weight:700;
+    color:#2563eb;
+}
+
+nav ul{
+    display:flex;
+    list-style:none;
+    gap:30px;
+}
+
+nav ul li a{
+    text-decoration:none;
+    color:#333;
+    font-weight:600;
+    transition:.3s;
+}
+
+nav ul li a:hover{
+    color:#2563eb;
+}
+
+/* ================= HERO ================= */
+
+.hero{
+    width:90%;
+    margin:35px auto;
+    background:linear-gradient(135deg,#2563eb,#4f46e5);
+    color:#fff;
+    padding:45px;
+    border-radius:22px;
+    text-align:center;
+    box-shadow:0 15px 35px rgba(37,99,235,.25);
+}
+
+.hero h1{
+    font-size:42px;
+    margin-bottom:15px;
+}
+
+.hero p{
+    font-size:18px;
+}
+
+/* ================= SEARCH ================= */
+
+.search-box{
+    width:90%;
+    margin:auto;
+    display:flex;
+    justify-content:center;
+}
+
+.search-box input{
+    width:420px;
+    max-width:100%;
+    padding:15px 20px;
+    border:none;
+    border-radius:40px;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+    font-size:16px;
+    outline:none;
+}
+
+/* ================= TOP 3 ================= */
+
+.top-three{
+    width:90%;
+    margin:40px auto;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:25px;
+}
+
+.winner{
+    background:#fff;
+    border-radius:20px;
+    padding:30px;
+    text-align:center;
+    box-shadow:0 10px 25px rgba(0,0,0,.08);
+    transition:.3s;
+}
+
+.winner:hover{
+    transform:translateY(-8px);
+}
+
+.medal{
+    font-size:60px;
+    margin-bottom:15px;
+}
+
+.winner h2{
+    color:#2563eb;
+    margin-bottom:10px;
+}
+
+.winner p{
+    color:#444;
+    margin-bottom:8px;
+}
+
+.winner span{
+    color:#777;
+}
+
+/* ================= TABLE ================= */
+
+.table-card{
+    width:90%;
+    margin:40px auto;
+    background:#fff;
+    border-radius:20px;
+    overflow:hidden;
+    box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+thead{
+    background:#2563eb;
+    color:white;
+}
+
+th,
+td{
+    padding:18px;
+    text-align:center;
+}
+
+tbody tr:nth-child(even){
+    background:#f8faff;
+}
+
+tbody tr:hover{
+    background:#eef4ff;
+}
+
+/* ================= PROGRESS BAR ================= */
+
+.progress{
+    width:100%;
+    background:#e5e7eb;
+    border-radius:20px;
+    overflow:hidden;
+}
+
+.fill{
+    background:linear-gradient(90deg,#2563eb,#4f46e5);
+    color:white;
+    padding:8px 0;
+    font-size:14px;
+    border-radius:20px;
+    text-align:center;
+}
+
+/* ================= BACK BUTTON ================= */
+
+.back{
+    text-align:center;
+    margin:40px;
+}
+
+.back a{
+    text-decoration:none;
+    color:#2563eb;
+    font-weight:bold;
+    font-size:18px;
+}
+
+.back a:hover{
+    text-decoration:underline;
+}
+
+/* ================= MOBILE ================= */
+
+@media(max-width:900px){
+
+    nav{
+        flex-direction:column;
+        gap:15px;
+    }
+
+    nav ul{
+        flex-wrap:wrap;
+        justify-content:center;
+    }
+
+    .top-three{
+        grid-template-columns:1fr;
+    }
+
+    .hero h1{
+        font-size:32px;
+    }
+
+    table{
+        font-size:14px;
+    }
+
+    th,
+    td{
+        padding:12px;
+    }
+
+}

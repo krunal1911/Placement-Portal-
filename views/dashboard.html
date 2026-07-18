@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Student Dashboard</title>
+
+<link rel="stylesheet" href="/dashboard.css">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+
+<body>
+
+<!-- ================= NAVBAR ================= -->
+
+<nav>
+
+    <div class="logo">
+
+        🚀 Placement Portal
+
+    </div>
+
+    <ul>
+
+        <li><a href="/dashboard">Dashboard</a></li>
+
+        <li><a href="/profile">Profile</a></li>
+
+        <li><a href="/resume">Resume</a></li>
+
+        <li><a href="/placement-drives">Companies</a></li>
+
+        <!-- Notification Bell -->
+        <li class="notification-container">
+
+            <button id="notificationBtn" class="notification-btn">
+
+                🔔
+
+                <span id="notificationCount" class="notification-count">
+                    0
+                </span>
+
+            </button>
+
+            <div id="notificationPanel" class="notification-panel">
+
+                <h3>Notifications</h3>
+
+                <div id="notificationList">
+
+                    Loading...
+
+                </div>
+
+            </div>
+
+        </li>
+
+        <li><a href="/logout">Logout</a></li>
+
+    </ul>
+
+</nav>
+
+<!-- ================= HERO ================= -->
+
+<section class="hero">
+
+<div class="hero-left">
+
+<h1 id="welcomeUser">
+
+Welcome 👋
+
+</h1>
+
+<p>
+
+Practice aptitude, improve technical skills,
+track your progress and get placed in your
+dream company.
+
+</p>
+
+<a href="/aptitude" class="hero-btn">
+
+Start Practice →
+
+</a>
+
+</div>
+
+<div class="hero-right">
+
+<img
+id="heroProfile"
+src="/uploads/profiles/default.png"
+alt="Profile">
+
+</div>
+
+</section>
+<div class="profile-widget">
+
+    <h3>👤 Profile Completion</h3>
+
+    <div class="dashboard-progress">
+
+        <div id="dashboardProgressBar" class="dashboard-progress-fill"></div>
+
+    </div>
+
+    <p>
+
+        <strong id="dashboardPercentage">0%</strong> Completed
+
+    </p>
+
+    <a href="/profile" class="complete-profile-btn">
+
+        Complete Profile →
+
+    </a>
+
+</div>
+<!-- ================= STATISTICS ================= -->
+
+<section class="stats">
+
+<div class="stat-card">
+
+<h3>📘 Tests Taken</h3>
+
+<h2 id="testsTaken">
+
+0
+
+</h2>
+
+</div>
+
+<div class="stat-card">
+
+<h3>🎯 Average Score</h3>
+
+<h2 id="averageScore">
+
+0%
+
+</h2>
+
+</div>
+
+<div class="stat-card">
+
+<h3>📄 Resume</h3>
+
+<h2 id="resumeStatus">
+
+Uploaded
+
+</h2>
+
+</div>
+
+<div class="stat-card">
+
+<h3>🏢 Companies Applied</h3>
+
+<h2 id="companiesApplied">
+
+0
+
+</h2>
+
+</div>
+
+</section>
+<!-- ================= QUICK ACTIONS ================= -->
+
+<section class="quick-actions">
+
+    <a href="/aptitude" class="action-card">
+        <div class="action-icon">📝</div>
+        <h3>Aptitude Test</h3>
+        <p>Practice quantitative aptitude questions.</p>
+    </a>
+
+    <a href="/technical" class="action-card">
+        <div class="action-icon">💻</div>
+        <h3>Technical MCQs</h3>
+        <p>Programming, DBMS, OS and CN questions.</p>
+    </a>
+
+    <a href="/placement-drives" class="action-card">
+        <div class="action-icon">🏢</div>
+        <h3>Placement Drives</h3>
+        <p>Apply to available companies.</p>
+    </a>
+
+    <a href="/leaderboard" class="action-card">
+        <div class="action-icon">🏆</div>
+        <h3>Leaderboard</h3>
+        <p>Compare your performance with others.</p>
+    </a>
+
+</section>
+
+<!-- ================= DASHBOARD GRID ================= -->
+
+<section class="dashboard-grid">
+
+    <!-- Chart -->
+
+    <div class="chart-card">
+
+        <div class="card-header">
+
+            <h2>📊 Performance Analytics</h2>
+
+            <p>Your recent performance overview</p>
+
+        </div>
+
+        <canvas id="progressChart"></canvas>
+
+    </div>
+
+    <!-- Recent Activity -->
+
+    <div class="activity-card">
+
+        <div class="card-header">
+
+            <h2>🕒 Recent Activity</h2>
+
+        </div>
+
+        <div id="recentActivity">
+
+            <div class="activity-item">
+                <span>🔐</span>
+                <p>Logged in successfully.</p>
+            </div>
+
+            <div class="activity-item">
+                <span>📄</span>
+                <p>Resume uploaded.</p>
+            </div>
+
+            <div class="activity-item">
+                <span>🏢</span>
+                <p>Applied to placement drive.</p>
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- ================= MOTIVATION ================= -->
+
+<section class="motivation">
+
+    <h2>🚀 Keep Improving Every Day</h2>
+
+    <p>
+
+        Success in placements comes from consistent practice.
+        Complete aptitude tests, solve technical MCQs,
+        update your resume and apply to companies regularly.
+
+    </p>
+
+</section>
+<script>
+
+let chart = null;
+
+// ---------------- LOAD USER ----------------
+
+async function loadDashboard() {
+
+    try {
+
+        const response = await fetch("/user");
+
+        if (!response.ok) {
+            window.location.href = "/login";
+            return;
+        }
+
+        const user = await response.json();
+
+        // Welcome
+        document.getElementById("welcomeUser").innerHTML =
+            "Welcome, " + user.name + " 👋";
+
+        // Profile Image
+        document.getElementById("heroProfile").src =
+            "/uploads/profiles/" +
+            (user.profileImage || "default.png") +
+            "?t=" + Date.now();
+
+        // Statistics
+        document.getElementById("testsTaken").innerHTML =
+            user.testsTaken || 0;
+
+        document.getElementById("averageScore").innerHTML =
+            (user.averageScore || 0) + "%";
+
+        document.getElementById("resumeStatus").innerHTML =
+            user.resume && user.resume !== ""
+            ? "Uploaded"
+            : "Not Uploaded";
+
+        // Company count (if you add later)
+        document.getElementById("companiesApplied").innerHTML =
+            user.companiesApplied || 0;
+
+        
+        document.getElementById("dashboardPercentage").innerHTML =
+            user.profileCompletion + "%";
+
+        document.getElementById("dashboardProgressBar").style.width =
+            user.profileCompletion + "%";
+            
+        loadChart(
+            user.testsTaken || 0,
+            user.averageScore || 0
+        );
+
+    }
+
+    catch(err){
+
+        console.log(err);
+
+    }
+
+}
+
+// ---------------- CHART ----------------
+
+function loadChart(testsTaken, averageScore){
+
+    const ctx =
+        document.getElementById("progressChart");
+
+    if(chart){
+
+        chart.destroy();
+
+    }
+
+    chart = new Chart(ctx,{
+
+        type:"bar",
+
+        data:{
+
+            labels:[
+                "Tests",
+                "Average Score"
+            ],
+
+            datasets:[{
+
+                label:"Performance",
+
+                data:[
+                    testsTaken,
+                    averageScore
+                ],
+
+                borderWidth:2
+
+            }]
+
+        },
+
+        options:{
+
+            responsive:true,
+
+            plugins:{
+
+                legend:{
+                    display:false
+                }
+
+            },
+
+            scales:{
+
+                y:{
+                    beginAtZero:true,
+                    max:100
+                }
+
+            }
+
+        }
+
+    });
+
+}
+
+loadDashboard();
+
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Management | Placement Portal</title>
+    <link rel="stylesheet" href="/dashboard.css">
+    <link rel="stylesheet" href="/toast.css">
+    <script src="/toast.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .management-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            margin-top: 32px;
+        }
+        .action-card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 320px;
+        }
+        .action-card h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1e3a8a;
+            margin-bottom: 12px;
+        }
+        .action-card p {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 24px;
+            max-width: 280px;
+        }
+        .icon-circle {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+        .file-input-wrapper input[type=file] {
+            font-size: 100px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .file-input-btn {
+            border: 2px dashed var(--primary);
+            color: var(--primary);
+            background: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            display: inline-block;
+            width: 100%;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .file-input-wrapper:hover .file-input-btn {
+            background: var(--primary-light);
+        }
+        .status-container {
+            margin-top: 32px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="logo">🚀 Placement Portal</div>
+    <ul>
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/profile">Profile</a></li>
+        <li><a href="/placement-drives">Companies</a></li>
+        <li><a href="/logout">Logout</a></li>
+    </ul>
+</nav>
+
+<div class="main-container">
+    <div class="hero" style="padding: 32px 48px; margin-bottom: 0;">
+        <div class="hero-left">
+            <h1>📄 Resume Management</h1>
+            <p>Upload a custom PDF resume or dynamically build a professional PDF resume using your profile details.</p>
+        </div>
+    </div>
+
+    <div class="management-grid">
+        <!-- Option 1: Upload -->
+        <div class="action-card">
+            <div>
+                <div class="icon-circle">📁</div>
+                <h2>Upload Custom Resume</h2>
+                <p>Already have a designed resume? Upload your PDF copy (Max 5MB) here.</p>
+            </div>
+            <form action="/upload-resume" method="POST" enctype="multipart/form-data" style="width: 100%;">
+                <div class="file-input-wrapper">
+                    <span class="file-input-btn" id="fileLabel">Choose PDF File</span>
+                    <input type="file" name="resume" accept=".pdf" required onchange="updateFileLabel(this)">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Upload Resume</button>
+            </form>
+        </div>
+
+        <!-- Option 2: Build -->
+        <div class="action-card">
+            <div>
+                <div class="icon-circle">⚙️</div>
+                <h2>AI Resume Builder</h2>
+                <p>Generate a professional, fully-formatted PDF resume based on your current profile information instantly.</p>
+            </div>
+            <div style="width: 100%;">
+                <button id="buildResumeBtn" class="btn btn-success" style="width: 100%; padding: 14px 20px;" onclick="generateResume()">
+                    ⚡ Build PDF Resume
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="status-container" id="statusContainer" style="display: none;">
+        <h3 style="font-size: 18px; font-weight: 600; color: #059669; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <span>✅</span> Active Resume Attached
+        </h3>
+        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;" id="resumeFilenameText">Filename: </p>
+        <div style="display: flex; justify-content: center; gap: 12px;">
+            <a id="viewResumeLink" href="#" target="_blank" class="btn btn-primary">👁 View PDF</a>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateFileLabel(input) {
+    const filename = input.files[0] ? input.files[0].name : "Choose PDF File";
+    document.getElementById("fileLabel").innerText = filename;
+}
+
+async function loadResume() {
+    try {
+        const response = await fetch("/current-user");
+        if (!response.ok) {
+            document.body.innerHTML = '';
+            Swal.fire({
+                icon: "info",
+                title: "Login Required",
+                text: "Please login or register to manage your resume.",
+                showCancelButton: true,
+                confirmButtonText: "Login Now",
+                cancelButtonText: "Go Back",
+                confirmButtonColor: "#3b82f6"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "/login";
+                } else {
+                    window.location.href = "/";
+                }
+            });
+            return;
+        }
+        const user = await response.json();
+        if (user.resume) {
+            document.getElementById("statusContainer").style.display = "block";
+            document.getElementById("resumeFilenameText").innerText = `Filename: ${user.resume}`;
+            document.getElementById("viewResumeLink").href = `/uploads/${user.resume}`;
+        } else {
+            document.getElementById("statusContainer").style.display = "none";
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+async function generateResume() {
+    const btn = document.getElementById("buildResumeBtn");
+    btn.disabled = true;
+    btn.innerText = "Generating Resume PDF...";
+    
+    try {
+        const res = await fetch("/build-resume", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
+        });
+        
+        const data = await res.json();
+        if (data.success) {
+            showToast("Professional PDF resume generated and linked successfully!", "success");
+            loadResume();
+        } else {
+            showToast(data.error || "Failed to generate resume.", "error");
+        }
+    } catch (e) {
+        console.error(e);
+        showToast("Error generating resume.", "error");
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "⚡ Build PDF Resume";
+    }
+}
+
+loadResume();
+</script>
+</body>
+</html>

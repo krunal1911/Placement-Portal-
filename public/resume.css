@@ -1,0 +1,187 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Segoe UI',sans-serif;
+}
+
+body{
+    background:#f4f7fc;
+}
+
+/* ================= NAVBAR ================= */
+
+nav{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:18px 8%;
+    background:#fff;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+}
+
+.logo{
+    font-size:28px;
+    font-weight:bold;
+    color:#2563eb;
+}
+
+nav ul{
+    display:flex;
+    list-style:none;
+    gap:30px;
+}
+
+nav a{
+    text-decoration:none;
+    color:#333;
+    font-weight:600;
+    transition:.3s;
+}
+
+nav a:hover{
+    color:#2563eb;
+}
+
+/* ================= HERO ================= */
+
+.hero{
+    width:90%;
+    margin:35px auto;
+    background:linear-gradient(135deg,#2563eb,#4f46e5);
+    color:white;
+    text-align:center;
+    padding:45px;
+    border-radius:22px;
+    box-shadow:0 15px 35px rgba(37,99,235,.25);
+}
+
+.hero h1{
+    font-size:40px;
+    margin-bottom:12px;
+}
+
+.hero p{
+    font-size:18px;
+    opacity:.95;
+}
+
+/* ================= CARD ================= */
+
+.resume-card{
+    width:600px;
+    max-width:90%;
+    margin:40px auto;
+    background:white;
+    border-radius:20px;
+    padding:40px;
+    text-align:center;
+    box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+
+.upload-icon{
+    font-size:70px;
+    margin-bottom:20px;
+}
+
+.resume-card h2{
+    color:#2563eb;
+    margin-bottom:10px;
+}
+
+.info{
+    color:#666;
+    margin-bottom:25px;
+}
+
+input[type=file]{
+    width:100%;
+    padding:15px;
+    border:2px dashed #2563eb;
+    border-radius:12px;
+    background:#f8fbff;
+    cursor:pointer;
+    margin-bottom:25px;
+}
+
+.resume-card button{
+    width:100%;
+    padding:15px;
+    border:none;
+    border-radius:12px;
+    background:#2563eb;
+    color:white;
+    font-size:16px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.resume-card button:hover{
+    background:#1d4ed8;
+}
+
+.resume-preview{
+    margin-top:30px;
+    background:#ecfdf5;
+    border:1px solid #22c55e;
+    border-radius:15px;
+    padding:20px;
+}
+
+.resume-preview h3{
+    color:#15803d;
+    margin-bottom:15px;
+}
+
+.viewBtn{
+    width:auto !important;
+    padding:12px 25px !important;
+    background:#16a34a !important;
+}
+
+.viewBtn:hover{
+    background:#15803d !important;
+}
+
+/* ================= BACK ================= */
+
+.back{
+    text-align:center;
+    margin:40px;
+}
+
+.back a{
+    text-decoration:none;
+    color:#2563eb;
+    font-weight:bold;
+    font-size:18px;
+}
+
+.back a:hover{
+    text-decoration:underline;
+}
+
+/* ================= MOBILE ================= */
+
+@media(max-width:768px){
+
+    nav{
+        flex-direction:column;
+        gap:15px;
+    }
+
+    nav ul{
+        flex-wrap:wrap;
+        justify-content:center;
+    }
+
+    .hero h1{
+        font-size:30px;
+    }
+
+    .resume-card{
+        padding:25px;
+    }
+
+}

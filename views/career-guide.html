@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Career Advisor | Placement Portal</title>
+    <link rel="stylesheet" href="/dashboard.css">
+    <link rel="stylesheet" href="/toast.css">
+    <script src="/toast.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .roadmap-card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 32px;
+            box-shadow: var(--shadow-sm);
+            margin-top: 32px;
+        }
+        .roadmap-header {
+            border-bottom: 2px solid var(--primary-light);
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+        }
+        .roadmap-section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e3a8a;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .skills-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+        .skill-tag {
+            background: var(--primary-light);
+            color: var(--primary-hover);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid rgba(59, 130, 246, 0.15);
+        }
+        .step-list {
+            list-style: none;
+            padding-left: 0;
+            margin-bottom: 24px;
+        }
+        .step-item {
+            position: relative;
+            padding-left: 36px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+        .step-item::before {
+            content: attr(data-step);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .company-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 16px;
+        }
+        .company-card {
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+            color: #475569;
+            transition: all 0.2s;
+        }
+        .company-card:hover {
+            border-color: var(--primary);
+            color: var(--primary-hover);
+            background: var(--primary-light);
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="logo">🚀 Placement Portal</div>
+    <ul>
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/profile">Profile</a></li>
+        <li><a href="/placement-drives">Companies</a></li>
+        <li><a href="/logout">Logout</a></li>
+    </ul>
+</nav>
+
+<div class="main-container" style="max-width: 900px;">
+    <div class="hero" style="padding: 32px 48px; margin-bottom: 32px;">
+        <div class="hero-left" style="max-width: 100%;">
+            <h1>🤖 AI Career Advisor</h1>
+            <p>Get a comprehensive, customized learning roadmap, critical skills checklists, and top hiring firms tailored to your goals.</p>
+        </div>
+    </div>
+
+    <div class="card" style="margin-bottom: 0;">
+        <div class="form-group" style="margin-bottom: 0; display: flex; gap: 16px; align-items: flex-end;">
+            <div style="flex: 1;">
+                <label for="careerSelect" style="font-weight: 600;">Choose Your Target Career Path:</label>
+                <select id="careerSelect" style="padding: 12px; background: white;">
+                    <option value="">-- Select Career Path --</option>
+                    <option value="Java Developer">Java Software Developer</option>
+                    <option value="Web Developer">Full Stack Web Developer</option>
+                    <option value="Python Developer">Python Software Engineer</option>
+                    <option value="Data Analyst">Business & Data Analyst</option>
+                    <option value="AI Engineer">Artificial Intelligence Engineer</option>
+                    <option value="Cyber Security">Cyber Security Analyst</option>
+                    <option value="Cloud Engineer">Cloud Solutions Architect</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" style="padding: 12px 28px; height: 46px;" onclick="getAIAdvice()">
+                Generate Roadmap
+            </button>
+        </div>
+    </div>
+
+    <!-- Results Panel -->
+    <div class="roadmap-card" id="roadmapPanel" style="display: none;">
+        <div class="roadmap-header">
+            <h2 id="careerTitle" style="font-size: 22px; font-weight: 700; color: #1e3a8a; margin-bottom: 4px;">Career Path</h2>
+            <p style="color: var(--text-muted); font-size: 14px;">Personalized roadmap compiled by the AI Advisor engine.</p>
+        </div>
+
+        <!-- Section 1: Skills -->
+        <div>
+            <h3 class="roadmap-section-title">Required Core Skills</h3>
+            <div class="skills-grid" id="skillsContainer"></div>
+        </div>
+
+        <!-- Section 2: Steps -->
+        <div style="margin-top: 12px;">
+            <h3 class="roadmap-section-title">Step-by-Step Learning Timeline</h3>
+            <ol class="step-list" id="stepsContainer"></ol>
+        </div>
+
+        <!-- Section 3: Companies -->
+        <div style="margin-top: 12px;">
+            <h3 class="roadmap-section-title">Top Hiring Companies</h3>
+            <div class="company-grid" id="companiesContainer"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+let isGuest = false;
+
+async function checkUserSession() {
+    const userRes = await fetch("/current-user");
+    if (!userRes.ok) {
+        document.body.innerHTML = '';
+        Swal.fire({
+            icon: "info",
+            title: "Login Required",
+            text: "Please login or register to consult the AI Career Advisor.",
+            showCancelButton: true,
+            confirmButtonText: "Login Now",
+            cancelButtonText: "Go Back",
+            confirmButtonColor: "#3b82f6"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = "/login";
+            } else {
+                window.location.href = "/";
+            }
+        });
+    }
+}
+checkUserSession();
+
+async function getAIAdvice() {
+    if (isGuest) {
+        Swal.fire({
+            icon: "info",
+            title: "Login Required",
+            text: "Please login or register to consult the AI Career Advisor.",
+            showCancelButton: true,
+            confirmButtonText: "Login Now",
+            cancelButtonText: "Cancel",
+            confirmButtonColor: "#3b82f6"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = "/login";
+            }
+        });
+        return;
+    }
+
+    const career = document.getElementById("careerSelect").value;
+    if (!career) {
+        showToast("Please choose a target career path first.", "error");
+        return;
+    }
+    
+    const panel = document.getElementById("roadmapPanel");
+    panel.style.display = "none";
+    
+    try {
+        const res = await fetch(`/career-guide/${encodeURIComponent(career)}`);
+        if (res.status === 401) {
+            showToast("Session expired. Please login again.", "error");
+            setTimeout(() => window.location = "/login", 2000);
+            return;
+        }
+        
+        if (!res.ok) throw new Error("Roadmap request failed");
+        
+        const data = await res.json();
+        
+        // Populate Title
+        document.getElementById("careerTitle").innerText = career;
+        
+        // Populate Skills
+        const skillsContainer = document.getElementById("skillsContainer");
+        skillsContainer.innerHTML = data.skills.map(s => `<span class="skill-tag">${s}</span>`).join("");
+        
+        // Populate Steps
+        const stepsContainer = document.getElementById("stepsContainer");
+        stepsContainer.innerHTML = data.roadmap.map((step, idx) => `
+            <li class="step-item" data-step="${idx + 1}">
+                ${step}
+            </li>
+        `).join("");
+        
+        // Populate Companies
+        const companiesContainer = document.getElementById("companiesContainer");
+        companiesContainer.innerHTML = data.companies.map(c => `
+            <div class="company-card">${c}</div>
+        `).join("");
+        
+        // Reveal Panel with micro-animation trigger
+        panel.style.display = "block";
+        showToast(`AI roadmap for ${career} loaded successfully!`, "success");
+        
+    } catch (e) {
+        console.error(e);
+        showToast("Failed to compile roadmap details.", "error");
+    }
+}
+</script>
+</body>
+</html>

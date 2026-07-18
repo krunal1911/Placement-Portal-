@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Administrators | Placement Portal</title>
+    <link rel="stylesheet" href="/dashboard.css">
+    <link rel="stylesheet" href="/admin-dashboard.css">
+    <link rel="stylesheet" href="/toast.css">
+    <script src="/toast.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 40px auto;
+        }
+        .admin-layout {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 32px;
+        }
+        .admin-card {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+        }
+        .admin-card h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1e3a8a;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+        }
+        .admin-list-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .admin-list-table th, .admin-list-table td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        .admin-list-table th {
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .admin-list-table td {
+            font-size: 14px;
+        }
+        .role-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .badge-superadmin {
+            background: #eff6ff;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+        .badge-admin {
+            background: #f3f4f6;
+            color: #374151;
+            border: 1px solid #e5e7eb;
+        }
+        .btn-delete {
+            background: #ef4444;
+            color: white;
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            border: none;
+            transition: background 0.2s;
+        }
+        .btn-delete:hover {
+            background: #dc2626;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navigation Bar -->
+<nav>
+    <div class="logo">
+        🚀 Placement Portal
+    </div>
+    <ul>
+        <li><a href="/admin-dashboard">Dashboard</a></li>
+        <li><a href="/students">Students</a></li>
+        <li><a href="/applications">Applications</a></li>
+        <li><a href="/logout">Logout</a></li>
+    </ul>
+</nav>
+
+<div class="container">
+    <div style="margin-bottom: 24px;">
+        <a href="/admin-dashboard" style="text-decoration: none; color: var(--text-muted); font-size: 14px; font-weight: 500;">← Back to Dashboard</a>
+        <h1 style="font-size: 28px; font-weight: 700; color: #1e3a8a; margin-top: 8px;">👨‍💼 Administrator Accounts</h1>
+        <p style="color: var(--text-muted); font-size: 14px;">Create, view and manage portal administrator access controls.</p>
+    </div>
+
+    <div class="admin-layout">
+        <!-- Add Admin Form -->
+        <div class="admin-card">
+            <h2>Add New Administrator</h2>
+            <form id="addAdminForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="Enter username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter password" required>
+                </div>
+                <div class="form-group">
+                    <label for="role">Access Role</label>
+                    <select id="role" required>
+                        <option value="admin">Other Admin (Restricted)</option>
+                        <option value="superadmin">Super Admin (Full Access)</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+                    Create Account
+                </button>
+            </form>
+        </div>
+
+        <!-- Administrators List -->
+        <div class="admin-card">
+            <h2>Active Administrators</h2>
+            <table class="admin-list-table">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="adminsTableBody">
+                    <tr>
+                        <td colspan="3" style="text-align: center;">Loading administrators...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+// Load all admin accounts
+async function loadAdmins() {
+    try {
+        const response = await fetch("/admins-data");
+        if (!response.ok) {
+            if (response.status === 403) {
+                showToast("Access Denied: Super Admin required.", "error");
+                setTimeout(() => window.location.href = "/admin-dashboard", 2000);
+                return;
+            }
+            throw new Error("Failed to load");
+        }
+        const admins = await response.json();
+        
+        let html = "";
+        admins.forEach(admin => {
+            const roleClass = admin.role === "superadmin" ? "badge-superadmin" : "badge-admin";
+            html += `
+                <tr>
+                    <td style="font-weight: 500;">${admin.username}</td>
+                    <td><span class="role-badge ${roleClass}">${admin.role}</span></td>
+                    <td>
+                        <button class="btn-delete" onclick="deleteAdmin('${admin._id}', '${admin.username}')">Delete</button>
+                    </td>
+                </tr>
+            `;
+        });
+        
+        document.getElementById("adminsTableBody").innerHTML = html || '<tr><td colspan="3" style="text-align:center;">No administrators found.</td></tr>';
+    } catch (e) {
+        console.error(e);
+        document.getElementById("adminsTableBody").innerHTML = '<tr><td colspan="3" style="text-align:center; color:red;">Failed to load accounts.</td></tr>';
+    }
+}
+
+// Add Admin Form Submission
+document.getElementById("addAdminForm").addEventListener("submit", async function(event) {
+    event.preventDefault();
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const role = document.getElementById("role").value;
+
+    const submitBtn = event.target.querySelector("button[type='submit']");
+    submitBtn.disabled = true;
+    submitBtn.innerText = "Creating Account...";
+
+    try {
+        const response = await fetch("/add-admin", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password, role })
+        });
+
+        const text = await response.text();
+
+        if (response.ok) {
+            Swal.fire({
+                icon: "success",
+                title: "Account Created!",
+                text: `Admin user '${username}' created successfully.`,
+                confirmButtonColor: "#3b82f6"
+            });
+            document.getElementById("addAdminForm").reset();
+            loadAdmins();
+        } else {
+            Swal.fire({
+                icon: "error",
+                title: "Failed to Add Admin",
+                text: text,
+                confirmButtonColor: "#3b82f6"
+            });
+        }
+    } catch (error) {
+        console.error(error);
+        showToast("Network error. Try again.", "error");
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Create Account";
+    }
+});
+
+// Delete Admin Account
+async function deleteAdmin(id, username) {
+    Swal.fire({
+        title: "Delete Administrator?",
+        text: `Are you sure you want to remove administrator '${username}'? This cannot be undone.`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#ef4444",
+        cancelButtonColor: "#3b82f6",
+        confirmButtonText: "Yes, Delete"
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            try {
+                const response = await fetch(`/delete-admin/${id}`, {
+                    method: "DELETE"
+                });
+                const text = await response.text();
+                
+                if (response.ok) {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Account Deleted",
+                        text: text,
+                        confirmButtonColor: "#3b82f6"
+                    });
+                    loadAdmins();
+                } else {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Delete Failed",
+                        text: text,
+                        confirmButtonColor: "#3b82f6"
+                    });
+                }
+            } catch (err) {
+                console.error(err);
+                showToast("Network error. Try again.", "error");
+            }
+        }
+    });
+}
+
+loadAdmins();
+</script>
+
+</body>
+</html>

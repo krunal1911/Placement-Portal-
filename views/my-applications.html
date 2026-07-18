@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Applications | Placement Portal</title>
+    <link rel="stylesheet" href="/dashboard.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .application-card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s;
+        }
+        .application-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 16px;
+        }
+        .app-meta {
+            display: flex;
+            gap: 24px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+        .badge {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="logo">🚀 Placement Portal</div>
+    <ul>
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/profile">Profile</a></li>
+        <li><a href="/placement-drives">Companies</a></li>
+        <li><a href="/logout">Logout</a></li>
+    </ul>
+</nav>
+
+<div class="main-container">
+    <div class="hero" style="padding: 32px 48px; margin-bottom: 32px;">
+        <div class="hero-left">
+            <h1>💼 Application Tracker</h1>
+            <p>Track the visual pipeline stage of all your submitted job applications in real-time.</p>
+        </div>
+    </div>
+
+    <div id="applicationsContainer">
+        <!-- Rendered dynamically -->
+        <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+            Loading applications...
+        </div>
+    </div>
+</div>
+
+<script>
+async function loadApplications() {
+    try {
+        const response = await fetch("/my-applications-data");
+        const applications = await response.json();
+        
+        const container = document.getElementById("applicationsContainer");
+        if (applications.length === 0) {
+            container.innerHTML = `
+                <div style="background: white; border: 1px solid var(--border); border-radius: 16px; padding: 48px; text-align: center;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">📁</div>
+                    <h3 style="font-size: 18px; font-weight: 600; color: #1e3a8a; margin-bottom: 8px;">No Applications Yet</h3>
+                    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">Browse and apply to our live placement drives to kickstart your tracking.</p>
+                    <a href="/placement-drives" class="btn btn-primary">Browse Companies</a>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = "";
+        
+        applications.forEach(app => {
+            const steps = ["Applied", "Shortlisted", "Interview Scheduled", "Selected"];
+            let currentStatus = app.status; // "Applied", "Shortlisted", "Interview Scheduled", "Selected", "Rejected"
+            
+            let isRejected = currentStatus === "Rejected";
+            let activeIdx = steps.indexOf(currentStatus);
+            if (isRejected) {
+                // If rejected, mark steps up to whatever point they got to, and show a final rejected stage
+                activeIdx = 2; // Arbitrary final visual indicator step
+            }
+            
+            let badgeClass = "status-applied";
+            if (currentStatus === "Shortlisted") badgeClass = "status-shortlisted";
+            else if (currentStatus === "Interview Scheduled") badgeClass = "status-interview";
+            else if (currentStatus === "Selected") badgeClass = "status-selected";
+            else if (currentStatus === "Rejected") badgeClass = "status-rejected";
+
+            html += `
+                <div class="application-card">
+                    <div class="app-header">
+                        <div>
+                            <h2 style="font-size: 20px; font-weight: 700; color: #1e3a8a; margin-bottom: 4px;">${app.companyId.companyName}</h2>
+                            <div class="app-meta">
+                                <span><b>Role:</b> ${app.companyId.jobRole}</span>
+                                <span><b>CTC:</b> ${app.companyId.package}</span>
+                                <span><b>Location:</b> ${app.companyId.location}</span>
+                                <span><b>Applied On:</b> ${new Date(app.appliedAt).toLocaleDateString()}</span>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="badge ${badgeClass}">${currentStatus}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="pipeline-container">
+                        <!-- Step 1: Applied -->
+                        <div class="pipeline-step ${activeIdx >= 0 && !isRejected ? 'completed' : (activeIdx >= 0 ? 'active' : '')}">
+                            1
+                            <span class="pipeline-label">Applied</span>
+                        </div>
+                        
+                        <!-- Step 2: Shortlisted -->
+                        <div class="pipeline-step ${activeIdx >= 1 && !isRejected ? 'completed' : (activeIdx === 1 ? 'active' : '')}">
+                            2
+                            <span class="pipeline-label">Shortlisted</span>
+                        </div>
+                        
+                        <!-- Step 3: Interview -->
+                        <div class="pipeline-step ${activeIdx >= 2 && !isRejected ? 'completed' : (activeIdx === 2 && !isRejected ? 'active' : '')}">
+                            3
+                            <span class="pipeline-label">Interview</span>
+                        </div>
+                        
+                        <!-- Step 4: Decision -->
+                        <div class="pipeline-step ${currentStatus === 'Selected' ? 'completed' : (isRejected ? 'rejected' : '')}">
+                            ${isRejected ? '✗' : '✓'}
+                            <span class="pipeline-label">${isRejected ? 'Rejected' : 'Decision'}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html;
+        
+    } catch (e) {
+        console.error(e);
+        document.getElementById("applicationsContainer").innerHTML = `
+            <div style="text-align: center; padding: 40px; color: var(--error);">
+                Error loading application pipelines.
+            </div>
+        `;
+    }
+}
+
+loadApplications();
+</script>
+</body>
+</html>

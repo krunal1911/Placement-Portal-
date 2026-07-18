@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Admin Dashboard</title>
+
+    <link rel="stylesheet" href="/admin-dashboard.css">
+
+</head>
+
+<body>
+
+<nav>
+
+<div class="logo">
+🚀 Placement Portal
+</div>
+
+<ul>
+
+<li><a href="/admin-dashboard">Dashboard</a></li>
+
+<li><a href="/students">Students</a></li>
+
+<li><a href="/applications">Applications</a></li>
+
+<li><a href="/logout">Logout</a></li>
+
+</ul>
+
+</nav>
+
+<section class="hero">
+
+<div>
+
+<h1>👨‍💼 Admin Dashboard</h1>
+
+<p>
+
+Monitor students, placement drives, applications and portal analytics from one place.
+
+</p>
+
+</div>
+
+<div>
+
+<a href="/add-company" class="heroBtn">
+
+➕ Add Company
+
+</a>
+
+</div>
+
+</section>
+
+<section class="stats">
+
+<div class="card">
+
+<div class="icon">👨‍🎓</div>
+
+<h2 id="totalStudents">0</h2>
+
+<p>Total Students</p>
+
+</div>
+
+<div class="card">
+
+<div class="icon">🏢</div>
+
+<h2 id="totalCompanies">0</h2>
+
+<p>Total Companies</p>
+
+</div>
+
+<div class="card">
+
+<div class="icon">📄</div>
+
+<h2 id="totalApplications">0</h2>
+
+<p>Total Applications</p>
+
+</div>
+
+<div class="card">
+
+<div class="icon">📝</div>
+
+<h2 id="totalTests">0</h2>
+
+<p>Total Tests</p>
+
+</div>
+
+<div class="card">
+
+<div class="icon">⭐</div>
+
+<h2 id="averageScore">0%</h2>
+
+<p>Average Score</p>
+
+</div>
+
+</section>
+
+<section class="features">
+
+<div class="feature-card">
+
+<h3>Students</h3>
+
+<p>View Registered Students</p>
+
+<a href="/students">Open</a>
+
+</div>
+
+<div class="feature-card">
+
+<h3>Add Questions</h3>
+
+<p>Add Aptitude & Technical Questions</p>
+
+<a href="/add-question">Open</a>
+
+</div>
+
+<div class="feature-card">
+
+<h3>Results</h3>
+
+<p>View Student Results</p>
+
+<a href="/results">Open</a>
+
+</div>
+
+<div class="feature-card">
+
+    <h3>Manage Questions</h3>
+
+    <p>View and Delete Questions</p>
+
+    <a href="/manage-questions">Open</a>
+
+</div>
+
+    <div class="feature-card">
+    <h3>Import Questions</h3>
+    <p>Upload Excel file and import questions.</p>
+    <a href="/import-questions">Open</a>
+    </div>
+
+
+<div class="feature-card">
+
+    <h3>Add Placement Drive</h3>
+
+    <p>Create a new placement opportunity for students.</p>
+
+    <a href="/add-company">Add Company</a>
+
+</div>
+
+<div class="feature-card">
+
+    <h3>Applications</h3>
+
+    <p>View students who applied for companies.</p>
+
+    <a href="/applications">Open</a>
+
+</div>
+
+<div class="feature-card">
+
+    <h3>Update Application Status</h3>
+
+    <p>Shortlist, reject or select students.</p>
+
+    <a href="/update-status">Open</a>
+
+</div>
+
+</section>
+
+<section class="stats">
+
+    <div class="card" style="width:600px">
+
+        <h3>Portal Statistics</h3>
+
+        <canvas id="barChart"></canvas>
+
+    </div>
+
+    <div class="card" style="width:450px">
+
+        <h3>Distribution</h3>
+
+        <canvas id="pieChart"></canvas>
+
+    </div>
+
+</section>
+
+</body>
+
+<section class="stats">
+
+    <div class="card" style="width:100%;">
+
+        <h2>Recent Activity</h2>
+
+        <table border="1" width="100%" cellpadding="10">
+
+            <thead>
+
+                <tr>
+
+                    <th>Student</th>
+                    <th>Company</th>
+                    <th>Status</th>
+                    <th>Date</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody id="activityTable">
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+async function loadAnalytics() {
+
+    const response = await fetch("/admin-analytics");
+    const data = await response.json();
+
+    document.getElementById("totalStudents").innerHTML = data.totalStudents;
+    document.getElementById("totalCompanies").innerHTML = data.totalCompanies;
+    document.getElementById("totalApplications").innerHTML = data.totalApplications;
+    document.getElementById("totalTests").innerHTML = data.totalTests;
+    document.getElementById("averageScore").innerHTML = data.averageScore + "%";
+
+    // ---------- Bar Chart ----------
+
+    const bar = document.getElementById("barChart");
+
+    new Chart(bar, {
+
+        type: "bar",
+
+        data: {
+
+            labels: [
+                "Students",
+                "Companies",
+                "Applications",
+                "Tests"
+            ],
+
+            datasets: [{
+
+                label: "Portal Data",
+
+                data: [
+                    data.totalStudents,
+                    data.totalCompanies,
+                    data.totalApplications,
+                    data.totalTests
+                ]
+
+            }]
+
+        }
+
+    });
+
+    // ---------- Pie Chart ----------
+
+    const pie = document.getElementById("pieChart");
+
+    new Chart(pie, {
+
+        type: "pie",
+
+        data: {
+
+            labels: [
+                "Students",
+                "Companies",
+                "Applications"
+            ],
+
+            datasets: [{
+
+                data: [
+                    data.totalStudents,
+                    data.totalCompanies,
+                    data.totalApplications
+                ]
+
+            }]
+
+        }
+
+    });
+
+}
+
+async function loadRecentActivity() {
+
+    const response = await fetch("/recent-activity");
+
+    const activities = await response.json();
+
+    let html = "";
+
+    if (activities.length === 0) {
+
+        html = `
+        <tr>
+            <td colspan="4" style="text-align:center;">
+                No Recent Activity
+            </td>
+        </tr>
+        `;
+
+    } else {
+
+        activities.forEach(activity => {
+
+            html += `
+            <tr>
+                <td>${activity.userId ? activity.userId.name : "-"}</td>
+                <td>${activity.companyId ? activity.companyId.companyName : "-"}</td>
+                <td>${activity.status}</td>
+                <td>${new Date(activity.appliedAt).toLocaleDateString()}</td>
+            </tr>
+            `;
+
+        });
+
+    }
+
+    document.getElementById("activityTable").innerHTML = html;
+
+}
+
+async function checkAdminRole() {
+    try {
+        const response = await fetch("/current-admin");
+        if (!response.ok) {
+            window.location.href = "/admin-login";
+            return;
+        }
+        const admin = await response.json();
+        
+        // Render name/role
+        const heroText = document.querySelector(".hero h1");
+        if (heroText) {
+            heroText.innerHTML = `👨‍💼 Admin Dashboard <span style="font-size: 14px; font-weight: normal; background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 8px; vertical-align: middle; margin-left: 10px;">${admin.role.toUpperCase()}</span>`;
+        }
+
+        // If regular admin, hide management features
+        if (admin.role === "admin") {
+            // Hide nav items
+            document.querySelectorAll("nav ul li").forEach(li => {
+                const a = li.querySelector("a");
+                if (a && (a.getAttribute("href") === "/students" || a.getAttribute("href") === "/applications")) {
+                    li.style.display = "none";
+                }
+            });
+            
+            // Hide Hero button
+            const heroBtn = document.querySelector(".heroBtn");
+            if (heroBtn) heroBtn.style.display = "none";
+            
+            // Hide Features section
+            const featuresSec = document.querySelector(".features");
+            if (featuresSec) featuresSec.style.display = "none";
+        } else if (admin.role === "superadmin") {
+            // Show Admin Management Card
+            const featuresSec = document.querySelector(".features");
+            if (featuresSec) {
+                const manageCard = document.createElement("div");
+                manageCard.className = "feature-card";
+                manageCard.id = "manageAdminsCard";
+                manageCard.innerHTML = `
+                    <h3>Manage Admins</h3>
+                    <p>Add, view and delete administrator accounts.</p>
+                    <a href="/manage-admins">Open</a>
+                `;
+                featuresSec.appendChild(manageCard);
+            }
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+loadAnalytics();
+loadRecentActivity();
+checkAdminRole();
+
+</script>
+</html>

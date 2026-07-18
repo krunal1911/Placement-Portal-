@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Placement Drive | Admin Console</title>
+    <link rel="stylesheet" href="/dashboard.css">
+    <link rel="stylesheet" href="/admin-dashboard.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- Navigation Bar -->
+<nav>
+    <div class="logo">
+        🚀 Placement Portal
+    </div>
+    <ul>
+        <li><a href="/admin-dashboard">Dashboard</a></li>
+        <li><a href="/students">Students</a></li>
+        <li><a href="/applications">Applications</a></li>
+        <li><a href="/logout">Logout</a></li>
+    </ul>
+</nav>
+
+<div class="container">
+    <div style="margin-bottom: 24px; text-align: center;">
+        <h1 style="font-size: 28px; font-weight: 700; color: #1e3a8a;">➕ Add Placement Drive</h1>
+        <p style="color: var(--text-muted); font-size: 14px;">Register a new company and job profile for students to apply.</p>
+    </div>
+
+    <div class="form-card">
+        <form id="addCompanyForm">
+            <div class="form-group">
+                <label for="companyName">Company Name</label>
+                <input type="text" id="companyName" placeholder="e.g. Google" required>
+            </div>
+
+            <div class="form-group">
+                <label for="jobRole">Job Role / Profile</label>
+                <input type="text" id="jobRole" placeholder="e.g. Associate Software Engineer" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="package">Salary Package (LPA)</label>
+                    <input type="text" id="package" placeholder="e.g. 12 LPA" required>
+                </div>
+                <div class="form-group">
+                    <label for="location">Job Location</label>
+                    <input type="text" id="location" placeholder="e.g. Bangalore / Remote" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="eligibility">Eligibility Criteria (Min CGPA)</label>
+                    <input type="number" id="eligibility" step="0.01" min="0" max="10" placeholder="e.g. 7.5" required>
+                </div>
+                <div class="form-group">
+                    <label for="deadline">Application Deadline</label>
+                    <input type="date" id="deadline" required>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 16px; margin-top: 10px;">
+                <button type="submit" class="btn btn-primary" style="flex: 2;">Add Company</button>
+                <a href="/admin-dashboard" class="btn btn-secondary" style="flex: 1; text-decoration: none; text-align: center;">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.getElementById("addCompanyForm").addEventListener("submit", async function(event) {
+    event.preventDefault();
+    
+    const companyName = document.getElementById("companyName").value.trim();
+    const jobRole = document.getElementById("jobRole").value.trim();
+    const package = document.getElementById("package").value.trim();
+    const location = document.getElementById("location").value.trim();
+    const eligibility = document.getElementById("eligibility").value;
+    const deadline = document.getElementById("deadline").value;
+
+    const submitBtn = event.target.querySelector("button[type='submit']");
+    submitBtn.disabled = true;
+    submitBtn.innerText = "Adding Drive...";
+
+    try {
+        const response = await fetch("/add-company", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ companyName, jobRole, package, location, eligibility, deadline })
+        });
+
+        if (response.ok) {
+            Swal.fire({
+                icon: "success",
+                title: "Placement Drive Created!",
+                text: `${companyName} has been successfully added to placement list.`,
+                confirmButtonColor: "#3b82f6"
+            }).then(() => {
+                document.getElementById("addCompanyForm").reset();
+            });
+        } else {
+            const errText = await response.text();
+            Swal.fire({
+                icon: "error",
+                title: "Error Adding Drive",
+                text: errText || "Failed to save company drive.",
+                confirmButtonColor: "#3b82f6"
+            });
+        }
+    } catch (error) {
+        console.error(error);
+        Swal.fire({
+            icon: "error",
+            title: "Network Error",
+            text: "Could not reach the server.",
+            confirmButtonColor: "#3b82f6"
+        });
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Add Company";
+    }
+});
+</script>
+
+</body>
+</html>

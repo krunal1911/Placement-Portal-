@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aptitude Assessment | TCS iON Exam Console</title>
+    <link rel="stylesheet" href="/tcs-theme.css">
+    <link rel="stylesheet" href="/dashboard.css">
+    <link rel="stylesheet" href="/toast.css">
+    <script src="/toast.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="tcs-exam-body">
+
+<!-- TCS iON Exam Header -->
+<header class="tcs-header">
+    <div class="tcs-header-title">Placement Portal - Aptitude Practice Assessment</div>
+    <div class="tcs-header-timer">
+        Time Left: <span id="timer">20:00</span>
+    </div>
+</header>
+
+<!-- TCS Split Container -->
+<div class="tcs-container" id="testContainer">
+    <!-- Left Panel: Questions -->
+    <div class="tcs-left-panel">
+        <div class="tcs-section-bar">
+            Section: Quantitative & Logical Aptitude
+        </div>
+        
+        <div class="tcs-question-area">
+            <div style="font-size: 13px; color: #666; margin-bottom: 12px; font-weight: bold;">
+                Question No. <span id="currentQuestionNumber" style="color: #2563eb; font-size: 15px;">1</span>
+            </div>
+            
+            <div id="questionCard">
+                <h2 id="question" style="font-size: 16px; font-weight: bold; color: #2c3e50; line-height: 1.6; margin-bottom: 24px;">Loading question...</h2>
+                <div id="options"></div>
+            </div>
+        </div>
+        
+        <!-- Controls Bar -->
+        <div class="tcs-actions-bar">
+            <div>
+                <button id="clearBtn" class="tcs-btn" style="margin-right: 8px;">Clear Response</button>
+                <button id="markBtn" class="tcs-btn" style="background: #f39c12; color: white; border-color: #d35400;">Mark for Review & Next</button>
+            </div>
+            <div>
+                <button id="prevBtn" class="tcs-btn" style="margin-right: 8px;">← Back</button>
+                <button id="nextBtn" class="tcs-btn tcs-btn-primary">Save & Next →</button>
+                <button id="submitBtn" class="tcs-btn tcs-btn-success" style="display: none;">Submit Test</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Panel: Palette & Candidate info -->
+    <div class="tcs-right-panel">
+        <!-- Candidate profile -->
+        <div class="tcs-candidate-info">
+            <img id="candidateImg" class="tcs-candidate-img" src="/uploads/profiles/default.png" alt="Candidate">
+            <div class="tcs-candidate-details">
+                <h4 id="candidateName">Student Name</h4>
+                <p>Candidate ID: <span id="candidateId">NQT-58204</span></p>
+            </div>
+        </div>
+        
+        <!-- Question Grid -->
+        <div class="tcs-palette-area">
+            <div class="tcs-palette-title">Question Palette:</div>
+            <div class="tcs-palette-grid" id="questionNavigator"></div>
+        </div>
+        
+        <!-- Legend Details -->
+        <div class="tcs-legend-area">
+            <div style="font-weight: bold; margin-bottom: 8px;">Legend:</div>
+            <div class="tcs-legend-grid">
+                <div class="tcs-legend-item">
+                    <span class="tcs-legend-badge legend-nv"></span> Not Visited
+                </div>
+                <div class="tcs-legend-item">
+                    <span class="tcs-legend-badge legend-na"></span> Not Answered
+                </div>
+                <div class="tcs-legend-item">
+                    <span class="tcs-legend-badge legend-ans"></span> Answered
+                </div>
+                <div class="tcs-legend-item">
+                    <span class="tcs-legend-badge legend-mr"></span> Marked
+                </div>
+                <div class="tcs-legend-item" style="grid-column: span 2;">
+                    <span class="tcs-legend-badge legend-mra"></span> Answered & Marked
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Results Panel (Unified Center CSS Layout) -->
+<div class="test-container" id="resultsContainer" style="display: none; max-width: 900px; text-align: center; margin: 40px auto;">
+    <h1 style="font-size: 28px; color: #059669; font-weight: 700; margin-bottom: 8px;">🎉 Test Completed</h1>
+    <p style="color: #64748b; margin-bottom: 24px;">Your response has been saved and analyzed.</p>
+    
+    <div style="display: flex; justify-content: center; gap: 40px; margin-bottom: 30px;">
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px 30px; border-radius: 12px;">
+            <div style="font-size: 14px; color: #166534; font-weight: 500;">Final Score</div>
+            <div style="font-size: 36px; font-weight: 700; color: #15803d;" id="resultScore">0/20</div>
+        </div>
+        <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 20px 30px; border-radius: 12px;">
+            <div style="font-size: 14px; color: #1e40af; font-weight: 500;">Percentage</div>
+            <div style="font-size: 36px; font-weight: 700; color: #1d4ed8;" id="resultPercentage">0%</div>
+        </div>
+    </div>
+    
+    <h3 style="font-size: 20px; font-weight: 600; color: #1e3a8a; margin-bottom: 8px;" id="resultMessage">Good Job!</h3>
+    <p style="color: #64748b; margin-bottom: 32px;">Below is the review and explanation for each question.</p>
+    
+    <div id="reviewList" style="margin-bottom: 32px;"></div>
+    
+    <div style="display: flex; justify-content: center; gap: 16px;">
+        <button class="btn btn-primary" onclick="window.location='/dashboard'">🏠 Dashboard</button>
+        <button class="btn" style="background: #64748b; color: white;" onclick="window.location='/aptitude'">🔄 Retake Test</button>
+    </div>
+</div>
+
+<script>
+let questions = [];
+let currentQuestion = 0;
+let userAnswers = []; // Selected text values
+let questionStates = []; // "not-visited", "not-answered", "answered", "marked", "marked-answered"
+let timeLeft = 20 * 60; // 20 minutes
+let isGuest = false;
+
+function getCorrectAnswerText(question) {
+    switch (question.answer) {
+        case "A": return question.options[0];
+        case "B": return question.options[1];
+        case "C": return question.options[2];
+        case "D": return question.options[3];
+        default: return question.answer;
+    }
+}
+
+async function loadQuestions() {
+    try {
+        const userRes = await fetch("/current-user");
+        if (!userRes.ok) {
+            document.body.innerHTML = '';
+            Swal.fire({
+                icon: "info",
+                title: "Login Required",
+                text: "Please login or register to take the aptitude test.",
+                showCancelButton: true,
+                confirmButtonText: "Login Now",
+                cancelButtonText: "Go Back",
+                confirmButtonColor: "#3b82f6"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "/login";
+                } else {
+                    window.location.href = "/";
+                }
+            });
+            return;
+        }
+
+        const settingsRes = await fetch("/exam-settings/aptitude");
+        if (settingsRes.ok) {
+            const settings = await settingsRes.json();
+            document.querySelector(".tcs-header-title").innerText = settings.examName;
+            timeLeft = (settings.duration || 20) * 60;
+        }
+
+        const response = await fetch("/questions");
+        if (response.status === 401) {
+            showToast("Session expired. Please login again.", "error");
+            setTimeout(() => window.location = "/login", 2000);
+            return;
+        }
+        questions = await response.json();
+        
+        if (questions.length === 0) {
+            document.getElementById("testContainer").innerHTML = `
+                <div style="text-align:center; padding: 40px; width: 100%;">
+                    <h3>No aptitude questions available.</h3>
+                    <button class="btn btn-primary" style="margin-top:20px;" onclick="window.location='/dashboard'">Back to Dashboard</button>
+                </div>`;
+            return;
+        }
+
+        userAnswers = Array(questions.length).fill(null);
+        questionStates = Array(questions.length).fill("not-visited");
+        
+        // Mark first question as visited/not-answered initially
+        questionStates[0] = "not-answered";
+        
+        const user = await userRes.json();
+        document.getElementById("candidateName").innerText = user.name || "Student Name";
+        if (user.profileImage && user.profileImage !== "default.png") {
+            document.getElementById("candidateImg").src = `/uploads/profiles/${user.profileImage}`;
+        }
+        
+        buildNavigator();
+        showQuestion();
+        startTimer();
+    } catch (e) {
+        console.error(e);
+        showToast("Error loading test questions.", "error");
+    }
+}
+
+function buildNavigator() {
+    const nav = document.getElementById("questionNavigator");
+    nav.innerHTML = "";
+    questions.forEach((_, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "tcs-palette-btn not-visited";
+        btn.innerText = idx + 1;
+        btn.id = `nav-btn-${idx}`;
+        btn.onclick = () => jumpToQuestion(idx);
+        nav.appendChild(btn);
+    });
+}
+
+function updateNavigator() {
+    questions.forEach((_, idx) => {
+        const btn = document.getElementById(`nav-btn-${idx}`);
+        if (!btn) return;
+        
+        btn.className = "tcs-palette-btn " + questionStates[idx];
+        if (idx === currentQuestion) {
+            btn.classList.add("current");
+        }
+    });
+}
+
+function showQuestion() {
+    const q = questions[currentQuestion];
+    document.getElementById("currentQuestionNumber").innerText = currentQuestion + 1;
+    
+    document.getElementById("question").innerText = q.question;
+    
+    let html = "";
+    q.options.forEach((option) => {
+        const isChecked = userAnswers[currentQuestion] === option ? "checked" : "";
+        html += `
+            <label class="tcs-option-label">
+                <input type="radio" name="option" value="${option}" ${isChecked} onchange="selectOption('${option}')">
+                <span>${option}</span>
+            </label>
+        `;
+    });
+    
+    document.getElementById("options").innerHTML = html;
+    
+    // Toggle controls
+    document.getElementById("prevBtn").style.display = currentQuestion === 0 ? "none" : "inline-flex";
+    if (currentQuestion === questions.length - 1) {
+        document.getElementById("nextBtn").style.display = "none";
+        document.getElementById("submitBtn").style.display = "inline-flex";
+    } else {
+        document.getElementById("nextBtn").style.display = "inline-flex";
+        document.getElementById("submitBtn").style.display = "none";
+    }
+    
+    updateNavigator();
+}
+
+function selectOption(val) {
+    if (isGuest) {
+        // Deselect option dynamically
+        const selected = document.querySelector('input[name="option"]:checked');
+        if (selected) selected.checked = false;
+        
+        Swal.fire({
+            icon: "info",
+            title: "Login Required",
+            text: "You can view this practice test as a guest. Please login or register to answer questions and submit results.",
+            showCancelButton: true,
+            confirmButtonText: "Login Now",
+            cancelButtonText: "Cancel",
+            confirmButtonColor: "#3b82f6"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = "/login";
+            }
+        });
+        return;
+    }
+    userAnswers[currentQuestion] = val;
+    questionStates[currentQuestion] = "answered";
+    updateNavigator();
+}
+
+function jumpToQuestion(idx) {
+    saveCurrentState();
+    currentQuestion = idx;
+    if (questionStates[currentQuestion] === "not-visited") {
+        questionStates[currentQuestion] = "not-answered";
+    }
+    showQuestion();
+}
+
+function saveCurrentState() {
+    const selected = document.querySelector('input[name="option"]:checked');
+    if (selected) {
+        userAnswers[currentQuestion] = selected.value;
+        if (questionStates[currentQuestion] !== "marked" && questionStates[currentQuestion] !== "marked-answered") {
+            questionStates[currentQuestion] = "answered";
+        } else {
+            questionStates[currentQuestion] = "marked-answered";
+        }
+    } else {
+        if (questionStates[currentQuestion] !== "marked" && questionStates[currentQuestion] !== "marked-answered") {
+            questionStates[currentQuestion] = "not-answered";
+        }
+    }
+}
+
+// Clear Response
+document.getElementById("clearBtn").onclick = () => {
+    const selected = document.querySelector('input[name="option"]:checked');
+    if (selected) selected.checked = false;
+    userAnswers[currentQuestion] = null;
+    questionStates[currentQuestion] = "not-answered";
+    updateNavigator();
+};
+
+// Mark for Review & Next
+document.getElementById("markBtn").onclick = () => {
+    const selected = document.querySelector('input[name="option"]:checked');
+    if (selected) {
+        userAnswers[currentQuestion] = selected.value;
+        questionStates[currentQuestion] = "marked-answered";
+    } else {
+        questionStates[currentQuestion] = "marked";
+    }
+    
+    updateNavigator();
+    
+    if (currentQuestion < questions.length - 1) {
+        currentQuestion++;
+        if (questionStates[currentQuestion] === "not-visited") {
+            questionStates[currentQuestion] = "not-answered";
+        }
+        showQuestion();
+    } else {
+        showToast("Last question reached. Please submit the test.", "info");
+    }
+};
+
+// Save & Next
+document.getElementById("nextBtn").onclick = () => {
+    saveCurrentState();
+    if (currentQuestion < questions.length - 1) {
+        currentQuestion++;
+        if (questionStates[currentQuestion] === "not-visited") {
+            questionStates[currentQuestion] = "not-answered";
+        }
+        showQuestion();
+    }
+};
+
+// Back
+document.getElementById("prevBtn").onclick = () => {
+    saveCurrentState();
+    if (currentQuestion > 0) {
+        currentQuestion--;
+        showQuestion();
+    }
+};
+
+function startTimer() {
+    const timerText = document.getElementById("timer");
+    const interval = setInterval(() => {
+        if (timeLeft <= 0) {
+            clearInterval(interval);
+            showToast("Time is up! Submitting assessment.", "info");
+            submitTest(true);
+            return;
+        }
+        timeLeft--;
+        const min = Math.floor(timeLeft / 60);
+        const sec = timeLeft % 60;
+        timerText.innerText = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+    }, 1000);
+}
+
+async function submitTest(force = false) {
+    if (isGuest) {
+        Swal.fire({
+            icon: "info",
+            title: "Submission Blocked",
+            text: "Please login or register to submit your test answers and record your score.",
+            showCancelButton: true,
+            confirmButtonText: "Login Now",
+            cancelButtonText: "Cancel",
+            confirmButtonColor: "#3b82f6"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = "/login";
+            }
+        });
+        return;
+    }
+    saveCurrentState();
+    if (!force) {
+        const unanswered = questionStates.filter(s => s === "not-visited" || s === "not-answered" || s === "marked").length;
+        if (unanswered > 0) {
+            if (!confirm(`You have ${unanswered} unanswered/marked questions. Submit anyway?`)) {
+                return;
+            }
+        }
+    }
+    
+    let score = 0;
+    questions.forEach((q, idx) => {
+        if (userAnswers[idx] === getCorrectAnswerText(q)) {
+            score++;
+        }
+    });
+    
+    try {
+        const res = await fetch("/submit-test", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ score, total: questions.length })
+        });
+        
+        if (!res.ok) throw new Error("Result save failed");
+        
+        showResults(score);
+    } catch (e) {
+        console.error(e);
+        showToast("Error saving test result to server.", "error");
+    }
+}
+
+document.getElementById("submitBtn").onclick = () => submitTest(false);
+
+function showResults(score) {
+    // Hide TCS exam body components
+    document.querySelector(".tcs-header").style.display = "none";
+    document.getElementById("testContainer").style.display = "none";
+    document.body.style.overflow = "auto";
+    
+    // Show results
+    document.getElementById("resultsContainer").style.display = "block";
+    
+    const pct = Math.round((score / questions.length) * 100);
+    document.getElementById("resultScore").innerText = `${score} / ${questions.length}`;
+    document.getElementById("resultPercentage").innerText = `${pct}%`;
+    
+    let msg = "Keep Practicing 💪";
+    if (pct >= 80) msg = "Excellent! Outstanding preparation! 🎉";
+    else if (pct >= 60) msg = "Good Job! You are on the right track. 👍";
+    document.getElementById("resultMessage").innerText = msg;
+    
+    let reviewHtml = "";
+    questions.forEach((q, idx) => {
+        const userAns = userAnswers[idx] || "Unanswered";
+        const correctAns = getCorrectAnswerText(q);
+        const isCorrect = userAns === correctAns;
+        
+        reviewHtml += `
+            <div style="background: #f8fafc; border: 1px solid ${isCorrect ? '#bbf7d0' : '#fecaca'}; border-radius: 12px; padding: 20px; text-align: left; margin-bottom: 16px;">
+                <h4 style="font-size: 15px; font-weight: 600; color: #0f172a; margin-bottom: 10px;">Q${idx + 1}. ${q.question}</h4>
+                <p style="font-size: 13px; margin-bottom: 6px;">
+                    <b>Your Answer:</b> 
+                    <span style="color: ${isCorrect ? '#16a34a' : '#dc2626'}; font-weight: 600;">${userAns}</span> 
+                    ${isCorrect ? '✅' : '❌'}
+                </p>
+                <p style="font-size: 13px; margin-bottom: 12px; color: #16a34a;">
+                    <b>Correct Answer:</b> <span style="font-weight: 600;">${correctAns}</span>
+                </p>
+                ${q.explanation ? `
+                    <div style="font-size: 12px; background: white; padding: 12px; border-radius: 8px; border-left: 3px solid #3b82f6; color: #475569;">
+                        <b>Explanation:</b> ${q.explanation}
+                    </div>` : ''}
+            </div>
+        `;
+    });
+    
+    document.getElementById("reviewList").innerHTML = reviewHtml;
+}
+
+loadQuestions();
+</script>
+</body>
+</html>
