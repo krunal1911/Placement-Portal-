@@ -70,4 +70,19 @@ router.post("/build-resume", requireUser, studentController.buildResume);
 router.post("/submit-test", requireUser, studentController.submitTest);
 router.post("/apply-company", requireUser, studentController.applyCompany);
 
+// ==========================================
+// DIAGNOSTIC (remove after fixing)
+// ==========================================
+router.get("/check-config", (req, res) => {
+    res.json({
+        cloudinary_cloud_name : process.env.CLOUDINARY_CLOUD_NAME ? "✅ Set" : "❌ MISSING",
+        cloudinary_api_key    : process.env.CLOUDINARY_API_KEY    ? "✅ Set" : "❌ MISSING",
+        cloudinary_api_secret : process.env.CLOUDINARY_API_SECRET ? "✅ Set" : "❌ MISSING",
+        mongodb_uri           : process.env.MONGODB_URI           ? "✅ Set" : "❌ MISSING",
+        session_secret        : process.env.SESSION_SECRET        ? "✅ Set" : "❌ MISSING",
+        node_env              : process.env.NODE_ENV || "not set"
+    });
+});
+
 module.exports = router;
+
