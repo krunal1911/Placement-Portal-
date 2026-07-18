@@ -195,7 +195,7 @@ async function loadResume() {
             document.getElementById("resumeFilenameText").innerText = `Filename: ${user.resume}`;
             let resumePath = user.resume;
             if (!resumePath.startsWith("http") && !resumePath.startsWith("/uploads") && !resumePath.startsWith("/")) {
-                resumePath = `/uploads/${resumePath}`;
+                resumePath = `/uploads/resumes/${resumePath}`;
             }
             document.getElementById("viewResumeLink").href = resumePath;
         } else {
