@@ -1,7 +1,7 @@
 {
   "name": "placement-portal",
   "version": "1.0.0",
-  "description": "",
+  "description": "AI Placement Preparation Portal - TCS iON style exam, resume builder, placement drives",
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
@@ -9,8 +9,11 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
+  "author": "Krunal Desai",
   "license": "ISC",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "type": "commonjs",
   "dependencies": {
     "bcrypt": "^6.0.0",

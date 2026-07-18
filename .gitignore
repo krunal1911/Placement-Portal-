@@ -6,8 +6,9 @@ node_modules/
 .env.local
 .env.production
 
-# Uploaded user files (resumes, profile images, excel files)
-uploads/
+# Uploaded user files (keep folder, ignore contents)
+uploads/*
+!uploads/.gitkeep
 
 # IDE / Editor settings
 .vscode/
