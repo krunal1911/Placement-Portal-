@@ -67,6 +67,9 @@ const initializeSettings = async () => {
 };
 initializeSettings();
 
+// Trust reverse proxy (Render) for rate-limiting headers
+app.set('trust proxy', 1);
+
 // ─── Security Middlewares ─────────────────────────────────────────────────────
 
 // 1. Helmet — sets safe HTTP response headers
