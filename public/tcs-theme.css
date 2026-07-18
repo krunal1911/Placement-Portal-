@@ -340,4 +340,107 @@ body.tcs-exam-body {
     display: flex;
     align-items: center;
     justify-content: center;
+    font-weight: bold;
+}
+
+/* ================= RESPONSIVE EXAM CONSOLE ================= */
+@media (max-width: 991px) {
+    body.tcs-exam-body {
+        overflow: auto; /* Allow general page scrolling on mobile */
+        height: auto;
+    }
+
+    .tcs-container {
+        flex-direction: column;
+        height: auto;
+        overflow: visible;
+    }
+
+    .tcs-left-panel {
+        flex: none;
+        width: 100%;
+        height: auto;
+        border-bottom: 2px solid var(--tcs-border);
+    }
+
+    .tcs-right-panel {
+        flex: none;
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        border-left: none;
+        border-top: 2px solid var(--tcs-border);
+    }
+
+    .tcs-palette-grid {
+        grid-template-columns: repeat(8, 1fr);
+        max-width: 480px;
+        margin: 0 auto 20px;
+    }
+
+    .tcs-actions-bar {
+        position: sticky;
+        bottom: 0;
+        z-index: 100;
+        box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+    }
+}
+
+@media (max-width: 768px) {
+    .tcs-header {
+        padding: 10px 16px;
+        height: auto;
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+        align-items: center;
+    }
+
+    .tcs-header-title {
+        font-size: 15px;
+    }
+
+    .tcs-header-timer {
+        font-size: 14px;
+        padding: 4px 10px;
+    }
+
+    .tcs-question-area {
+        padding: 20px;
+    }
+
+    .tcs-actions-bar {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+        text-align: center;
+    }
+
+    .tcs-actions-bar > div {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+    }
+
+    .tcs-actions-bar .tcs-btn {
+        flex: 1;
+        padding: 10px 8px;
+        font-size: 12px;
+        margin: 0 !important;
+    }
+
+    .tcs-palette-grid {
+        grid-template-columns: repeat(6, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .tcs-palette-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+
+    .tcs-option-label {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
 }
