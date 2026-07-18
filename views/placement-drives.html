@@ -163,6 +163,10 @@ async function applyCompany(id){
         title: response.ok ? "Application Saved!" : "Application Blocked",
         text: msg,
         confirmButtonColor: "#3b82f6"
+    }).then(() => {
+        if (response.ok) {
+            window.location.href = "/my-applications";
+        }
     });
 }
 
