@@ -193,7 +193,11 @@ async function loadResume() {
         if (user.resume) {
             document.getElementById("statusContainer").style.display = "block";
             document.getElementById("resumeFilenameText").innerText = `Filename: ${user.resume}`;
-            document.getElementById("viewResumeLink").href = `/uploads/${user.resume}`;
+            let resumePath = user.resume;
+            if (!resumePath.startsWith("http") && !resumePath.startsWith("/uploads") && !resumePath.startsWith("/")) {
+                resumePath = `/uploads/${resumePath}`;
+            }
+            document.getElementById("viewResumeLink").href = resumePath;
         } else {
             document.getElementById("statusContainer").style.display = "none";
         }

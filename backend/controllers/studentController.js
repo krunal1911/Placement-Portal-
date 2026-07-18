@@ -408,7 +408,7 @@ exports.buildResume = async (req, res) => {
             return res.status(404).json({ error: "User not found" });
         }
 
-        const uploadDir = path.join(__dirname, "../uploads");
+        const uploadDir = path.join(__dirname, "../../frontend/public/uploads/resumes");
         if (!fs.existsSync(uploadDir)) {
             fs.mkdirSync(uploadDir, { recursive: true });
         }
@@ -514,7 +514,7 @@ exports.buildResume = async (req, res) => {
         doc.end();
 
         writeStream.on('finish', async () => {
-            user.resume = filename;
+            user.resume = `/uploads/resumes/${filename}`;
             await user.save();
 
             await Notification.create({
