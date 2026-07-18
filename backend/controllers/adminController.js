@@ -4,65 +4,65 @@ const bcrypt = require("bcrypt");
 const XLSX = require("xlsx");
 const ExcelJS = require("exceljs");
 
-const Admin = require("../models/Admin");
-const User = require("../models/User");
-const Question = require("../models/Question");
-const TechnicalQuestion = require("../models/TechnicalQuestion");
-const Result = require("../models/result");
-const Notification = require("../models/Notification");
-const Company = require("../models/Company");
-const Application = require("../models/Application");
-const ExamSettings = require("../models/ExamSettings");
+const Admin = require("../../database/models/Admin");
+const User = require("../../database/models/User");
+const Question = require("../../database/models/Question");
+const TechnicalQuestion = require("../../database/models/TechnicalQuestion");
+const Result = require("../../database/models/result");
+const Notification = require("../../database/models/Notification");
+const Company = require("../../database/models/Company");
+const Application = require("../../database/models/Application");
+const ExamSettings = require("../../database/models/ExamSettings");
 
 // ==========================================
 // VIEW PAGES
 // ==========================================
 exports.showAdminLogin = (req, res) => {
-    res.sendFile(path.join(__dirname, "../views", "admin-login.html"));
+    res.sendFile(path.join(__dirname, "../../frontend/views", "admin-login.html"));
 };
 
 exports.showAdminDashboard = (req, res) => {
-    res.sendFile(path.join(__dirname, "../views", "admin-dashboard.html"));
+    res.sendFile(path.join(__dirname, "../../frontend/views", "admin-dashboard.html"));
 };
 
 exports.showManageAdmins = (req, res) => {
-    res.sendFile(path.join(__dirname, "../views", "manage-admins.html"));
+    res.sendFile(path.join(__dirname, "../../frontend/views", "manage-admins.html"));
 };
 
 exports.showStudents = (req, res) => {
-    res.sendFile(path.join(__dirname, "../views", "students.html"));
+    res.sendFile(path.join(__dirname, "../../frontend/views", "students.html"));
 };
 
 exports.showManageQuestions = (req, res) => {
-    res.sendFile(path.join(__dirname, "../views", "manage-questions.html"));
+    res.sendFile(path.join(__dirname, "../../frontend/views", "manage-questions.html"));
 };
 
 exports.showAddQuestion = (req, res) => {
-    res.sendFile(path.join(__dirname, "../views", "add-question.html"));
+    res.sendFile(path.join(__dirname, "../../frontend/views", "add-question.html"));
 };
 
 exports.showImportQuestions = (req, res) => {
-    res.sendFile(path.join(__dirname, "../views", "import-questions.html"));
+    res.sendFile(path.join(__dirname, "../../frontend/views", "import-questions.html"));
 };
 
 exports.showAddCompany = (req, res) => {
-    res.sendFile(path.join(__dirname, "../views", "add-company.html"));
+    res.sendFile(path.join(__dirname, "../../frontend/views", "add-company.html"));
 };
 
 exports.showManageCompanies = (req, res) => {
-    res.sendFile(path.join(__dirname, "../views", "manage-companies.html"));
+    res.sendFile(path.join(__dirname, "../../frontend/views", "manage-companies.html"));
 };
 
 exports.showResults = (req, res) => {
-    res.sendFile(path.join(__dirname, "../views", "results.html"));
+    res.sendFile(path.join(__dirname, "../../frontend/views", "results.html"));
 };
 
 exports.showApplications = (req, res) => {
-    res.sendFile(path.join(__dirname, "../views", "applications.html"));
+    res.sendFile(path.join(__dirname, "../../frontend/views", "applications.html"));
 };
 
 exports.showUpdateStatus = (req, res) => {
-    res.sendFile(path.join(__dirname, "../views", "update-status.html"));
+    res.sendFile(path.join(__dirname, "../../frontend/views", "update-status.html"));
 };
 
 // ==========================================

@@ -6,13 +6,13 @@ const path      = require('path');
 const helmet    = require('helmet');
 const rateLimit = require('express-rate-limit');
 
-const connectDB = require('./config/db');
-const ExamSettings   = require('./models/ExamSettings');
+const connectDB = require('./database/config/db');
+const ExamSettings   = require('./database/models/ExamSettings');
 
 // ─── Route Modules ────────────────────────────────────────────────────────────
-const authRoutes    = require('./routes/authRoutes');
-const studentRoutes = require('./routes/studentRoutes');
-const adminRoutes   = require('./routes/adminRoutes');
+const authRoutes    = require('./backend/routes/authRoutes');
+const studentRoutes = require('./backend/routes/studentRoutes');
+const adminRoutes   = require('./backend/routes/adminRoutes');
 
 // ─── App Instance ─────────────────────────────────────────────────────────────
 const app = express();
@@ -20,7 +20,7 @@ const app = express();
 // ─── Database Connection ──────────────────────────────────────────────────────
 connectDB();
 
-const Admin = require('./models/Admin');
+const Admin = require('./database/models/Admin');
 const bcrypt = require('bcrypt');
 
 // ─── Seed Exam Settings ───────────────────────────────────────────────────────
@@ -118,12 +118,15 @@ app.use(session({
 }));
 
 // ─── Static File Serving ──────────────────────────────────────────────────────
-app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(express.static(path.join(__dirname, 'frontend/public')));
+app.use('/uploads', express.static(path.join(__dirname, 'frontend/public/uploads')));
+
+// Set custom views folder for templates
+app.set('views', path.join(__dirname, 'frontend/views'));
 
 // ─── Home Route ───────────────────────────────────────────────────────────────
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'index.html'));
+    res.sendFile(path.join(__dirname, 'frontend', 'views', 'index.html'));
 });
 
 // ─── Routers ──────────────────────────────────────────────────────────────────
@@ -133,13 +136,13 @@ app.use('/', adminRoutes);
 
 // ─── 404 Handler ─────────────────────────────────────────────────────────────
 app.use((req, res) => {
-    res.status(404).sendFile(path.join(__dirname, 'views', '404.html'));
+    res.status(404).sendFile(path.join(__dirname, 'frontend', 'views', '404.html'));
 });
 
 // ─── Global Error Handler ─────────────────────────────────────────────────────
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(500).sendFile(path.join(__dirname, 'views', '500.html'));
+    res.status(500).sendFile(path.join(__dirname, 'frontend', 'views', '500.html'));
 });
 
 // ─── Start Server ─────────────────────────────────────────────────────────────

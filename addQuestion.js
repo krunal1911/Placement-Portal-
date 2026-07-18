@@ -1,7 +1,7 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
-const connectDB = require('./config/db');
-const Question = require('./models/Question');
+const connectDB = require('./database/config/db');
+const Question = require('./database/models/Question');
 
 connectDB();
 

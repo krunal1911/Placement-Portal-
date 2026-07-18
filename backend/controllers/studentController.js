@@ -2,58 +2,58 @@ const path = require("path");
 const fs   = require("fs");
 const PDFDocument = require("pdfkit");
 
-const { uploadFile } = require("../config/cloudinary");
+const { uploadFile } = require("../../database/config/cloudinary");
 
-const User = require("../models/User");
-const Result = require("../models/result");
-const Company = require("../models/Company");
-const Application = require("../models/Application");
-const Notification = require("../models/Notification");
-const ExamSettings = require("../models/ExamSettings");
-const Question = require("../models/Question");
-const TechnicalQuestion = require("../models/TechnicalQuestion");
+const User = require("../../database/models/User");
+const Result = require("../../database/models/result");
+const Company = require("../../database/models/Company");
+const Application = require("../../database/models/Application");
+const Notification = require("../../database/models/Notification");
+const ExamSettings = require("../../database/models/ExamSettings");
+const Question = require("../../database/models/Question");
+const TechnicalQuestion = require("../../database/models/TechnicalQuestion");
 
 // ==========================================
 // VIEW PAGES
 // ==========================================
 exports.showDashboard = (req, res) => {
-    res.sendFile(path.join(__dirname, "../views", "dashboard.html"));
+    res.sendFile(path.join(__dirname, "../../frontend/views", "dashboard.html"));
 };
 
 exports.showProfile = (req, res) => {
-    res.sendFile(path.join(__dirname, "../views", "profile.html"));
+    res.sendFile(path.join(__dirname, "../../frontend/views", "profile.html"));
 };
 
 exports.showResume = (req, res) => {
-    res.sendFile(path.join(__dirname, "../views", "resume.html"));
+    res.sendFile(path.join(__dirname, "../../frontend/views", "resume.html"));
 };
 
 exports.showAptitude = (req, res) => {
-    res.sendFile(path.join(__dirname, "../views", "aptitude.html"));
+    res.sendFile(path.join(__dirname, "../../frontend/views", "aptitude.html"));
 };
 
 exports.showTechnical = (req, res) => {
-    res.sendFile(path.join(__dirname, "../views", "technical.html"));
+    res.sendFile(path.join(__dirname, "../../frontend/views", "technical.html"));
 };
 
 exports.showCareerGuide = (req, res) => {
-    res.sendFile(path.join(__dirname, "../views", "career-guide.html"));
+    res.sendFile(path.join(__dirname, "../../frontend/views", "career-guide.html"));
 };
 
 exports.showLeaderboard = (req, res) => {
-    res.sendFile(path.join(__dirname, "../views", "leaderboard.html"));
+    res.sendFile(path.join(__dirname, "../../frontend/views", "leaderboard.html"));
 };
 
 exports.showPlacementDrives = (req, res) => {
-    res.sendFile(path.join(__dirname, "../views", "placement-drives.html"));
+    res.sendFile(path.join(__dirname, "../../frontend/views", "placement-drives.html"));
 };
 
 exports.showHistory = (req, res) => {
-    res.sendFile(path.join(__dirname, "../views", "history.html"));
+    res.sendFile(path.join(__dirname, "../../frontend/views", "history.html"));
 };
 
 exports.showMyApplications = (req, res) => {
-    res.sendFile(path.join(__dirname, "../views", "my-applications.html"));
+    res.sendFile(path.join(__dirname, "../../frontend/views", "my-applications.html"));
 };
 
 // ==========================================

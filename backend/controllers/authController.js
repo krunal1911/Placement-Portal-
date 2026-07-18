@@ -1,10 +1,10 @@
 const path = require("path");
 const bcrypt = require("bcrypt");
 
-const User = require("../models/User");
+const User = require("../../database/models/User");
 
 exports.showRegister = (req, res) => {
-    res.sendFile(path.join(__dirname, "..", "views", "register.html"));
+    res.sendFile(path.join(__dirname, "..", "..", "frontend", "views", "register.html"));
 };
 
 exports.register = async (req, res) => {
@@ -68,7 +68,7 @@ exports.register = async (req, res) => {
 };
 
 exports.showLogin = (req, res) => {
-    res.sendFile(path.join(__dirname, "..", "views", "login.html"));
+    res.sendFile(path.join(__dirname, "..", "..", "frontend", "views", "login.html"));
 };
 
 exports.login = async (req, res) => {

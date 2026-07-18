@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const TechnicalQuestion = require('./models/TechnicalQuestion');
+const TechnicalQuestion = require('./database/models/TechnicalQuestion');
 
 mongoose.connect('mongodb://127.0.0.1:27017/placementPortal');
 

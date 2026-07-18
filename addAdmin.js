@@ -1,7 +1,7 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-const Admin = require('./models/Admin');
+const Admin = require('./database/models/Admin');
 
 const dbUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/placementPortal';
 mongoose.connect(dbUri);

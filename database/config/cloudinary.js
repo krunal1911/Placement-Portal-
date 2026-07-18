@@ -48,7 +48,7 @@ const uploadFile = (buffer, subfolder, originalName, resourceType = 'image') => 
         } else {
             // Fallback: Save to local public/uploads directory
             try {
-                const uploadDir = path.join(__dirname, '../public/uploads', subfolder);
+                const uploadDir = path.join(__dirname, '../../frontend/public/uploads', subfolder);
                 
                 // Ensure directory exists
                 if (!fs.existsSync(uploadDir)) {
