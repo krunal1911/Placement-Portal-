@@ -2,7 +2,7 @@ const path = require("path");
 const fs   = require("fs");
 const PDFDocument = require("pdfkit");
 
-const { uploadToCloudinary } = require("../config/cloudinary");
+const { uploadFile } = require("../config/cloudinary");
 
 const User = require("../models/User");
 const Result = require("../models/result");
@@ -339,7 +339,7 @@ exports.updateProfile = async (req, res) => {
     }
 };
 
-// Upload student profile image → Cloudinary
+// Upload student profile image → Cloudinary or Local Fallback
 exports.uploadProfileImage = async (req, res) => {
     try {
         if (!req.session.user) return res.redirect('/login');
@@ -348,14 +348,15 @@ exports.uploadProfileImage = async (req, res) => {
         const user = await User.findById(req.session.user._id);
         if (!user) return res.status(404).send("User not found");
 
-        // Upload buffer directly to Cloudinary
-        const cloudinaryUrl = await uploadToCloudinary(
+        // Upload buffer directly via our fallback utility
+        const imageUrl = await uploadFile(
             req.file.buffer,
-            'placement-portal/profiles',
+            'profiles',
+            req.file.originalname,
             'image'
         );
 
-        user.profileImage = cloudinaryUrl;
+        user.profileImage = imageUrl;
         const savedUser = await user.save();
         req.session.user.profileImage = savedUser.profileImage;
         res.redirect('/profile');
@@ -365,7 +366,7 @@ exports.uploadProfileImage = async (req, res) => {
     }
 };
 
-// Upload custom PDF resume → Cloudinary
+// Upload custom PDF resume → Cloudinary or Local Fallback
 exports.uploadResume = async (req, res) => {
     try {
         if (!req.session.user) return res.redirect('/login');
@@ -374,14 +375,15 @@ exports.uploadResume = async (req, res) => {
         const user = await User.findById(req.session.user._id);
         if (!user) return res.status(404).send("User not found");
 
-        // Upload PDF buffer directly to Cloudinary
-        const cloudinaryUrl = await uploadToCloudinary(
+        // Upload PDF buffer directly via our fallback utility
+        const resumeUrl = await uploadFile(
             req.file.buffer,
-            'placement-portal/resumes',
+            'resumes',
+            req.file.originalname,
             'raw'
         );
 
-        user.resume = cloudinaryUrl;
+        user.resume = resumeUrl;
         await user.save();
 
         await Notification.create({

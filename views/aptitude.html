@@ -198,7 +198,7 @@ async function loadQuestions() {
         const user = await userRes.json();
         document.getElementById("candidateName").innerText = user.name || "Student Name";
         if (user.profileImage && user.profileImage !== "default.png") {
-            if (user.profileImage.startsWith("http")) {
+            if (user.profileImage.startsWith("http") || user.profileImage.startsWith("/")) {
                 document.getElementById("candidateImg").src = user.profileImage;
             } else {
                 document.getElementById("candidateImg").src = `/uploads/profiles/${user.profileImage}`;
