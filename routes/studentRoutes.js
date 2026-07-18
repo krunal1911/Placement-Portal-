@@ -84,5 +84,23 @@ router.get("/check-config", (req, res) => {
     });
 });
 
+const Question = require("../models/Question");
+const TechnicalQuestion = require("../models/TechnicalQuestion");
+
+router.get("/check-questions", async (req, res) => {
+    try {
+        const aptCount = await Question.countDocuments();
+        const techCount = await TechnicalQuestion.countDocuments();
+        const sampleApt = await Question.find().limit(5);
+        res.json({
+            aptitude_count: aptCount,
+            technical_count: techCount,
+            sample_aptitude_questions: sampleApt
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;
 
