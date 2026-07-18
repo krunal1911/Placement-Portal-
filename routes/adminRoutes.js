@@ -51,7 +51,7 @@ router.get("/update-status", requireSuperAdmin, adminController.showUpdateStatus
 router.get("/current-admin", requireAdmin, adminController.getCurrentAdmin);
 router.get("/admins-data", requireSuperAdmin, adminController.getAdminsData);
 router.get("/students-data", requireSuperAdmin, adminController.getStudentsData);
-router.get("/exam-settings/:type", requireAdmin, adminController.getExamSettings);
+router.get("/exam-settings/:type", adminController.getExamSettings);
 router.get("/questions-list/:type", requireAdmin, adminController.getQuestionsList);
 router.get("/admin-analytics", requireAdmin, adminController.getAdminAnalytics);
 router.get("/applications-data", requireSuperAdmin, adminController.getApplicationsData);
