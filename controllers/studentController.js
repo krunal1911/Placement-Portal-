@@ -347,7 +347,7 @@ exports.uploadProfileImage = async (req, res) => {
         if (!user) {
             return res.send("User not found");
         }
-        user.profileImage = req.file.filename;
+        user.profileImage = req.file.path;  // Cloudinary URL
         const savedUser = await user.save();
         req.session.user.profileImage = savedUser.profileImage;
         res.redirect('/profile');
@@ -367,7 +367,7 @@ exports.uploadResume = async (req, res) => {
         if (!user) {
             return res.send("User not found");
         }
-        user.resume = req.file.filename;
+        user.resume = req.file.path;  // Cloudinary URL
         await user.save();
 
         await Notification.create({

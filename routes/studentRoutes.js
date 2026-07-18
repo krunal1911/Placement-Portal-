@@ -1,27 +1,16 @@
 const express = require("express");
-const multer = require("multer");
-const path = require("path");
+const multer  = require("multer");
 
 const studentController = require("../controllers/studentController");
-const { requireUser } = require("../middleware/auth");
+const { requireUser }   = require("../middleware/auth");
+const { profileStorage, resumeStorage } = require("../config/cloudinary");
 
 const router = express.Router();
 
-// Multer Storage Configuration for Custom Resume upload
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, "uploads/");
-    },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + "-" + file.originalname);
-    }
-});
-
+// Multer — PDF Resume upload → Cloudinary
 const upload = multer({
-    storage: storage,
-    limits: {
-        fileSize: 5 * 1024 * 1024 // 5 MB
-    },
+    storage: resumeStorage,
+    limits: { fileSize: 5 * 1024 * 1024 },
     fileFilter: function (req, file, cb) {
         if (file.mimetype === "application/pdf") {
             cb(null, true);
@@ -31,27 +20,12 @@ const upload = multer({
     }
 });
 
-// Multer Storage Configuration for Profile Avatar upload
-const profileStorage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, "uploads/profiles");
-    },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + path.extname(file.originalname));
-    }
-});
-
+// Multer — Profile Image upload → Cloudinary
 const profileUpload = multer({
     storage: profileStorage,
-    limits: {
-        fileSize: 2 * 1024 * 1024
-    },
+    limits: { fileSize: 2 * 1024 * 1024 },
     fileFilter: function (req, file, cb) {
-        if (
-            file.mimetype === "image/png" ||
-            file.mimetype === "image/jpeg" ||
-            file.mimetype === "image/jpg"
-        ) {
+        if (["image/png", "image/jpeg", "image/jpg"].includes(file.mimetype)) {
             cb(null, true);
         } else {
             cb(new Error("Only JPG, JPEG and PNG images are allowed."), false);
