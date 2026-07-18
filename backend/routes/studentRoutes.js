@@ -70,32 +70,7 @@ router.post("/build-resume", requireUser, studentController.buildResume);
 router.post("/submit-test", requireUser, studentController.submitTest);
 router.post("/apply-company", requireUser, studentController.applyCompany);
 
-// Temporary Diagnostic Route to see where files are physically saved
-const fs = require('fs');
-const path = require('path');
-router.get("/check-files", async (req, res) => {
-    try {
-        const rootDirs = fs.readdirSync(path.join(__dirname, '../..'));
-        let frontendUploads = [];
-        try {
-            frontendUploads = fs.readdirSync(path.join(__dirname, '../../frontend/public/uploads/resumes'));
-        } catch(e) {
-            frontendUploads = [e.message];
-        }
 
-        const user = req.session.user ? await require('../../database/models/User').findById(req.session.user._id) : null;
-
-        res.json({
-            current_dirname: __dirname,
-            resolved_uploads_path: path.resolve(path.join(__dirname, '../../frontend/public/uploads/resumes')),
-            root_directories: rootDirs,
-            files_in_uploads_resumes: frontendUploads,
-            user_resume_db_value: user ? user.resume : "Not Logged In"
-        });
-    } catch(err) {
-        res.status(500).json({ error: err.message });
-    }
-});
 
 module.exports = router;
 
