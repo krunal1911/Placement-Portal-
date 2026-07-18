@@ -4,91 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Registration | Placement Portal</title>
-    <link rel="stylesheet" href="/dashboard.css">
+    <link rel="stylesheet" href="/login.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: #f1f5f9;
-        }
-        .register-container {
-            width: 100%;
-            max-width: 480px;
-            padding: 20px;
-        }
-        .register-card {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow-lg);
-        }
-        .register-card h1 {
-            font-size: 26px;
-            font-weight: 700;
-            color: #1e3a8a;
-            margin-bottom: 8px;
-            text-align: center;
-        }
-        .register-card p.subtitle {
-            color: var(--text-muted);
-            font-size: 14px;
-            text-align: center;
-            margin-bottom: 32px;
-        }
-        .register-card button {
-            width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            margin-top: 10px;
-        }
-        .register-card .footer-links {
-            text-align: center;
-            margin-top: 24px;
-            font-size: 14px;
-            color: var(--text-muted);
-        }
-        .register-card .footer-links a {
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 600;
-        }
-        .register-card .footer-links a:hover {
-            text-decoration: underline;
-        }
-    </style>
     <link rel="stylesheet" href="/responsive.css">
 </head>
 <body>
 
-<div class="register-container">
-    <div class="register-card">
-        <h1>Student Sign Up</h1>
-        <p class="subtitle">Create an account to start preparing and applying.</p>
+<div class="container">
+    <div class="login-box" style="margin-top: 40px; margin-bottom: 40px;">
+        <h1 style="font-size: 24px; font-weight: 700; color: var(--text-main); margin-bottom: 8px; text-align: center;">Student Sign Up</h1>
+        <p style="color: var(--text-muted); font-size: 14px; text-align: center; margin-bottom: 24px;">Create an account to start preparing and applying.</p>
 
         <form id="registerForm">
-            <div class="form-group">
+            <div class="input-group">
                 <label for="name">Full Name</label>
                 <input type="text" id="name" placeholder="Enter full name" required>
                 <span style="font-size: 11px; color: var(--text-muted); display: block; margin-top: 4px;">Only letters & spaces, 3-50 characters.</span>
             </div>
 
-            <div class="form-group">
+            <div class="input-group">
                 <label for="email">Email Address</label>
                 <input type="email" id="email" placeholder="student@university.edu" required>
             </div>
 
-            <div class="form-group">
+            <div class="input-group">
                 <label for="password">Password</label>
                 <input type="password" id="password" placeholder="At least 8 characters" required>
                 <span style="font-size: 11px; color: var(--text-muted); display: block; margin-top: 4px;">Minimum 8 characters.</span>
             </div>
 
-            <div class="form-group">
+            <div class="input-group">
                 <label for="branch">Engineering Branch</label>
                 <select id="branch" required>
                     <option value="">Select Branch</option>
@@ -100,7 +46,7 @@
                 </select>
             </div>
 
-            <div class="form-group">
+            <div class="input-group">
                 <label for="semester">Current Semester</label>
                 <select id="semester" required>
                     <option value="">Select Semester</option>
@@ -115,17 +61,17 @@
                 </select>
             </div>
 
-            <button type="submit" class="btn btn-primary">
+            <button type="submit" class="login-btn">
                 Create Account
             </button>
         </form>
 
-        <div class="footer-links">
+        <p>
             Already have an account? <a href="/login">Login here</a>
-            <div style="margin-top: 12px;">
-                <a href="/" style="color: var(--text-muted); font-size: 13px;">← Back to Home</a>
-            </div>
-        </div>
+        </p>
+        <p style="margin-top: 12px; text-align: center;">
+            <a href="/" style="color: var(--text-muted); font-size: 13px;">← Back to Home</a>
+        </p>
     </div>
 </div>
 
