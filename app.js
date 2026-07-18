@@ -20,6 +20,9 @@ const app = express();
 // ─── Database Connection ──────────────────────────────────────────────────────
 connectDB();
 
+const Admin = require('./models/Admin');
+const bcrypt = require('bcrypt');
+
 // ─── Seed Exam Settings ───────────────────────────────────────────────────────
 const initializeSettings = async () => {
     try {
@@ -39,8 +42,27 @@ const initializeSettings = async () => {
                 duration: 20
             });
         }
+
+        // Seed Admins automatically
+        const adminCount = await Admin.countDocuments();
+        if (adminCount === 0) {
+            console.log('🌱 No admins found. Seeding default admin accounts...');
+            const superHashed = await bcrypt.hash("superadmin123", 10);
+            await Admin.create({
+                username: "superadmin",
+                password: superHashed,
+                role: "superadmin"
+            });
+            const regularHashed = await bcrypt.hash("admin123", 10);
+            await Admin.create({
+                username: "admin",
+                password: regularHashed,
+                role: "admin"
+            });
+            console.log('✅ Default admin (admin123) & superadmin (superadmin123) created successfully!');
+        }
     } catch (err) {
-        console.error('Failed to initialize exam settings:', err);
+        console.error('Failed to initialize settings/admins:', err);
     }
 };
 initializeSettings();
