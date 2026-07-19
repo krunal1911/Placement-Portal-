@@ -280,7 +280,9 @@ exports.getQuestions = async (req, res) => {
 // Get all technical MCQ coding questions
 exports.getTechnicalQuestions = async (req, res) => {
     try {
-        const questions = await TechnicalQuestion.find();
+        const questions = await TechnicalQuestion.aggregate([
+            { $sample: { size: 20 } }
+        ]);
         res.json(questions);
     } catch (err) {
         console.log(err);
