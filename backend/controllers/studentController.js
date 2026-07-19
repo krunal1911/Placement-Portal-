@@ -730,13 +730,34 @@ exports.applyCompany = async (req, res) => {
         }
         const { companyId } = req.body;
 
+        const company = await Company.findById(companyId);
+        if (!company) {
+            return res.status(404).send("Company not found");
+        }
+
+        const user = await User.findById(req.session.user._id);
+        if (!user) {
+            return res.status(404).send("User not found");
+        }
+
+        const studentCgpa = parseFloat(user.cgpa);
+        const requiredCgpa = parseFloat(company.eligibility);
+
+        if (isNaN(studentCgpa)) {
+            return res.status(400).send("Please update your CGPA in your profile first to check eligibility.");
+        }
+
+        if (!isNaN(requiredCgpa) && studentCgpa < requiredCgpa) {
+            return res.status(400).send(`You are not eligible for this company. Your CGPA (${studentCgpa}) is below the required criteria (${requiredCgpa}).`);
+        }
+
         const alreadyApplied = await Application.findOne({
             userId: req.session.user._id,
             companyId: companyId
         });
 
         if (alreadyApplied) {
-            return res.send("You have already applied.");
+            return res.status(400).send("You have already applied.");
         }
 
         const application = new Application({
@@ -749,7 +770,7 @@ exports.applyCompany = async (req, res) => {
         await Notification.create({
             userId: req.session.user._id,
             title: "Application Submitted",
-            message: "Your application has been submitted successfully."
+            message: `Your application to ${company.companyName} has been submitted successfully.`
         });
 
         res.send("Application Submitted Successfully ✅");
