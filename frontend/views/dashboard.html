@@ -317,12 +317,6 @@ async function loadDashboard() {
             user.companiesApplied || 0;
 
         
-        document.getElementById("dashboardPercentage").innerHTML =
-            user.profileCompletion + "%";
-
-        document.getElementById("dashboardProgressBar").style.width =
-            user.profileCompletion + "%";
-            
         loadChart(
             user.testsTaken || 0,
             user.averageScore || 0
