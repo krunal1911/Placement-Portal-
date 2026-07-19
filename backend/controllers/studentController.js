@@ -440,204 +440,231 @@ exports.buildResume = async (req, res) => {
             fs.mkdirSync(uploadDir, { recursive: true });
         }
 
-        const doc = new PDFDocument({ margin: 40, size: 'LETTER' });
+        const doc = new PDFDocument({ margin: 0, size: 'LETTER' });
         const filename = "resume-" + user._id + "-" + Date.now() + ".pdf";
         const filepath = path.join(uploadDir, filename);
 
         const writeStream = fs.createWriteStream(filepath);
         doc.pipe(writeStream);
 
-        // Premium Color Palette Randomizer (different UI/UX look every time!)
+        // Premium Color Palettes - Different every time!
         const palettes = [
-            { primary: "#1e3a8a", secondary: "#475569", accent: "#2563eb" }, // Executive Navy
-            { primary: "#0f766e", secondary: "#4b5563", accent: "#0d9488" }, // Modern Teal
-            { primary: "#1e293b", secondary: "#64748b", accent: "#6366f1" }, // Charcoal Indigo
-            { primary: "#065f46", secondary: "#475569", accent: "#059669" }, // Emerald Prestige
-            { primary: "#7f1d1d", secondary: "#52525b", accent: "#dc2626" }  // Crimson Burgundy
+            { primary: "#1e3a8a", accent: "#2563eb" }, // Navy Blue
+            { primary: "#0f766e", accent: "#0d9488" }, // Teal
+            { primary: "#374151", accent: "#6366f1" }, // Charcoal Indigo
+            { primary: "#065f46", accent: "#10b981" }, // Emerald
+            { primary: "#4c1d95", accent: "#7c3aed" }  // Royal Purple
         ];
         const theme = palettes[Math.floor(Math.random() * palettes.length)];
-        const textColor = "#1e293b"; // Rich body text
 
-        // Top decorative header accent bar
-        doc.rect(0, 0, 612, 16).fill(theme.primary);
+        const PAGE_W = 612;
+        const SIDEBAR_W = 185;
+        const RIGHT_X = SIDEBAR_W + 25;
+        const RIGHT_W = PAGE_W - SIDEBAR_W - 45;
+        const white = "#ffffff";
+        const darkText = "#1e293b";
+        const mutedText = "#64748b";
+        const lightBg = "#f8fafc";
+        const sidebarBg = theme.primary;
 
-        // Candidate Name (Left aligned, premium title)
-        doc.fillColor(theme.primary)
+        // ─── FULL-WIDTH HEADER BANNER ────────────────────────────────
+        const HEADER_H = 110;
+        doc.rect(0, 0, PAGE_W, HEADER_H).fill(theme.primary);
+
+        // Name
+        doc.fillColor(white)
            .font("Helvetica-Bold")
-           .fontSize(22)
-           .text((user.name || "Student Name").toUpperCase(), 40, 36);
+           .fontSize(26)
+           .text((user.name || "Student Name").toUpperCase(), 24, 20, { width: PAGE_W - 48 });
 
-        // Subtitle (Candidate profile branch)
-        doc.fillColor(theme.secondary)
-           .font("Helvetica-Bold")
-           .fontSize(10)
-           .text((user.branch || "Software Engineering Student").toUpperCase(), 40, doc.y + 2);
+        // Branch subtitle
+        doc.fillColor("#bfdbfe")
+           .font("Helvetica")
+           .fontSize(11)
+           .text((user.branch || "Engineering Student").toUpperCase(), 24, 52, { characterSpacing: 0.8 });
 
-        // Header bottom divider line
-        doc.moveDown(0.8);
-        doc.strokeColor("#cbd5e1")
-           .lineWidth(1)
-           .moveTo(40, doc.y)
-           .lineTo(572, doc.y)
-           .stroke();
-        
-        const startY = doc.y + 16;
-
-        // ==========================================
-        // LEFT COLUMN (X = 40, Width = 150)
-        // ==========================================
-        let leftY = startY;
-
-        // Section 1: Contact
-        doc.fillColor(theme.primary)
-           .font("Helvetica-Bold")
-           .fontSize(10)
-           .text("CONTACT DETAILS", 40, leftY, { characterSpacing: 0.5 });
-        
-        leftY = doc.y + 6;
-        doc.fillColor(textColor).font("Helvetica").fontSize(8.5);
-        doc.text(`Email: ${user.email}`, 40, leftY, { width: 155 });
-        leftY = doc.y + 4;
-        doc.text(`Phone: ${user.phone || 'N/A'}`, 40, leftY, { width: 155 });
-        leftY = doc.y + 4;
-        doc.text(`LinkedIn: ${user.linkedin || 'N/A'}`, 40, leftY, { width: 155 });
-        leftY = doc.y + 4;
-        doc.text(`GitHub: ${user.github || 'N/A'}`, 40, leftY, { width: 155 });
-        
-        leftY = doc.y + 16;
-
-        // Section 2: Education
-        doc.fillColor(theme.primary)
-           .font("Helvetica-Bold")
-           .fontSize(10)
-           .text("ACADEMIC METRICS", 40, leftY, { characterSpacing: 0.5 });
-        
-        leftY = doc.y + 6;
-        doc.fillColor(textColor).font("Helvetica-Bold").fontSize(9).text(user.branch || 'Engineering', 40, leftY, { width: 150 });
-        leftY = doc.y + 2;
-        doc.font("Helvetica").fontSize(8.5).text(`Semester ${user.semester || 'N/A'}`, 40, leftY);
-        leftY = doc.y + 2;
-        doc.text(`Current CGPA: ${user.cgpa ? user.cgpa + ' / 10.0' : 'N/A'}`, 40, leftY);
-        
-        leftY = doc.y + 16;
-
-        // Section 3: Tools & Platforms
-        doc.fillColor(theme.primary)
-           .font("Helvetica-Bold")
-           .fontSize(10)
-           .text("PLATFORMS & TOOLS", 40, leftY, { characterSpacing: 0.5 });
-        
-        leftY = doc.y + 6;
-        doc.fillColor(textColor).font("Helvetica").fontSize(8.5);
-        
-        const branchToolsMap = {
-            "computer": ["VS Code", "Git / GitHub", "Docker", "Postman", "MongoDB Compass"],
-            "information": ["VS Code", "Git / GitHub", "Docker", "Postman", "MongoDB Compass"],
-            "electronics": ["MATLAB", "Simulink", "Keil uVision", "Proteus", "Arduino IDE"],
-            "mechanical": ["AutoCAD", "SolidWorks", "CATIA", "ANSYS", "Fusion 360"],
-            "civil": ["Revit", "STAAD Pro", "AutoCAD", "SAP2000", "ArcGIS"],
-            "electrical": ["MATLAB", "Simulink", "ETAP", "PSPICE", "Proteus"]
-        };
-        const branchLower = (user.branch || "").toLowerCase();
-        let toolsList = ["Git", "VS Code", "Office Suit"];
-        for (const [key, list] of Object.entries(branchToolsMap)) {
-            if (branchLower.includes(key)) {
-                toolsList = list;
-                break;
+        // Contact row inside header
+        const contactY = 74;
+        const contactItems = [
+            user.email,
+            user.phone || "N/A",
+            user.linkedin ? "LinkedIn: " + user.linkedin : "LinkedIn: N/A",
+            user.github ? "GitHub: " + user.github : "GitHub: N/A"
+        ];
+        doc.fillColor("#e0f2fe").font("Helvetica").fontSize(8);
+        let contactX = 24;
+        contactItems.forEach((item, i) => {
+            if (i > 0) {
+                doc.fillColor("#93c5fd").text(" | ", contactX, contactY, { continued: true });
+                contactX += doc.widthOfString(" | ");
             }
-        }
-        toolsList.forEach(tool => {
-            doc.text(`  - ${tool}`, 40, leftY);
-            leftY = doc.y + 2;
+            doc.fillColor("#e0f2fe").text(item, contactX, contactY, { continued: i < contactItems.length - 1, width: PAGE_W - 48 });
+            contactX += doc.widthOfString(item);
         });
 
-        // ==========================================
-        // VERTICAL SEPARATOR LINE
-        // ==========================================
-        const lineEndY = Math.max(leftY, 730);
-        doc.strokeColor("#e2e8f0")
-           .lineWidth(1)
-           .moveTo(205, startY)
-           .lineTo(205, lineEndY)
-           .stroke();
+        // ─── SIDEBAR BACKGROUND ──────────────────────────────────────
+        doc.rect(0, HEADER_H, SIDEBAR_W, 792 - HEADER_H).fill("#1e3055");
 
-        // ==========================================
-        // RIGHT COLUMN (X = 220, Width = 352)
-        // ==========================================
-        let rightY = startY;
+        // ─── BODY BACKGROUND (right side) ───────────────────────────
+        doc.rect(SIDEBAR_W, HEADER_H, PAGE_W - SIDEBAR_W, 792 - HEADER_H).fill(white);
 
-        // Section 1: Technical Skills
-        doc.fillColor(theme.primary)
-           .font("Helvetica-Bold")
-           .fontSize(10)
-           .text("TECHNICAL EXPERTISE & SKILLS", 220, rightY, { characterSpacing: 0.5 });
-        
-        rightY = doc.y + 6;
-        doc.fillColor(textColor).font("Helvetica").fontSize(8.5);
+        // ─── HELPER: SIDEBAR SECTION HEADER ─────────────────────────
+        let sideY = HEADER_H + 22;
+        const sidebarSection = (title) => {
+            doc.fillColor("#93c5fd").font("Helvetica-Bold").fontSize(8.5)
+               .text(title, 14, sideY, { characterSpacing: 1 });
+            sideY = doc.y + 4;
+            doc.strokeColor("#3b5bdb").lineWidth(0.5)
+               .moveTo(14, sideY).lineTo(SIDEBAR_W - 14, sideY).stroke();
+            sideY += 8;
+        };
 
-        if (user.skills && user.skills.trim() !== "") {
-            const skillList = user.skills.split(',').map(s => s.trim());
+        // ─── HELPER: RIGHT SECTION HEADER ───────────────────────────
+        let rightY = HEADER_H + 22;
+        const rightSection = (title) => {
+            doc.fillColor(theme.accent).font("Helvetica-Bold").fontSize(12)
+               .text(title, RIGHT_X, rightY, { characterSpacing: 0.5 });
+            rightY = doc.y + 3;
+            doc.strokeColor(theme.accent).lineWidth(1.5)
+               .moveTo(RIGHT_X, rightY).lineTo(RIGHT_X + RIGHT_W, rightY).stroke();
+            rightY += 10;
+        };
+
+        // ─── SIDEBAR CONTENT ─────────────────────────────────────────
+
+        // Academic Metrics
+        sidebarSection("ACADEMICS");
+        doc.fillColor(white).font("Helvetica-Bold").fontSize(9)
+           .text(user.branch || "Engineering", 14, sideY, { width: SIDEBAR_W - 24 });
+        sideY = doc.y + 4;
+        doc.fillColor("#bfdbfe").font("Helvetica").fontSize(8.5)
+           .text("Semester: " + (user.semester || "N/A"), 14, sideY);
+        sideY = doc.y + 3;
+        doc.text("CGPA: " + (user.cgpa ? user.cgpa + " / 10.0" : "N/A"), 14, sideY);
+        sideY = doc.y + 20;
+
+        // Platforms & Tools
+        sidebarSection("PLATFORMS & TOOLS");
+        const branchToolsMap = {
+            "computer":    ["VS Code", "Git & GitHub", "Docker", "Postman", "MongoDB Compass", "Node.js"],
+            "information": ["VS Code", "Git & GitHub", "Docker", "Postman", "MongoDB Compass", "Node.js"],
+            "electronics": ["MATLAB", "Simulink", "Keil uVision", "Proteus", "Arduino IDE", "Xilinx ISE"],
+            "mechanical":  ["AutoCAD", "SolidWorks", "CATIA", "ANSYS", "Fusion 360", "MATLAB"],
+            "civil":       ["Revit", "STAAD Pro", "AutoCAD Civil 3D", "SAP2000", "ArcGIS", "Primavera"],
+            "electrical":  ["MATLAB", "Simulink", "ETAP", "PSPICE", "Proteus", "AutoCAD Electrical"]
+        };
+        const branchLower = (user.branch || "").toLowerCase();
+        let toolsList = ["VS Code", "Git & GitHub", "MS Office"];
+        for (const [key, list] of Object.entries(branchToolsMap)) {
+            if (branchLower.includes(key)) { toolsList = list; break; }
+        }
+        doc.fillColor("#bfdbfe").font("Helvetica").fontSize(8.5);
+        toolsList.forEach(tool => {
+            doc.text("  > " + tool, 14, sideY, { width: SIDEBAR_W - 20 });
+            sideY = doc.y + 3;
+        });
+
+        sideY += 14;
+
+        // Core Strengths
+        sidebarSection("CORE STRENGTHS");
+        const strengths = [
+            "Problem Solving",
+            "Team Collaboration",
+            "Quick Learner",
+            "Analytical Thinking",
+            "Time Management"
+        ];
+        doc.fillColor("#bfdbfe").font("Helvetica").fontSize(8.5);
+        strengths.forEach(s => {
+            doc.text("  > " + s, 14, sideY, { width: SIDEBAR_W - 20 });
+            sideY = doc.y + 3;
+        });
+
+        // ─── RIGHT COLUMN CONTENT ─────────────────────────────────────
+
+        // TECHNICAL SKILLS
+        rightSection("TECHNICAL SKILLS");
+        if (user.skills && user.skills.trim()) {
+            const skillList = user.skills.split(",").map(s => s.trim());
             skillList.forEach(skill => {
                 const desc = getSkillDescription(skill);
-                doc.fillColor(theme.accent)
-                   .font("Helvetica-Bold")
-                   .fontSize(9)
-                   .text("  > ", 220, rightY, { continued: true })
-                   .fillColor(textColor)
-                   .text(`${skill}: `, { continued: true })
-                   .font("Helvetica")
-                   .fillColor(theme.secondary)
-                   .text(desc, { width: 330 });
-                rightY = doc.y + 4;
+                doc.fillColor(darkText).font("Helvetica-Bold").fontSize(9.5)
+                   .text(skill, RIGHT_X + 8, rightY, { continued: true })
+                   .font("Helvetica").fillColor(mutedText).fontSize(8.5)
+                   .text("  —  " + desc, { width: RIGHT_W - 10 });
+                rightY = doc.y + 5;
             });
         } else {
-            doc.text("No technical expertise details added to profile registry.", 220, rightY);
-            rightY = doc.y + 12;
+            doc.fillColor(mutedText).font("Helvetica").fontSize(9)
+               .text("No skills listed in profile.", RIGHT_X + 8, rightY);
+            rightY = doc.y + 10;
         }
+
+        rightY += 14;
+
+        // PROJECTS
+        rightSection("PROJECTS");
+
+        // Project 1
+        doc.fillColor(darkText).font("Helvetica-Bold").fontSize(10)
+           .text("AI Placement Preparation & Recruitment Portal", RIGHT_X + 8, rightY, { width: RIGHT_W });
+        rightY = doc.y + 2;
+        doc.fillColor(theme.accent).font("Helvetica").fontSize(8)
+           .text("Node.js  |  Express.js  |  MongoDB  |  HTML  |  CSS  |  JavaScript", RIGHT_X + 8, rightY);
+        rightY = doc.y + 5;
+        const p1bullets = [
+            "Built a full-stack placement management platform for students and recruiters.",
+            "Implemented JWT-secured login, session-based auth, and role-based routing.",
+            "Integrated aptitude & technical quiz engines with timed assessment consoles.",
+            "Deployed to Render with Cloudinary cloud storage and MongoDB Atlas database."
+        ];
+        doc.fillColor(mutedText).font("Helvetica").fontSize(8.5);
+        p1bullets.forEach(b => {
+            doc.text("  -  " + b, RIGHT_X + 8, rightY, { width: RIGHT_W });
+            rightY = doc.y + 3;
+        });
 
         rightY += 12;
 
-        // Section 2: Key Engineering Projects
-        doc.fillColor(theme.primary)
-           .font("Helvetica-Bold")
-           .fontSize(10)
-           .text("KEY ENGINEERING PROJECTS", 220, rightY, { characterSpacing: 0.5 });
-        
-        rightY = doc.y + 6;
-
-        // Project 1
-        doc.fillColor(textColor)
-           .font("Helvetica-Bold")
-           .fontSize(10)
-           .text("AI Placement Preparation & Recruitment Portal", 220, rightY);
-        
-        rightY = doc.y + 2;
-        doc.font("Helvetica")
-           .fontSize(8.5)
-           .fillColor(theme.secondary)
-           .text("- Developed a web application for student placement preparation, testing, and recruitment drives.", 220, rightY, { width: 340 });
-        rightY = doc.y + 2;
-        doc.text("- Configured REST routes, MVC controllers, secure authentication middleware, and database schemas.", 220, rightY, { width: 340 });
-        rightY = doc.y + 2;
-        doc.text("- Integrated responsive theme overrides for desktop, tablet, and mobile browsers.", 220, rightY, { width: 340 });
-        rightY = doc.y + 2;
-        doc.text("- Technologies: Node.js, Express, MongoDB, HTML, CSS, JavaScript.", 220, rightY, { width: 340 });
-
-        rightY = doc.y + 10;
-
         // Project 2
-        doc.fillColor(textColor)
-           .font("Helvetica-Bold")
-           .fontSize(10)
-           .text("Interactive Online Code Assessment Platform", 220, rightY);
-        
+        doc.fillColor(darkText).font("Helvetica-Bold").fontSize(10)
+           .text("Interactive Online Code Assessment Platform", RIGHT_X + 8, rightY, { width: RIGHT_W });
         rightY = doc.y + 2;
-        doc.font("Helvetica")
-           .fontSize(8.5)
-           .fillColor(theme.secondary)
-           .text("- Built dynamic quiz and testing modules with timed engines and visual grading analytics.", 220, rightY, { width: 340 });
-        rightY = doc.y + 2;
-        doc.text("- Programmed responsive candidate consoles mapping TCS iON exam layouts.", 220, rightY, { width: 340 });
+        doc.fillColor(theme.accent).font("Helvetica").fontSize(8)
+           .text("JavaScript  |  HTML  |  CSS  |  REST API", RIGHT_X + 8, rightY);
+        rightY = doc.y + 5;
+        const p2bullets = [
+            "Built dynamic quiz and testing modules with timed engines and live grading.",
+            "Designed responsive TCS iON-style candidate console for mobile and desktop."
+        ];
+        doc.fillColor(mutedText).font("Helvetica").fontSize(8.5);
+        p2bullets.forEach(b => {
+            doc.text("  -  " + b, RIGHT_X + 8, rightY, { width: RIGHT_W });
+            rightY = doc.y + 3;
+        });
+
+        rightY += 14;
+
+        // CERTIFICATIONS (if space allows)
+        if (rightY < 700) {
+            rightSection("CERTIFICATIONS & ACHIEVEMENTS");
+            const certs = [
+                "Participated in campus placement preparation drives and aptitude training.",
+                "Completed technical practice modules covering DBMS, OS, and Computer Networks.",
+                "Active contributor in team-based software engineering project development."
+            ];
+            doc.fillColor(mutedText).font("Helvetica").fontSize(8.5);
+            certs.forEach(c => {
+                doc.text("  -  " + c, RIGHT_X + 8, rightY, { width: RIGHT_W });
+                rightY = doc.y + 3;
+            });
+        }
+
+        // Footer line
+        doc.rect(0, 775, PAGE_W, 17).fill(theme.primary);
+        doc.fillColor(white).font("Helvetica").fontSize(7)
+           .text("Generated by Placement Portal AI Resume Builder", 0, 779, { align: "center", width: PAGE_W });
 
         doc.end();
 
