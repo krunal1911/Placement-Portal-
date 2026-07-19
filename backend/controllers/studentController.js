@@ -496,13 +496,13 @@ exports.buildResume = async (req, res) => {
         
         leftY = doc.y + 6;
         doc.fillColor(textColor).font("Helvetica").fontSize(8.5);
-        doc.text(`📧 ${user.email}`, 40, leftY, { width: 150 });
+        doc.text(`Email: ${user.email}`, 40, leftY, { width: 155 });
         leftY = doc.y + 4;
-        doc.text(`📞 ${user.phone || 'N/A'}`, 40, leftY, { width: 150 });
+        doc.text(`Phone: ${user.phone || 'N/A'}`, 40, leftY, { width: 155 });
         leftY = doc.y + 4;
-        doc.text(`🔗 LinkedIn:\n${user.linkedin || 'N/A'}`, 40, leftY, { width: 150 });
+        doc.text(`LinkedIn: ${user.linkedin || 'N/A'}`, 40, leftY, { width: 155 });
         leftY = doc.y + 4;
-        doc.text(`💻 GitHub:\n${user.github || 'N/A'}`, 40, leftY, { width: 150 });
+        doc.text(`GitHub: ${user.github || 'N/A'}`, 40, leftY, { width: 155 });
         
         leftY = doc.y + 16;
 
@@ -547,7 +547,7 @@ exports.buildResume = async (req, res) => {
             }
         }
         toolsList.forEach(tool => {
-            doc.text(`  •  ${tool}`, 40, leftY);
+            doc.text(`  - ${tool}`, 40, leftY);
             leftY = doc.y + 2;
         });
 
@@ -582,12 +582,12 @@ exports.buildResume = async (req, res) => {
                 doc.fillColor(theme.accent)
                    .font("Helvetica-Bold")
                    .fontSize(9)
-                   .text("  •  ", 220, rightY, { continued: true })
+                   .text("  > ", 220, rightY, { continued: true })
                    .fillColor(textColor)
                    .text(`${skill}: `, { continued: true })
                    .font("Helvetica")
                    .fillColor(theme.secondary)
-                   .text(desc, { width: 340 });
+                   .text(desc, { width: 330 });
                 rightY = doc.y + 4;
             });
         } else {
@@ -615,13 +615,13 @@ exports.buildResume = async (req, res) => {
         doc.font("Helvetica")
            .fontSize(8.5)
            .fillColor(theme.secondary)
-           .text("• Developed a web application for student placement preparation, testing, and recruitment drives.", 220, rightY, { width: 340 });
+           .text("- Developed a web application for student placement preparation, testing, and recruitment drives.", 220, rightY, { width: 340 });
         rightY = doc.y + 2;
-        doc.text("• Configured REST routes, MVC controllers, secure authentication middleware, and database schemas.", 220, rightY, { width: 340 });
+        doc.text("- Configured REST routes, MVC controllers, secure authentication middleware, and database schemas.", 220, rightY, { width: 340 });
         rightY = doc.y + 2;
-        doc.text("• Integrated responsive theme overrides for desktop, tablet, and mobile browsers.", 220, rightY, { width: 340 });
+        doc.text("- Integrated responsive theme overrides for desktop, tablet, and mobile browsers.", 220, rightY, { width: 340 });
         rightY = doc.y + 2;
-        doc.text("• Technologies: Node.js, Express, MongoDB, HTML, CSS, JavaScript.", 220, rightY, { width: 340 });
+        doc.text("- Technologies: Node.js, Express, MongoDB, HTML, CSS, JavaScript.", 220, rightY, { width: 340 });
 
         rightY = doc.y + 10;
 
@@ -635,9 +635,9 @@ exports.buildResume = async (req, res) => {
         doc.font("Helvetica")
            .fontSize(8.5)
            .fillColor(theme.secondary)
-           .text("• Built dynamic quiz and testing modules with timed engines and visual grading analytics.", 220, rightY, { width: 340 });
+           .text("- Built dynamic quiz and testing modules with timed engines and visual grading analytics.", 220, rightY, { width: 340 });
         rightY = doc.y + 2;
-        doc.text("• Programmed responsive candidate consoles mapping TCS iON exam layouts.", 220, rightY, { width: 340 });
+        doc.text("- Programmed responsive candidate consoles mapping TCS iON exam layouts.", 220, rightY, { width: 340 });
 
         doc.end();
 
