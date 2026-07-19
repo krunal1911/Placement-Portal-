@@ -440,151 +440,204 @@ exports.buildResume = async (req, res) => {
             fs.mkdirSync(uploadDir, { recursive: true });
         }
 
-        const doc = new PDFDocument({ margin: 50, size: 'LETTER' });
+        const doc = new PDFDocument({ margin: 40, size: 'LETTER' });
         const filename = "resume-" + user._id + "-" + Date.now() + ".pdf";
         const filepath = path.join(uploadDir, filename);
 
         const writeStream = fs.createWriteStream(filepath);
         doc.pipe(writeStream);
 
-        const primaryColor = "#1e3a8a"; // Executive Blue
-        const secondaryColor = "#475569"; // Slate Gray
-        const textColor = "#1e293b"; // Dark Slate
-        const accentColor = "#3b82f6"; // Vibrant Blue
+        // Premium Color Palette Randomizer (different UI/UX look every time!)
+        const palettes = [
+            { primary: "#1e3a8a", secondary: "#475569", accent: "#2563eb" }, // Executive Navy
+            { primary: "#0f766e", secondary: "#4b5563", accent: "#0d9488" }, // Modern Teal
+            { primary: "#1e293b", secondary: "#64748b", accent: "#6366f1" }, // Charcoal Indigo
+            { primary: "#065f46", secondary: "#475569", accent: "#059669" }, // Emerald Prestige
+            { primary: "#7f1d1d", secondary: "#52525b", accent: "#dc2626" }  // Crimson Burgundy
+        ];
+        const theme = palettes[Math.floor(Math.random() * palettes.length)];
+        const textColor = "#1e293b"; // Rich body text
 
-        // Top decorative header bar
-        doc.rect(0, 0, 612, 16).fill(primaryColor);
+        // Top decorative header accent bar
+        doc.rect(0, 0, 612, 16).fill(theme.primary);
 
-        // Candidate Name (Left aligned, high end styling)
-        doc.fillColor(primaryColor)
+        // Candidate Name (Left aligned, premium title)
+        doc.fillColor(theme.primary)
            .font("Helvetica-Bold")
-           .fontSize(24)
-           .text((user.name || "Student Name").toUpperCase(), 50, 42);
+           .fontSize(22)
+           .text((user.name || "Student Name").toUpperCase(), 40, 36);
 
         // Subtitle (Candidate profile branch)
-        doc.fillColor(secondaryColor)
+        doc.fillColor(theme.secondary)
            .font("Helvetica-Bold")
-           .fontSize(11)
-           .text((user.branch || "Software Engineering Student").toUpperCase(), 50, doc.y + 2);
+           .fontSize(10)
+           .text((user.branch || "Software Engineering Student").toUpperCase(), 40, doc.y + 2);
 
-        // Contact info line
-        doc.fontSize(9)
-           .fillColor(textColor)
-           .font("Helvetica")
-           .text(`📧 ${user.email}   |   📞 ${user.phone || 'N/A'}   |   🔗 LinkedIn: ${user.linkedin || 'N/A'}   |   💻 GitHub: ${user.github || 'N/A'}`, 50, doc.y + 6);
-
-        // Visual divider line
+        // Header bottom divider line
         doc.moveDown(0.8);
         doc.strokeColor("#cbd5e1")
            .lineWidth(1)
-           .moveTo(50, doc.y)
-           .lineTo(562, doc.y)
+           .moveTo(40, doc.y)
+           .lineTo(572, doc.y)
            .stroke();
         
-        doc.moveDown(1.2);
+        const startY = doc.y + 16;
 
-        // EDUCATION SECTION
-        doc.fillColor(primaryColor)
+        // ==========================================
+        // LEFT COLUMN (X = 40, Width = 150)
+        // ==========================================
+        let leftY = startY;
+
+        // Section 1: Contact
+        doc.fillColor(theme.primary)
            .font("Helvetica-Bold")
-           .fontSize(12)
-           .text("ACADEMIC PROFILE", { characterSpacing: 1 });
+           .fontSize(10)
+           .text("CONTACT DETAILS", 40, leftY, { characterSpacing: 0.5 });
         
-        doc.moveDown(0.4);
-        doc.fillColor(textColor)
+        leftY = doc.y + 6;
+        doc.fillColor(textColor).font("Helvetica").fontSize(8.5);
+        doc.text(`📧 ${user.email}`, 40, leftY, { width: 150 });
+        leftY = doc.y + 4;
+        doc.text(`📞 ${user.phone || 'N/A'}`, 40, leftY, { width: 150 });
+        leftY = doc.y + 4;
+        doc.text(`🔗 LinkedIn:\n${user.linkedin || 'N/A'}`, 40, leftY, { width: 150 });
+        leftY = doc.y + 4;
+        doc.text(`💻 GitHub:\n${user.github || 'N/A'}`, 40, leftY, { width: 150 });
+        
+        leftY = doc.y + 16;
+
+        // Section 2: Education
+        doc.fillColor(theme.primary)
            .font("Helvetica-Bold")
            .fontSize(10)
-           .text(`University Student Registry (Semester ${user.semester || 'N/A'})`, { continued: true })
-           .font("Helvetica")
-           .fillColor(secondaryColor)
-           .text(`   |   CGPA: ${user.cgpa ? user.cgpa + ' / 10.0' : 'N/A'}`, { align: "left" });
+           .text("ACADEMIC METRICS", 40, leftY, { characterSpacing: 0.5 });
+        
+        leftY = doc.y + 6;
+        doc.fillColor(textColor).font("Helvetica-Bold").fontSize(9).text(user.branch || 'Engineering', 40, leftY, { width: 150 });
+        leftY = doc.y + 2;
+        doc.font("Helvetica").fontSize(8.5).text(`Semester ${user.semester || 'N/A'}`, 40, leftY);
+        leftY = doc.y + 2;
+        doc.text(`Current CGPA: ${user.cgpa ? user.cgpa + ' / 10.0' : 'N/A'}`, 40, leftY);
+        
+        leftY = doc.y + 16;
 
-        doc.fillColor(textColor)
+        // Section 3: Tools & Platforms
+        doc.fillColor(theme.primary)
+           .font("Helvetica-Bold")
            .fontSize(10)
-           .text(`Major Branch Core: ${user.branch || 'N/A'}`);
+           .text("PLATFORMS & TOOLS", 40, leftY, { characterSpacing: 0.5 });
+        
+        leftY = doc.y + 6;
+        doc.fillColor(textColor).font("Helvetica").fontSize(8.5);
+        
+        const branchToolsMap = {
+            "computer": ["VS Code", "Git / GitHub", "Docker", "Postman", "MongoDB Compass"],
+            "information": ["VS Code", "Git / GitHub", "Docker", "Postman", "MongoDB Compass"],
+            "electronics": ["MATLAB", "Simulink", "Keil uVision", "Proteus", "Arduino IDE"],
+            "mechanical": ["AutoCAD", "SolidWorks", "CATIA", "ANSYS", "Fusion 360"],
+            "civil": ["Revit", "STAAD Pro", "AutoCAD", "SAP2000", "ArcGIS"],
+            "electrical": ["MATLAB", "Simulink", "ETAP", "PSPICE", "Proteus"]
+        };
+        const branchLower = (user.branch || "").toLowerCase();
+        let toolsList = ["Git", "VS Code", "Office Suit"];
+        for (const [key, list] of Object.entries(branchToolsMap)) {
+            if (branchLower.includes(key)) {
+                toolsList = list;
+                break;
+            }
+        }
+        toolsList.forEach(tool => {
+            doc.text(`  •  ${tool}`, 40, leftY);
+            leftY = doc.y + 2;
+        });
 
-        doc.moveDown(1.2);
-
-        // Divider
-        doc.strokeColor("#f1f5f9")
+        // ==========================================
+        // VERTICAL SEPARATOR LINE
+        // ==========================================
+        const lineEndY = Math.max(leftY, 730);
+        doc.strokeColor("#e2e8f0")
            .lineWidth(1)
-           .moveTo(50, doc.y)
-           .lineTo(562, doc.y)
+           .moveTo(205, startY)
+           .lineTo(205, lineEndY)
            .stroke();
-        doc.moveDown(1);
 
-        // TECHNICAL SKILLS SECTION
-        doc.fillColor(primaryColor)
+        // ==========================================
+        // RIGHT COLUMN (X = 220, Width = 352)
+        // ==========================================
+        let rightY = startY;
+
+        // Section 1: Technical Skills
+        doc.fillColor(theme.primary)
            .font("Helvetica-Bold")
-           .fontSize(12)
-           .text("TECHNICAL EXPERTISE & SKILLS", { characterSpacing: 1 });
-
-        doc.moveDown(0.5);
-        doc.fillColor(textColor)
-           .font("Helvetica")
-           .fontSize(10);
+           .fontSize(10)
+           .text("TECHNICAL EXPERTISE & SKILLS", 220, rightY, { characterSpacing: 0.5 });
+        
+        rightY = doc.y + 6;
+        doc.fillColor(textColor).font("Helvetica").fontSize(8.5);
 
         if (user.skills && user.skills.trim() !== "") {
             const skillList = user.skills.split(',').map(s => s.trim());
             skillList.forEach(skill => {
                 const desc = getSkillDescription(skill);
-                // Render list style with custom bullet and description
-                doc.fillColor(accentColor)
+                doc.fillColor(theme.accent)
                    .font("Helvetica-Bold")
-                   .text("  •  ", { continued: true })
+                   .fontSize(9)
+                   .text("  •  ", 220, rightY, { continued: true })
                    .fillColor(textColor)
                    .text(`${skill}: `, { continued: true })
                    .font("Helvetica")
-                   .fillColor(secondaryColor)
-                   .text(desc);
-                doc.moveDown(0.3);
+                   .fillColor(theme.secondary)
+                   .text(desc, { width: 340 });
+                rightY = doc.y + 4;
             });
         } else {
-            doc.text("No technical expertise details added to profile registry.");
+            doc.text("No technical expertise details added to profile registry.", 220, rightY);
+            rightY = doc.y + 12;
         }
 
-        doc.moveDown(1);
+        rightY += 12;
 
-        // Divider
-        doc.strokeColor("#f1f5f9")
-           .lineWidth(1)
-           .moveTo(50, doc.y)
-           .lineTo(562, doc.y)
-           .stroke();
-        doc.moveDown(1.2);
-
-        // PROJECTS SECTION
-        doc.fillColor(primaryColor)
+        // Section 2: Key Engineering Projects
+        doc.fillColor(theme.primary)
            .font("Helvetica-Bold")
-           .fontSize(12)
-           .text("KEY ENGINEERING PROJECTS", { characterSpacing: 1 });
-
-        doc.moveDown(0.6);
+           .fontSize(10)
+           .text("KEY ENGINEERING PROJECTS", 220, rightY, { characterSpacing: 0.5 });
+        
+        rightY = doc.y + 6;
 
         // Project 1
         doc.fillColor(textColor)
            .font("Helvetica-Bold")
-           .fontSize(11)
-           .text("AI Placement Preparation & Recruitment Portal")
-           .font("Helvetica")
            .fontSize(10)
-           .fillColor(secondaryColor)
-           .text("• Developed a web application for student placement preparation, testing, and recruitment drives.")
-           .text("• Configured REST routes, MVC controllers, secure authentication middleware, and database schemas.")
-           .text("• Integrated responsive theme overrides for desktop, tablet, and mobile browsers.")
-           .text("• Technologies: Node.js, Express, MongoDB, HTML, CSS, JavaScript.");
+           .text("AI Placement Preparation & Recruitment Portal", 220, rightY);
+        
+        rightY = doc.y + 2;
+        doc.font("Helvetica")
+           .fontSize(8.5)
+           .fillColor(theme.secondary)
+           .text("• Developed a web application for student placement preparation, testing, and recruitment drives.", 220, rightY, { width: 340 });
+        rightY = doc.y + 2;
+        doc.text("• Configured REST routes, MVC controllers, secure authentication middleware, and database schemas.", 220, rightY, { width: 340 });
+        rightY = doc.y + 2;
+        doc.text("• Integrated responsive theme overrides for desktop, tablet, and mobile browsers.", 220, rightY, { width: 340 });
+        rightY = doc.y + 2;
+        doc.text("• Technologies: Node.js, Express, MongoDB, HTML, CSS, JavaScript.", 220, rightY, { width: 340 });
 
-        doc.moveDown(0.8);
+        rightY = doc.y + 10;
 
         // Project 2
         doc.fillColor(textColor)
            .font("Helvetica-Bold")
-           .fontSize(11)
-           .text("Interactive Online Code Assessment Platform")
-           .font("Helvetica")
            .fontSize(10)
-           .fillColor(secondaryColor)
-           .text("• Built dynamic quiz and testing modules with timed engines and visual grading analytics.")
-           .text("• Programmed responsive candidate consoles mapping TCS iON exam layouts.");
+           .text("Interactive Online Code Assessment Platform", 220, rightY);
+        
+        rightY = doc.y + 2;
+        doc.font("Helvetica")
+           .fontSize(8.5)
+           .fillColor(theme.secondary)
+           .text("• Built dynamic quiz and testing modules with timed engines and visual grading analytics.", 220, rightY, { width: 340 });
+        rightY = doc.y + 2;
+        doc.text("• Programmed responsive candidate consoles mapping TCS iON exam layouts.", 220, rightY, { width: 340 });
 
         doc.end();
 
