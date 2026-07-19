@@ -16,30 +16,6 @@
 
     <h1>My Profile</h1>
 
-    <div class="profile-progress">
-
-    <div class="progress-header">
-
-        <h3>Profile Completion</h3>
-
-        <span id="profilePercentage">0%</span>
-
-    </div>
-
-    <div class="progress-bar">
-
-        <div id="profileBar" class="progress-fill"></div>
-
-    </div>
-
-    <p class="progress-text">
-
-        Complete your profile to improve your placement chances.
-
-    </p>
-
-</div>
-
     <div class="profile-image">
 
         <img
@@ -195,11 +171,6 @@ async function loadProfile() {
         document.getElementById("tests").innerText = user.testsTaken || 0;
         document.getElementById("score").innerText = user.averageScore || 0;
 
-        document.getElementById("profilePercentage").innerHTML =
-user.profileCompletion + "%";
-
-document.getElementById("profileBar").style.width =
-user.profileCompletion + "%";
         const img = document.getElementById("profileImage");
         let profileSrc = "/uploads/profiles/default.png";
         if (user.profileImage && user.profileImage !== "default.png") {
