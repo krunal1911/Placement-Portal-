@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Career Advisor | Placement Portal</title>
+    <title>AI Career & Branch Advisor | Placement Portal</title>
     <link rel="stylesheet" href="/dashboard.css">
     <link rel="stylesheet" href="/toast.css">
     <script src="/toast.js"></script>
@@ -11,6 +11,34 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* Modern navigation advisor tab selectors */
+        .advisor-tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 12px;
+        }
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background: var(--primary-light);
+            color: var(--primary-hover);
+        }
+        .tab-btn:hover:not(.active) {
+            color: var(--text-main);
+            background: #f1f5f9;
+        }
+
         .roadmap-card {
             background: white;
             border-radius: 16px;
@@ -111,65 +139,115 @@
     </ul>
 </nav>
 
-<div class="main-container" style="max-width: 900px;">
-    <div class="hero" style="padding: 32px 48px; margin-bottom: 32px;">
-        <div class="hero-left" style="max-width: 100%;">
-            <h1>🤖 AI Career Advisor</h1>
-            <p>Get a comprehensive, customized learning roadmap, critical skills checklists, and top hiring firms tailored to your goals.</p>
-        </div>
+<div class="main-container" style="max-width: 950px; margin: 40px auto; padding: 0 20px;">
+    <div class="hero" style="padding: 32px 48px; margin-bottom: 32px; text-align: left;">
+        <h1>🤖 Academic & Career Advisor</h1>
+        <p>Explore customized job role roadmaps or inspect what tools, frameworks, and subjects you should master according to your engineering branch.</p>
     </div>
 
-    <div class="card" style="margin-bottom: 0;">
-        <div class="form-group" style="margin-bottom: 0; display: flex; gap: 16px; align-items: flex-end;">
-            <div style="flex: 1;">
-                <label for="careerSelect" style="font-weight: 600;">Choose Your Target Career Path:</label>
-                <select id="careerSelect" style="padding: 12px; background: white;">
-                    <option value="">-- Select Career Path --</option>
-                    <option value="Java Developer">Java Software Developer</option>
-                    <option value="Web Developer">Full Stack Web Developer</option>
-                    <option value="Python Developer">Python Software Engineer</option>
-                    <option value="Data Analyst">Business & Data Analyst</option>
-                    <option value="AI Engineer">Artificial Intelligence Engineer</option>
-                    <option value="Cyber Security">Cyber Security Analyst</option>
-                    <option value="Cloud Engineer">Cloud Solutions Architect</option>
-                </select>
+    <!-- Dual Tab Selector -->
+    <div class="advisor-tabs">
+        <button class="tab-btn active" onclick="switchTab('jobs')">💼 Job Role Roadmaps</button>
+        <button class="tab-btn" onclick="switchTab('branches')">🎓 Engineering Branch Guide</button>
+    </div>
+
+    <!-- Content 1: Job Role Advisor -->
+    <div id="jobsTabContent" class="tab-content-panel">
+        <div class="card" style="margin-bottom: 0; text-align: left;">
+            <div class="form-group" style="margin-bottom: 0; display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 250px;">
+                    <label for="careerSelect" style="font-weight: 600;">Choose Your Target Career Path:</label>
+                    <select id="careerSelect" style="padding: 12px; background: white; width: 100%;">
+                        <option value="">-- Select Career Path --</option>
+                        <option value="Java Developer">Java Software Developer</option>
+                        <option value="Web Developer">Full Stack Web Developer</option>
+                        <option value="Python Developer">Python Software Engineer</option>
+                        <option value="Data Analyst">Business & Data Analyst</option>
+                        <option value="AI Engineer">Artificial Intelligence Engineer</option>
+                        <option value="Cyber Security">Cyber Security Analyst</option>
+                        <option value="Cloud Engineer">Cloud Solutions Architect</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" style="padding: 12px 28px; height: 46px; min-width: 180px;" onclick="getAIAdvice()">
+                    Generate Roadmap
+                </button>
             </div>
-            <button class="btn btn-primary" style="padding: 12px 28px; height: 46px;" onclick="getAIAdvice()">
-                Generate Roadmap
-            </button>
+        </div>
+
+        <!-- Job Roadmap Output Panel -->
+        <div class="roadmap-card" id="roadmapPanel" style="display: none; text-align: left;">
+            <div class="roadmap-header">
+                <h2 id="careerTitle" style="font-size: 22px; font-weight: 700; color: #1e3a8a; margin-bottom: 4px;">Career Path</h2>
+                <p style="color: var(--text-muted); font-size: 14px;">Personalized roadmap compiled by the AI Advisor engine.</p>
+            </div>
+            <div>
+                <h3 class="roadmap-section-title">Required Core Skills</h3>
+                <div class="skills-grid" id="skillsContainer"></div>
+            </div>
+            <div style="margin-top: 12px;">
+                <h3 class="roadmap-section-title">Step-by-Step Learning Timeline</h3>
+                <ol class="step-list" id="stepsContainer"></ol>
+            </div>
+            <div style="margin-top: 12px;">
+                <h3 class="roadmap-section-title">Top Hiring Companies</h3>
+                <div class="company-grid" id="companiesContainer"></div>
+            </div>
         </div>
     </div>
 
-    <!-- Results Panel -->
-    <div class="roadmap-card" id="roadmapPanel" style="display: none;">
-        <div class="roadmap-header">
-            <h2 id="careerTitle" style="font-size: 22px; font-weight: 700; color: #1e3a8a; margin-bottom: 4px;">Career Path</h2>
-            <p style="color: var(--text-muted); font-size: 14px;">Personalized roadmap compiled by the AI Advisor engine.</p>
+    <!-- Content 2: Engineering Branch Advisor -->
+    <div id="branchesTabContent" class="tab-content-panel" style="display: none;">
+        <div class="card" style="margin-bottom: 0; text-align: left;">
+            <div class="form-group" style="margin-bottom: 0; display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 250px;">
+                    <label for="branchSelect" style="font-weight: 600;">Select Your Engineering Branch:</label>
+                    <select id="branchSelect" style="padding: 12px; background: white; width: 100%;" onchange="loadBranchGuide()">
+                        <option value="">-- Select Engineering Branch --</option>
+                        <option value="Computer Science & IT">Computer Science & Information Technology</option>
+                        <option value="Electronics & Communication">Electronics & Communication Engineering</option>
+                        <option value="Mechanical Engineering">Mechanical Engineering</option>
+                        <option value="Civil Engineering">Civil Engineering</option>
+                        <option value="Electrical Engineering">Electrical Engineering</option>
+                    </select>
+                </div>
+            </div>
         </div>
 
-        <!-- Section 1: Skills -->
-        <div>
-            <h3 class="roadmap-section-title">Required Core Skills</h3>
-            <div class="skills-grid" id="skillsContainer"></div>
-        </div>
+        <!-- Branch Guide Output Panel -->
+        <div class="roadmap-card" id="branchPanel" style="display: none; text-align: left;">
+            <div class="roadmap-header">
+                <h2 id="branchTitle" style="font-size: 22px; font-weight: 700; color: #1e3a8a; margin-bottom: 4px;">Branch Name</h2>
+                <p style="color: var(--text-muted); font-size: 14px;">Full branch curriculum skills guide, software toolkits, and career options.</p>
+            </div>
 
-        <!-- Section 2: Steps -->
-        <div style="margin-top: 12px;">
-            <h3 class="roadmap-section-title">Step-by-Step Learning Timeline</h3>
-            <ol class="step-list" id="stepsContainer"></ol>
-        </div>
+            <!-- Programming & Software Details -->
+            <div>
+                <h3 class="roadmap-section-title">💻 Technical Skills (Frontend, Backend, Design)</h3>
+                <ol class="step-list" id="branchProgContainer"></ol>
+            </div>
 
-        <!-- Section 3: Companies -->
-        <div style="margin-top: 12px;">
-            <h3 class="roadmap-section-title">Top Hiring Companies</h3>
-            <div class="company-grid" id="companiesContainer"></div>
+            <!-- Core Engineering Subjects -->
+            <div style="margin-top: 12px;">
+                <h3 class="roadmap-section-title">📚 Core Engineering Subjects</h3>
+                <ol class="step-list" id="branchSubjectsContainer"></ol>
+            </div>
+
+            <!-- Software Tools -->
+            <div style="margin-top: 12px;">
+                <h3 class="roadmap-section-title">🛠️ Essential Software & Hardware Tools</h3>
+                <div class="skills-grid" id="branchToolsContainer"></div>
+            </div>
+
+            <!-- Professional Roles -->
+            <div style="margin-top: 12px;">
+                <h3 class="roadmap-section-title">💼 Top Professional Roles</h3>
+                <div class="company-grid" id="branchRolesContainer"></div>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-let isGuest = false;
-
 async function checkUserSession() {
     const userRes = await fetch("/current-user");
     if (!userRes.ok) {
@@ -177,7 +255,7 @@ async function checkUserSession() {
         Swal.fire({
             icon: "info",
             title: "Login Required",
-            text: "Please login or register to consult the AI Career Advisor.",
+            text: "Please login or register to consult the Career Advisor.",
             showCancelButton: true,
             confirmButtonText: "Login Now",
             cancelButtonText: "Go Back",
@@ -193,24 +271,22 @@ async function checkUserSession() {
 }
 checkUserSession();
 
-async function getAIAdvice() {
-    if (isGuest) {
-        Swal.fire({
-            icon: "info",
-            title: "Login Required",
-            text: "Please login or register to consult the AI Career Advisor.",
-            showCancelButton: true,
-            confirmButtonText: "Login Now",
-            cancelButtonText: "Cancel",
-            confirmButtonColor: "#3b82f6"
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = "/login";
-            }
-        });
-        return;
+// Tab Switch Logic
+function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content-panel').forEach(p => p.style.display = 'none');
+    
+    if (tab === 'jobs') {
+        event.target.classList.add('active');
+        document.getElementById('jobsTabContent').style.display = 'block';
+    } else {
+        event.target.classList.add('active');
+        document.getElementById('branchesTabContent').style.display = 'block';
     }
+}
 
+// 💼 Job Roadmaps API Fetch
+async function getAIAdvice() {
     const career = document.getElementById("careerSelect").value;
     if (!career) {
         showToast("Please choose a target career path first.", "error");
@@ -222,24 +298,15 @@ async function getAIAdvice() {
     
     try {
         const res = await fetch(`/career-guide/${encodeURIComponent(career)}`);
-        if (res.status === 401) {
-            showToast("Session expired. Please login again.", "error");
-            setTimeout(() => window.location = "/login", 2000);
-            return;
-        }
-        
         if (!res.ok) throw new Error("Roadmap request failed");
         
         const data = await res.json();
         
-        // Populate Title
         document.getElementById("careerTitle").innerText = career;
         
-        // Populate Skills
         const skillsContainer = document.getElementById("skillsContainer");
         skillsContainer.innerHTML = data.skills.map(s => `<span class="skill-tag">${s}</span>`).join("");
         
-        // Populate Steps
         const stepsContainer = document.getElementById("stepsContainer");
         stepsContainer.innerHTML = data.roadmap.map((step, idx) => `
             <li class="step-item" data-step="${idx + 1}">
@@ -247,22 +314,144 @@ async function getAIAdvice() {
             </li>
         `).join("");
         
-        // Populate Companies
         const companiesContainer = document.getElementById("companiesContainer");
         companiesContainer.innerHTML = data.companies.map(c => `
             <div class="company-card">${c}</div>
         `).join("");
         
-        // Reveal Panel with micro-animation trigger
         panel.style.display = "block";
-        showToast(`AI roadmap for ${career} loaded successfully!`, "success");
-        
+        showToast(`AI roadmap for ${career} loaded!`, "success");
     } catch (e) {
         console.error(e);
         showToast("Failed to compile roadmap details.", "error");
     }
 }
+
+// Static Database for Branch Guide Advisor
+const branchGuides = {
+    "Computer Science & IT": {
+        coreProgramming: [
+            "Frontend Development: HTML5, CSS3, JavaScript (ES6+), React/Vue.js frameworks.",
+            "Backend Development: Node.js, Express.js, databases (MongoDB, PostgreSQL), API design.",
+            "Version Control & DevOps: Git, GitHub, Docker containers, CI/CD pipelines, and cloud hosting."
+        ],
+        coreSubjects: [
+            "Data Structures & Algorithms (Arrays, trees, graphs, sorting, searching algorithms).",
+            "Database Management Systems (DBMS, Relational algebra, SQL queries, normalization).",
+            "Operating Systems (Process scheduling, memory management, multi-threading, concurrency).",
+            "Computer Networks (OSI layers, TCP/IP protocol suite, DNS, IP addressing)."
+        ],
+        tools: ["VS Code", "Git / GitHub", "Docker", "Postman", "MongoDB Compass", "pgAdmin"],
+        careers: ["Full-Stack Developer", "Frontend/Backend Engineer", "DevOps Engineer", "Data Scientist", "System Architect"]
+    },
+    "Electronics & Communication": {
+        coreProgramming: [
+            "Embedded Systems: C/C++ programming for hardware control, assembly programming.",
+            "Hardware Description Languages: VHDL, Verilog coding for FPGA designs.",
+            "IoT & Sensors: Microcontroller scripting, communication protocols (I2C, SPI, UART)."
+        ],
+        coreSubjects: [
+            "Microprocessors & Microcontrollers (8085, 8086, AVR, ARM core architectures).",
+            "Digital Signal Processing (DSP, Fourier transforms, filters, signal conversions).",
+            "Analog & Digital Circuits (OP-AMPs, logical gates, flip-flops, multiplexers).",
+            "Communication Systems (Modulations, antenna designs, wireless signals, fiber optics)."
+        ],
+        tools: ["MATLAB", "Simulink", "Keil uVision", "Proteus", "Xilinx ISE", "Arduino IDE"],
+        careers: ["Embedded Systems Engineer", "VLSI Design Engineer", "Telecom Analyst", "Hardware Engineer", "IoT Developer"]
+    },
+    "Mechanical Engineering": {
+        coreProgramming: [
+            "Computer-Aided Engineering: CAD modeling, drafting, and geometric dimensioning.",
+            "Automation: PLC programming, basic robotics control, sensor integration.",
+            "Numerical Simulations: MATLAB scripts for mechanical system models."
+        ],
+        coreSubjects: [
+            "Thermodynamics & Heat Transfer (Power cycles, heat exchangers, refrigeration).",
+            "Fluid Mechanics (Fluid dynamics, piping systems, computational fluid dynamics).",
+            "Strength of Materials (Stress-strain relationships, beams, shafts, pressure vessels).",
+            "Theory of Machines (Mechanisms, gears, cam dynamics, vibrations control)."
+        ],
+        tools: ["AutoCAD", "SolidWorks", "CATIA", "ANSYS", "Fusion 360", "MATLAB"],
+        careers: ["CAD Design Engineer", "Product Development Engineer", "Quality Control Inspector", "Robotics Engineer", "Thermal Analyst"]
+    },
+    "Civil Engineering": {
+        coreProgramming: [
+            "Structural Analysis: Finite element modeling for buildings, bridges, and tunnels.",
+            "Geo-Spatial Tracking: GIS mapping, land surveying data coordinates processing.",
+            "Project Management: Scheduling software logic, cost estimation tracking."
+        ],
+        coreSubjects: [
+            "Structural Analysis & Design (Concrete designs, steel structures, foundation loads).",
+            "Geotechnical Engineering (Soil mechanics, bearing capacity, retaining walls).",
+            "Fluid Mechanics & Hydraulics (Flow channels, water networks, dam design).",
+            "Transportation Engineering (Pavement structures, traffic modeling, highway alignments)."
+        ],
+        tools: ["Revit", "STAAD Pro", "AutoCAD Civil 3D", "SAP2000", "ArcGIS", "Primavera P6"],
+        careers: ["Structural Engineer", "Site Supervisor", "Urban Planner", "Geotechnical Engineer", "Quantity Surveyor"]
+    },
+    "Electrical Engineering": {
+        coreProgramming: [
+            "Power Systems Modeling: Electrical load analysis scripts, power flow simulations.",
+            "Control Systems: Feedback control logic, PID controller scripting.",
+            "PLC/SCADA: Industrial automation programming, ladder logic."
+        ],
+        coreSubjects: [
+            "Electrical Machines (Transformers, DC/AC motors, synchronous generators).",
+            "Power Systems Engineering (Transmission lines, protection systems, grid analysis).",
+            "Control Systems (Root locus, Bode plots, state-space representations).",
+            "Power Electronics (Inverters, converters, rectifiers, semiconductor controls)."
+        ],
+        tools: ["MATLAB / Simulink", "ETAP", "PSPICE", "Proteus", "PLC Ladder Logics", "AutoCAD Electrical"],
+        careers: ["Power Grid Engineer", "Control Systems Designer", "Substation Operator", "Automation Engineer", "Electrical Project Manager"]
+    }
+};
+
+// 🎓 Engineering Branch Guide Selection
+function loadBranchGuide() {
+    const branch = document.getElementById("branchSelect").value;
+    const panel = document.getElementById("branchPanel");
+    
+    if (!branch) {
+        panel.style.display = "none";
+        return;
+    }
+    
+    const data = branchGuides[branch];
+    if (!data) return;
+    
+    document.getElementById("branchTitle").innerText = branch + " Curriculum Advisor";
+    
+    // Core Programming details
+    const progContainer = document.getElementById("branchProgContainer");
+    progContainer.innerHTML = data.coreProgramming.map((item, idx) => `
+        <li class="step-item" data-step="${idx + 1}">
+            ${item}
+        </li>
+    `).join("");
+    
+    // Core Subjects
+    const subjectsContainer = document.getElementById("branchSubjectsContainer");
+    subjectsContainer.innerHTML = data.coreSubjects.map((item, idx) => `
+        <li class="step-item" data-step="${idx + 1}">
+            ${item}
+        </li>
+    `).join("");
+    
+    // Tools list
+    const toolsContainer = document.getElementById("branchToolsContainer");
+    toolsContainer.innerHTML = data.tools.map(t => `<span class="skill-tag">${t}</span>`).join("");
+    
+    // Careers
+    const rolesContainer = document.getElementById("branchRolesContainer");
+    rolesContainer.innerHTML = data.careers.map(r => `
+        <div class="company-card">${r}</div>
+    `).join("");
+    
+    panel.style.display = "block";
+    showToast(`Advisor data for ${branch} loaded!`, "success");
+}
 </script>
-    <script src="/responsive.js"></script>
+
+<script src="/responsive.js"></script>
 </body>
 </html>

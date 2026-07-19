@@ -400,6 +400,33 @@ exports.uploadResume = async (req, res) => {
     }
 };
 
+// Helper to get professional brief descriptions for candidate skills
+const getSkillDescription = (skillName) => {
+    const cleanSkill = skillName.trim().toLowerCase();
+    const skillMap = {
+        "javascript": "Core dynamic web logic, async API fetching, and modern client/server scripting.",
+        "html": "Semantic document structures, responsive DOM layout standardizations, and SEO layouts.",
+        "css": "Responsive layouts (Grid/Flexbox), modern styling frameworks, keyframe animations.",
+        "node.js": "Backend REST API runtime builds, asynchronous event loops, server scripting.",
+        "node": "Backend REST API runtime builds, asynchronous event loops, server scripting.",
+        "express": "MVC routing systems, intermediate query processing, backend middleware flows.",
+        "express.js": "MVC routing systems, intermediate query processing, backend middleware flows.",
+        "mongodb": "Document-based NoSQL database indexing, aggregation queries, Mongoose modeling.",
+        "react": "Reusable UI components, state lifecycle controls, dynamic client rendering.",
+        "react.js": "Reusable UI components, state lifecycle controls, dynamic client rendering.",
+        "python": "Data analytics automation scripts, computational algorithms, and server applications.",
+        "sql": "Relational schema designs, transaction logic scripting, database query pipelines.",
+        "java": "Object-oriented program designs, threading, data structures, and class models.",
+        "c++": "Efficient low-level algorithms, custom data templates, object design abstractions.",
+        "c": "Core procedurual coding controls, hardware mapping, memory allocations.",
+        "git": "Repo version histories, merge conflicts handling, branches, and version control."
+    };
+    for (const [key, desc] of Object.entries(skillMap)) {
+        if (cleanSkill.includes(key)) return desc;
+    }
+    return `Applied expertise, logic, and practical implementation in ${skillName}.`;
+};
+
 // Generate AI PDF Resume
 exports.buildResume = async (req, res) => {
     try {
@@ -413,103 +440,151 @@ exports.buildResume = async (req, res) => {
             fs.mkdirSync(uploadDir, { recursive: true });
         }
 
-        const doc = new PDFDocument({ margin: 50 });
+        const doc = new PDFDocument({ margin: 50, size: 'LETTER' });
         const filename = "resume-" + user._id + "-" + Date.now() + ".pdf";
         const filepath = path.join(uploadDir, filename);
 
         const writeStream = fs.createWriteStream(filepath);
         doc.pipe(writeStream);
 
-        const primaryColor = "#1e3a8a";
-        const secondaryColor = "#4b5563";
-        const textColor = "#1f2937";
+        const primaryColor = "#1e3a8a"; // Executive Blue
+        const secondaryColor = "#475569"; // Slate Gray
+        const textColor = "#1e293b"; // Dark Slate
+        const accentColor = "#3b82f6"; // Vibrant Blue
 
+        // Top decorative header bar
+        doc.rect(0, 0, 612, 16).fill(primaryColor);
+
+        // Candidate Name (Left aligned, high end styling)
         doc.fillColor(primaryColor)
            .font("Helvetica-Bold")
-           .fontSize(26)
-           .text(user.name || "Student Name", { align: "center" });
+           .fontSize(24)
+           .text((user.name || "Student Name").toUpperCase(), 50, 42);
 
-        doc.fontSize(10)
+        // Subtitle (Candidate profile branch)
+        doc.fillColor(secondaryColor)
+           .font("Helvetica-Bold")
+           .fontSize(11)
+           .text((user.branch || "Software Engineering Student").toUpperCase(), 50, doc.y + 2);
+
+        // Contact info line
+        doc.fontSize(9)
+           .fillColor(textColor)
+           .font("Helvetica")
+           .text(`📧 ${user.email}   |   📞 ${user.phone || 'N/A'}   |   🔗 LinkedIn: ${user.linkedin || 'N/A'}   |   💻 GitHub: ${user.github || 'N/A'}`, 50, doc.y + 6);
+
+        // Visual divider line
+        doc.moveDown(0.8);
+        doc.strokeColor("#cbd5e1")
+           .lineWidth(1)
+           .moveTo(50, doc.y)
+           .lineTo(562, doc.y)
+           .stroke();
+        
+        doc.moveDown(1.2);
+
+        // EDUCATION SECTION
+        doc.fillColor(primaryColor)
+           .font("Helvetica-Bold")
+           .fontSize(12)
+           .text("ACADEMIC PROFILE", { characterSpacing: 1 });
+        
+        doc.moveDown(0.4);
+        doc.fillColor(textColor)
+           .font("Helvetica-Bold")
+           .fontSize(10)
+           .text(`University Student Registry (Semester ${user.semester || 'N/A'})`, { continued: true })
+           .font("Helvetica")
            .fillColor(secondaryColor)
-           .font("Helvetica")
-           .text(`${user.email} | Phone: ${user.phone || 'N/A'}`, { align: "center" })
-           .text(`LinkedIn: ${user.linkedin || 'N/A'} | GitHub: ${user.github || 'N/A'}`, { align: "center" });
+           .text(`   |   CGPA: ${user.cgpa ? user.cgpa + ' / 10.0' : 'N/A'}`, { align: "left" });
 
-        doc.moveDown(1.5);
-        
-        doc.strokeColor("#e5e7eb")
+        doc.fillColor(textColor)
+           .fontSize(10)
+           .text(`Major Branch Core: ${user.branch || 'N/A'}`);
+
+        doc.moveDown(1.2);
+
+        // Divider
+        doc.strokeColor("#f1f5f9")
            .lineWidth(1)
            .moveTo(50, doc.y)
            .lineTo(562, doc.y)
            .stroke();
-        doc.moveDown(1.5);
+        doc.moveDown(1);
 
+        // TECHNICAL SKILLS SECTION
         doc.fillColor(primaryColor)
            .font("Helvetica-Bold")
-           .fontSize(14)
-           .text("EDUCATION");
-        
+           .fontSize(12)
+           .text("TECHNICAL EXPERTISE & SKILLS", { characterSpacing: 1 });
+
         doc.moveDown(0.5);
         doc.fillColor(textColor)
            .font("Helvetica")
-           .fontSize(11);
-        
-        doc.text(`Branch: ${user.branch || 'N/A'}`);
-        doc.text(`Semester: Semester ${user.semester || 'N/A'}`);
-        doc.text(`Current CGPA: ${user.cgpa ? user.cgpa + ' / 10.0' : 'N/A'}`);
-
-        doc.moveDown(1.5);
-        
-        doc.strokeColor("#e5e7eb")
-           .lineWidth(1)
-           .moveTo(50, doc.y)
-           .lineTo(562, doc.y)
-           .stroke();
-        doc.moveDown(1.5);
-
-        doc.fillColor(primaryColor)
-           .font("Helvetica-Bold")
-           .fontSize(14)
-           .text("TECHNICAL SKILLS");
-        
-        doc.moveDown(0.5);
-        doc.fillColor(textColor)
-           .font("Helvetica")
-           .fontSize(11);
+           .fontSize(10);
 
         if (user.skills && user.skills.trim() !== "") {
             const skillList = user.skills.split(',').map(s => s.trim());
-            doc.text(skillList.join(" | "));
+            skillList.forEach(skill => {
+                const desc = getSkillDescription(skill);
+                // Render list style with custom bullet and description
+                doc.fillColor(accentColor)
+                   .font("Helvetica-Bold")
+                   .text("  •  ", { continued: true })
+                   .fillColor(textColor)
+                   .text(`${skill}: `, { continued: true })
+                   .font("Helvetica")
+                   .fillColor(secondaryColor)
+                   .text(desc);
+                doc.moveDown(0.3);
+            });
         } else {
-            doc.text("No skills listed yet.");
+            doc.text("No technical expertise details added to profile registry.");
         }
 
-        doc.moveDown(1.5);
-        
-        doc.strokeColor("#e5e7eb")
+        doc.moveDown(1);
+
+        // Divider
+        doc.strokeColor("#f1f5f9")
            .lineWidth(1)
            .moveTo(50, doc.y)
            .lineTo(562, doc.y)
            .stroke();
-        doc.moveDown(1.5);
+        doc.moveDown(1.2);
 
+        // PROJECTS SECTION
         doc.fillColor(primaryColor)
            .font("Helvetica-Bold")
-           .fontSize(14)
-           .text("PROJECTS");
-        
-        doc.moveDown(0.5);
+           .fontSize(12)
+           .text("KEY ENGINEERING PROJECTS", { characterSpacing: 1 });
+
+        doc.moveDown(0.6);
+
+        // Project 1
         doc.fillColor(textColor)
+           .font("Helvetica-Bold")
+           .fontSize(11)
+           .text("AI Placement Preparation & Recruitment Portal")
            .font("Helvetica")
-           .fontSize(11);
+           .fontSize(10)
+           .fillColor(secondaryColor)
+           .text("• Developed a web application for student placement preparation, testing, and recruitment drives.")
+           .text("• Configured REST routes, MVC controllers, secure authentication middleware, and database schemas.")
+           .text("• Integrated responsive theme overrides for desktop, tablet, and mobile browsers.")
+           .text("• Technologies: Node.js, Express, MongoDB, HTML, CSS, JavaScript.");
 
-        doc.font("Helvetica-Bold").text("Academic Project: AI Placement Preparation Portal");
-        doc.font("Helvetica").fontSize(10).text("• Developed a web application for student placement preparation, testing, and recruitment drives.");
-        doc.text("• Technologies used: Node.js, Express, MongoDB, HTML, CSS, JavaScript.");
+        doc.moveDown(0.8);
 
-        doc.moveDown(1);
-        doc.font("Helvetica-Bold").fontSize(11).text("Interactive Online Code Assessment Platform");
-        doc.font("Helvetica").fontSize(10).text("• Built dynamic quiz and testing modules with timed engines and visual grading analytics.");
+        // Project 2
+        doc.fillColor(textColor)
+           .font("Helvetica-Bold")
+           .fontSize(11)
+           .text("Interactive Online Code Assessment Platform")
+           .font("Helvetica")
+           .fontSize(10)
+           .fillColor(secondaryColor)
+           .text("• Built dynamic quiz and testing modules with timed engines and visual grading analytics.")
+           .text("• Programmed responsive candidate consoles mapping TCS iON exam layouts.");
 
         doc.end();
 
@@ -523,8 +598,8 @@ exports.buildResume = async (req, res) => {
                 message: "A professional PDF resume was automatically built from your profile."
             });
 
-            req.session.user.resume = filename;
-            res.json({ success: true, filename: filename });
+            req.session.user.resume = user.resume;
+            res.json({ success: true, filename: user.resume });
         });
 
     } catch (err) {
