@@ -157,6 +157,7 @@
         <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;" id="resumeFilenameText">Filename: </p>
         <div style="display: flex; justify-content: center; gap: 12px;">
             <a id="viewResumeLink" href="#" target="_blank" class="btn btn-primary">👁 View PDF</a>
+            <button onclick="removeResume()" class="btn btn-danger" style="background-color: #ef4444; border-color: #ef4444; color: white; border-radius: 8px; padding: 10px 20px; font-weight: 500; cursor: pointer;">🗑 Delete Resume</button>
         </div>
     </div>
 </div>
@@ -464,6 +465,33 @@ async function generateResume() {
     } finally {
         btn.disabled = false;
         btn.innerText = "⚡ Build PDF Resume";
+    }
+}
+async function removeResume() {
+    const result = await Swal.fire({
+        title: "Delete Resume?",
+        text: "Are you sure you want to remove your active resume?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#ef4444",
+        cancelButtonColor: "#3b82f6",
+        confirmButtonText: "Yes, delete it!"
+    });
+    if (result.isConfirmed) {
+        try {
+            const res = await fetch("/delete-resume", {
+                method: "POST"
+            });
+            if (res.ok) {
+                showToast("Resume deleted successfully.", "success");
+                loadResume();
+            } else {
+                showToast("Failed to delete resume.", "error");
+            }
+        } catch (e) {
+            console.error(e);
+            showToast("Network error.", "error");
+        }
     }
 }
 

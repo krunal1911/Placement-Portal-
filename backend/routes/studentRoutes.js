@@ -67,6 +67,7 @@ router.post("/update-profile", requireUser, studentController.updateProfile);
 router.post("/upload-profile", profileUpload.single("profileImage"), studentController.uploadProfileImage);
 router.post("/upload-resume", upload.single("resume"), studentController.uploadResume);
 router.post("/build-resume", requireUser, studentController.buildResume);
+router.post("/delete-resume", requireUser, studentController.deleteResume);
 router.post("/submit-test", requireUser, studentController.submitTest);
 router.post("/apply-company", requireUser, studentController.applyCompany);
 

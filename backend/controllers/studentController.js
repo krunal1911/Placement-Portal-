@@ -679,17 +679,52 @@ exports.buildResume = async (req, res) => {
         doc.end();
 
         writeStream.on('finish', async () => {
-            user.resume = `/uploads/resumes/${filename}`;
-            await user.save();
+            try {
+                // Read local temp file buffer
+                const fileBuffer = fs.readFileSync(filepath);
 
-            await Notification.create({
-                userId: user._id,
-                title: "Resume Built Successfully",
-                message: "A professional PDF resume was automatically built from your profile."
-            });
+                // Upload PDF directly to Cloudinary
+                const cloudResumeUrl = await uploadFile(
+                    fileBuffer,
+                    'resumes',
+                    filename,
+                    'raw'
+                );
 
-            req.session.user.resume = user.resume;
-            res.json({ success: true, filename: user.resume });
+                user.resume = cloudResumeUrl;
+                await user.save();
+
+                // Clean up the local temp file
+                try {
+                    fs.unlinkSync(filepath);
+                } catch (cleanupErr) {
+                    console.error("Temp file cleanup error:", cleanupErr);
+                }
+
+                await Notification.create({
+                    userId: user._id,
+                    title: "Resume Built Successfully",
+                    message: "A professional PDF resume was automatically built from your profile and saved to the cloud."
+                });
+
+                req.session.user.resume = user.resume;
+                res.json({ success: true, filename: user.resume });
+            } catch (err) {
+                console.error("[Fallback] Cloudinary resume upload failed:", err);
+                
+                // Fallback to local static serve URL if Cloudinary fails
+                user.resume = `/uploads/resumes/${filename}`;
+                await user.save();
+
+                await Notification.create({
+                    userId: user._id,
+                    title: "Resume Built Successfully",
+                    message: "A professional PDF resume was automatically built from your profile."
+                });
+
+                req.session.user.resume = user.resume;
+                res.json({ success: true, filename: user.resume });
+            }
         });
 
     } catch (err) {
@@ -827,5 +862,30 @@ exports.getUserCompletionData = async (req, res) => {
     } catch (err) {
         console.log(err);
         res.status(500).send("Error");
+    }
+};
+
+// Remove student's resume
+exports.deleteResume = async (req, res) => {
+    try {
+        if (!req.session.user) return res.status(401).send("Login First");
+
+        const user = await User.findById(req.session.user._id);
+        if (!user) return res.status(404).send("User not found");
+
+        user.resume = "";
+        await user.save();
+
+        await Notification.create({
+            userId: user._id,
+            title: "Resume Removed",
+            message: "Your resume has been successfully removed."
+        });
+
+        req.session.user.resume = "";
+        res.send("Success");
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error removing resume");
     }
 };
