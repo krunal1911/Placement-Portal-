@@ -12,10 +12,8 @@ document.addEventListener("DOMContentLoaded", () => {
         position: fixed;
         top: 0; left: 0;
         width: 100vw; height: 100vh;
-        background: rgba(0,0,0,0.4);
+        background: rgba(0,0,0,0.55);
         z-index: 1040;
-        backdrop-filter: blur(2px);
-        -webkit-backdrop-filter: blur(2px);
         transition: opacity 0.3s;
     `;
     document.body.appendChild(overlay);
