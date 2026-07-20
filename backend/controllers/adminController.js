@@ -683,3 +683,26 @@ exports.updateStatus = async (req, res) => {
         res.status(500).send("Error Updating Status");
     }
 };
+
+// Delete existing administrator (superadmin only)
+exports.deleteAdmin = async (req, res) => {
+    try {
+        const { id } = req.params;
+        // Don't let superadmin delete themselves
+        if (req.session.admin._id === id) {
+            return res.status(400).send("You cannot delete your own account.");
+        }
+        const adminToDelete = await Admin.findById(id);
+        if (!adminToDelete) {
+            return res.status(404).send("Admin not found.");
+        }
+        if (adminToDelete.username === "superadmin") {
+            return res.status(400).send("The main superadmin account cannot be deleted.");
+        }
+        await Admin.findByIdAndDelete(id);
+        res.send("Administrator account deleted successfully.");
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error deleting administrator.");
+    }
+};

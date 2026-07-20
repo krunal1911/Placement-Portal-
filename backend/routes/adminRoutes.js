@@ -79,5 +79,6 @@ router.get("/delete-technical/:id", requireSuperAdmin, adminController.deleteTec
 router.post("/import-questions", requireSuperAdmin, excelUpload.single("excelFile"), adminController.importQuestions);
 router.post("/add-company", requireAdmin, adminController.addCompany);
 router.post("/update-status", requireAdmin, adminController.updateStatus);
+router.delete("/delete-admin/:id", requireSuperAdmin, adminController.deleteAdmin);
 
 module.exports = router;

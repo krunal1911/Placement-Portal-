@@ -439,7 +439,7 @@ const getSkillDescription = (skillName) => {
 // Generate AI PDF Resume
 exports.buildResume = async (req, res) => {
     try {
-        const { hasProjects, linkedin, github } = req.body;
+        const { hasProjects, projects, linkedin, github } = req.body;
         const user = await User.findById(req.session.user._id);
         if (!user) {
             return res.status(404).json({ error: "User not found" });
@@ -627,48 +627,33 @@ exports.buildResume = async (req, res) => {
         rightY += 14;
 
         // PROJECTS
-        if (hasProjects !== false) {
+        // PROJECTS
+        if (hasProjects !== false && Array.isArray(projects) && projects.length > 0) {
             rightSection("PROJECTS");
 
-            // Project 1
-            doc.fillColor(darkText).font("Helvetica-Bold").fontSize(10)
-               .text("AI Placement Preparation & Recruitment Portal", RIGHT_X + 8, rightY, { width: RIGHT_W });
-            rightY = doc.y + 2;
-            doc.fillColor(theme.accent).font("Helvetica").fontSize(8)
-               .text("Node.js  |  Express.js  |  MongoDB  |  HTML  |  CSS  |  JavaScript", RIGHT_X + 8, rightY);
-            rightY = doc.y + 5;
-            const p1bullets = [
-                "Built a full-stack placement management platform for students and recruiters.",
-                "Implemented JWT-secured login, session-based auth, and role-based routing.",
-                "Integrated aptitude & technical quiz engines with timed assessment consoles.",
-                "Deployed to Render with Cloudinary cloud storage and MongoDB Atlas database."
-            ];
-            doc.fillColor(mutedText).font("Helvetica").fontSize(8.5);
-            p1bullets.forEach(b => {
-                doc.text("  -  " + b, RIGHT_X + 8, rightY, { width: RIGHT_W });
-                rightY = doc.y + 3;
+            projects.forEach((proj) => {
+                doc.fillColor(darkText).font("Helvetica-Bold").fontSize(10)
+                   .text(proj.title || "Project Title", RIGHT_X + 8, rightY, { width: RIGHT_W });
+                rightY = doc.y + 2;
+
+                if (proj.tech) {
+                    doc.fillColor(theme.accent).font("Helvetica").fontSize(8)
+                       .text(proj.tech, RIGHT_X + 8, rightY);
+                    rightY = doc.y + 5;
+                }
+
+                if (proj.desc) {
+                    doc.fillColor(mutedText).font("Helvetica").fontSize(8.5);
+                    const bullets = proj.desc.split("\n").map(line => line.trim()).filter(line => line.length > 0);
+                    bullets.forEach(bullet => {
+                        const bulletText = bullet.startsWith("-") || bullet.startsWith("*") ? bullet : "  -  " + bullet;
+                        doc.text(bulletText, RIGHT_X + 8, rightY, { width: RIGHT_W });
+                        rightY = doc.y + 3;
+                    });
+                }
+
+                rightY += 12;
             });
-
-            rightY += 12;
-
-            // Project 2
-            doc.fillColor(darkText).font("Helvetica-Bold").fontSize(10)
-               .text("Interactive Online Code Assessment Platform", RIGHT_X + 8, rightY, { width: RIGHT_W });
-            rightY = doc.y + 2;
-            doc.fillColor(theme.accent).font("Helvetica").fontSize(8)
-               .text("JavaScript  |  HTML  |  CSS  |  REST API", RIGHT_X + 8, rightY);
-            rightY = doc.y + 5;
-            const p2bullets = [
-                "Built dynamic quiz and testing modules with timed engines and live grading.",
-                "Designed responsive TCS iON-style candidate console for mobile and desktop."
-            ];
-            doc.fillColor(mutedText).font("Helvetica").fontSize(8.5);
-            p2bullets.forEach(b => {
-                doc.text("  -  " + b, RIGHT_X + 8, rightY, { width: RIGHT_W });
-                rightY = doc.y + 3;
-            });
-
-            rightY += 14;
         }
 
         // CERTIFICATIONS (if space allows)

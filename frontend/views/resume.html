@@ -206,6 +206,26 @@ async function loadResume() {
     }
 }
 
+async function verifyGitHubUsername(input) {
+    const username = input.replace(/.*github\.com\//, "").replace(/\/.*/, "").trim();
+    if (!username || username === "-") return true;
+    try {
+        const res = await fetch("https://api.github.com/users/" + username);
+        return res.ok;
+    } catch (e) {
+        return true; // Fallback in case of CORS or API limit
+    }
+}
+
+function verifyLinkedInFormat(input) {
+    const link = input.trim();
+    if (link === "-") return true;
+    if (link.includes("linkedin.com")) {
+        return link.includes("linkedin.com/in/");
+    }
+    return /^[a-zA-Z0-9-_]{3,100}$/.test(link);
+}
+
 async function generateResume() {
     let user;
     try {
@@ -234,8 +254,77 @@ async function generateResume() {
     });
     const hasProjects = projectResult.isConfirmed;
 
-    // 2. Ask about LinkedIn if not specified
+    let projectsData = [];
+    if (hasProjects) {
+        const { value: formValues } = await Swal.fire({
+            title: "Enter Project Details",
+            html: `
+                <div style="text-align: left; max-height: 380px; overflow-y: auto; padding: 0 10px;">
+                    <div style="border-bottom: 2px solid #3b82f6; padding-bottom: 6px; margin-bottom: 12px;">
+                        <h4 style="margin: 0; color: #1e3a8a; font-size: 16px;">Project 1 (Required)</h4>
+                    </div>
+                    <label style="font-weight: 500; font-size: 12px; color: #475569;">Project Title</label>
+                    <input id="p1-title" class="swal2-input" placeholder="e.g. AI Interview Assistant" style="width: 85%; font-size: 14px; height: 36px; margin-top: 4px; margin-bottom: 12px;">
+                    
+                    <label style="font-weight: 500; font-size: 12px; color: #475569;">Technologies Used</label>
+                    <input id="p1-tech" class="swal2-input" placeholder="e.g. React, Node.js, Python" style="width: 85%; font-size: 14px; height: 36px; margin-top: 4px; margin-bottom: 12px;">
+                    
+                    <label style="font-weight: 500; font-size: 12px; color: #475569;">Short Description</label>
+                    <textarea id="p1-desc" class="swal2-textarea" placeholder="Describe key highlights or features..." style="width: 85%; font-size: 13px; height: 60px; margin-top: 4px; margin-bottom: 20px;"></textarea>
+
+                    <div style="border-bottom: 2px solid #94a3b8; padding-bottom: 6px; margin-bottom: 12px;">
+                        <h4 style="margin: 0; color: #475569; font-size: 16px;">Project 2 (Optional)</h4>
+                    </div>
+                    <label style="font-weight: 500; font-size: 12px; color: #64748b;">Project Title</label>
+                    <input id="p2-title" class="swal2-input" placeholder="e.g. E-Commerce App" style="width: 85%; font-size: 14px; height: 36px; margin-top: 4px; margin-bottom: 12px;">
+                    
+                    <label style="font-weight: 500; font-size: 12px; color: #64748b;">Technologies Used</label>
+                    <input id="p2-tech" class="swal2-input" placeholder="e.g. Flutter, Firebase" style="width: 85%; font-size: 14px; height: 36px; margin-top: 4px; margin-bottom: 12px;">
+                    
+                    <label style="font-weight: 500; font-size: 12px; color: #64748b;">Short Description</label>
+                    <textarea id="p2-desc" class="swal2-textarea" placeholder="Describe key highlights or features..." style="width: 85%; font-size: 13px; height: 60px; margin-top: 4px; margin-bottom: 10px;"></textarea>
+                </div>
+            `,
+            focusConfirm: false,
+            showCancelButton: true,
+            confirmButtonText: "Next",
+            confirmButtonColor: "#3b82f6",
+            preConfirm: () => {
+                const title1 = document.getElementById("p1-title").value.trim();
+                const tech1 = document.getElementById("p1-tech").value.trim();
+                const desc1 = document.getElementById("p1-desc").value.trim();
+                
+                if (!title1 || !tech1 || !desc1) {
+                    Swal.showValidationMessage("Please fill out all fields for Project 1");
+                    return false;
+                }
+                
+                const title2 = document.getElementById("p2-title").value.trim();
+                const tech2 = document.getElementById("p2-tech").value.trim();
+                const desc2 = document.getElementById("p2-desc").value.trim();
+                
+                const list = [{ title: title1, tech: tech1, desc: desc1 }];
+                if (title2) {
+                    list.push({ title: title2, tech: tech2 || "", desc: desc2 || "" });
+                }
+                return list;
+            }
+        });
+        
+        if (!formValues) {
+            // User cancelled the prompt
+            return;
+        }
+        projectsData = formValues;
+    }
+
+    // 2. Ask / Validate LinkedIn
     let linkedinVal = user.linkedin || "";
+    if (linkedinVal.trim() !== "" && linkedinVal !== "-") {
+        if (!verifyLinkedInFormat(linkedinVal)) {
+            linkedinVal = ""; // Reset if invalid so they are prompted
+        }
+    }
     if (linkedinVal.trim() === "") {
         const hasLinkedin = await Swal.fire({
             title: "LinkedIn Profile",
@@ -248,25 +337,47 @@ async function generateResume() {
             cancelButtonColor: "#6b7280"
         });
         if (hasLinkedin.isConfirmed) {
-            const { value: link } = await Swal.fire({
-                title: "Enter LinkedIn Profile",
-                input: "text",
-                inputLabel: "LinkedIn Profile URL or ID",
-                inputPlaceholder: "e.g. linkedin.com/in/username",
-                inputValidator: (value) => {
-                    if (!value) {
-                        return "You must write something!";
+            let valid = false;
+            while (!valid) {
+                const { value: link } = await Swal.fire({
+                    title: "Enter LinkedIn Profile",
+                    input: "text",
+                    inputLabel: "LinkedIn Profile URL or ID",
+                    inputPlaceholder: "e.g. linkedin.com/in/username",
+                    inputValidator: (value) => {
+                        if (!value) {
+                            return "You must write something!";
+                        }
                     }
+                });
+                if (link === undefined) {
+                    linkedinVal = "-";
+                    break;
                 }
-            });
-            linkedinVal = link || "-";
+                if (verifyLinkedInFormat(link)) {
+                    linkedinVal = link;
+                    valid = true;
+                } else {
+                    await Swal.fire({
+                        icon: "error",
+                        title: "Invalid LinkedIn format",
+                        text: "Please enter a valid LinkedIn URL (linkedin.com/in/...) or clean alphanumeric username."
+                    });
+                }
+            }
         } else {
             linkedinVal = "-";
         }
     }
 
-    // 3. Ask about GitHub if not specified
+    // 3. Ask / Validate GitHub
     let githubVal = user.github || "";
+    if (githubVal.trim() !== "" && githubVal !== "-") {
+        const exists = await verifyGitHubUsername(githubVal);
+        if (!exists) {
+            githubVal = ""; // Reset if invalid so they are prompted
+        }
+    }
     if (githubVal.trim() === "") {
         const hasGithub = await Swal.fire({
             title: "GitHub Profile",
@@ -279,18 +390,46 @@ async function generateResume() {
             cancelButtonColor: "#6b7280"
         });
         if (hasGithub.isConfirmed) {
-            const { value: link } = await Swal.fire({
-                title: "Enter GitHub Profile",
-                input: "text",
-                inputLabel: "GitHub Profile URL or ID",
-                inputPlaceholder: "e.g. github.com/username",
-                inputValidator: (value) => {
-                    if (!value) {
-                        return "You must write something!";
+            let valid = false;
+            while (!valid) {
+                const { value: link } = await Swal.fire({
+                    title: "Enter GitHub Profile",
+                    input: "text",
+                    inputLabel: "GitHub Profile URL or ID",
+                    inputPlaceholder: "e.g. github.com/username",
+                    inputValidator: (value) => {
+                        if (!value) {
+                            return "You must write something!";
+                        }
                     }
+                });
+                if (link === undefined) {
+                    githubVal = "-";
+                    break;
                 }
-            });
-            githubVal = link || "-";
+                
+                // Show loading modal during verify
+                Swal.fire({
+                    title: "Verifying GitHub Profile...",
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                const exists = await verifyGitHubUsername(link);
+                Swal.close();
+
+                if (exists) {
+                    githubVal = link;
+                    valid = true;
+                } else {
+                    await Swal.fire({
+                        icon: "error",
+                        title: "Account Not Found",
+                        text: "This GitHub profile does not seem to exist. Please verify your username."
+                    });
+                }
+            }
         } else {
             githubVal = "-";
         }
@@ -306,6 +445,7 @@ async function generateResume() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 hasProjects,
+                projects: projectsData,
                 linkedin: linkedinVal,
                 github: githubVal
             })
