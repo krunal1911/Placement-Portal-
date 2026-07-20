@@ -384,15 +384,8 @@ exports.uploadResume = async (req, res) => {
         const user = await User.findById(req.session.user._id);
         if (!user) return res.status(404).send("User not found");
 
-        // Upload PDF buffer directly via our fallback utility
-        const resumeUrl = await uploadFile(
-            req.file.buffer,
-            'resumes',
-            req.file.originalname,
-            'raw'
-        );
-
-        user.resume = resumeUrl;
+        user.resumeBuffer = req.file.buffer;
+        user.resume = "attached";
         await user.save();
 
         await Notification.create({
@@ -691,15 +684,8 @@ exports.buildResume = async (req, res) => {
                 // Read local temp file buffer
                 const fileBuffer = fs.readFileSync(filepath);
 
-                // Upload PDF directly to Cloudinary
-                const cloudResumeUrl = await uploadFile(
-                    fileBuffer,
-                    'resumes',
-                    filename,
-                    'raw'
-                );
-
-                user.resume = cloudResumeUrl;
+                user.resumeBuffer = fileBuffer;
+                user.resume = "attached";
                 await user.save();
 
                 // Clean up the local temp file
@@ -712,26 +698,14 @@ exports.buildResume = async (req, res) => {
                 await Notification.create({
                     userId: user._id,
                     title: "Resume Built Successfully",
-                    message: "A professional PDF resume was automatically built from your profile and saved to the cloud."
+                    message: "A professional PDF resume was automatically built from your profile and saved to the database."
                 });
 
                 req.session.user.resume = user.resume;
                 res.json({ success: true, filename: user.resume });
             } catch (err) {
-                console.error("[Fallback] Cloudinary resume upload failed:", err);
-                
-                // Fallback to local static serve URL if Cloudinary fails
-                user.resume = `/uploads/resumes/${filename}`;
-                await user.save();
-
-                await Notification.create({
-                    userId: user._id,
-                    title: "Resume Built Successfully",
-                    message: "A professional PDF resume was automatically built from your profile."
-                });
-
-                req.session.user.resume = user.resume;
-                res.json({ success: true, filename: user.resume });
+                console.error("Mongoose PDF save failed:", err);
+                res.status(500).json({ error: "Failed to save generated resume to database." });
             }
         });
 
@@ -882,6 +856,7 @@ exports.deleteResume = async (req, res) => {
         if (!user) return res.status(404).send("User not found");
 
         user.resume = "";
+        user.resumeBuffer = undefined;
         await user.save();
 
         await Notification.create({
@@ -900,29 +875,39 @@ exports.deleteResume = async (req, res) => {
 
 const streamResume = async (user, res) => {
     try {
-        if (!user || !user.resume) {
+        if (!user) {
+            return res.status(404).send("<h1>Student not found</h1>");
+        }
+        
+        // 1. Direct stream from MongoDB Buffer (Highly reliable, bypasses Cloudinary restrictions)
+        if (user.resumeBuffer && user.resumeBuffer.length > 0) {
+            res.setHeader("Content-Type", "application/pdf");
+            res.setHeader("Content-Disposition", 'inline; filename="resume.pdf"');
+            return res.send(user.resumeBuffer);
+        }
+        
+        // 2. Backward compatibility fallback for old URLs
+        if (!user.resume) {
             return res.status(404).send("<h1>No resume found</h1><p>The student has not uploaded or built a resume yet.</p>");
         }
         
         if (user.resume.startsWith("http")) {
-            // Fetch from Cloudinary
             const cloudRes = await fetch(user.resume);
             if (!cloudRes.ok) {
-                return res.status(500).send("<h1>Storage Error</h1><p>Failed to retrieve the resume file from cloud storage.</p>");
+                return res.status(404).send("<h1>Resume Expired or Blocked</h1><p>This is an old Cloudinary link that is blocked. Please log in as the student and rebuild or upload your resume again to store it permanently in the database.</p>");
             }
             const buffer = await cloudRes.arrayBuffer();
             res.setHeader("Content-Type", "application/pdf");
             res.setHeader("Content-Disposition", 'inline; filename="resume.pdf"');
             return res.send(Buffer.from(buffer));
         } else {
-            // Local file serving fallback
             const localPath = path.join(__dirname, "../../frontend/public", user.resume);
             if (fs.existsSync(localPath)) {
                 res.setHeader("Content-Type", "application/pdf");
                 res.setHeader("Content-Disposition", 'inline; filename="resume.pdf"');
                 return res.sendFile(localPath);
             }
-            return res.status(404).send("<h1>Not Found</h1><p>The resume file could not be found on local storage.</p>");
+            return res.status(404).send("<h1>Resume Not Found</h1><p>Please log in as the student and rebuild your resume to save it permanently.</p>");
         }
     } catch (err) {
         console.error("Error streaming resume:", err);

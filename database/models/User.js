@@ -64,7 +64,9 @@ github: {
         title: String,
         tech: String,
         desc: String
-    }]
+    }],
+
+    resumeBuffer: Buffer
 
 });
 
