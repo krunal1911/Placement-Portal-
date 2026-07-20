@@ -897,3 +897,55 @@ exports.deleteResume = async (req, res) => {
         res.status(500).send("Error removing resume");
     }
 };
+
+const streamResume = async (user, res) => {
+    try {
+        if (!user || !user.resume) {
+            return res.status(404).send("<h1>No resume found</h1><p>The student has not uploaded or built a resume yet.</p>");
+        }
+        
+        if (user.resume.startsWith("http")) {
+            // Fetch from Cloudinary
+            const cloudRes = await fetch(user.resume);
+            if (!cloudRes.ok) {
+                return res.status(500).send("<h1>Storage Error</h1><p>Failed to retrieve the resume file from cloud storage.</p>");
+            }
+            const buffer = await cloudRes.arrayBuffer();
+            res.setHeader("Content-Type", "application/pdf");
+            res.setHeader("Content-Disposition", 'inline; filename="resume.pdf"');
+            return res.send(Buffer.from(buffer));
+        } else {
+            // Local file serving fallback
+            const localPath = path.join(__dirname, "../../frontend/public", user.resume);
+            if (fs.existsSync(localPath)) {
+                res.setHeader("Content-Type", "application/pdf");
+                res.setHeader("Content-Disposition", 'inline; filename="resume.pdf"');
+                return res.sendFile(localPath);
+            }
+            return res.status(404).send("<h1>Not Found</h1><p>The resume file could not be found on local storage.</p>");
+        }
+    } catch (err) {
+        console.error("Error streaming resume:", err);
+        res.status(500).send("<h1>Server Error</h1><p>An error occurred while displaying the PDF resume.</p>");
+    }
+};
+
+exports.viewOwnResume = async (req, res) => {
+    try {
+        const user = await User.findById(req.session.user._id);
+        await streamResume(user, res);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Server error");
+    }
+};
+
+exports.viewStudentResume = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.studentId);
+        await streamResume(user, res);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Server error");
+    }
+};

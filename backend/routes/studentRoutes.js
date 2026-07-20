@@ -2,7 +2,7 @@ const express = require("express");
 const multer  = require("multer");
 
 const studentController = require("../controllers/studentController");
-const { requireUser }   = require("../middleware/auth");
+const { requireUser, requireAdmin } = require("../middleware/auth");
 
 const router = express.Router();
 
@@ -44,6 +44,8 @@ router.get("/leaderboard", studentController.showLeaderboard);
 router.get("/placement-drives", studentController.showPlacementDrives);
 router.get("/history", requireUser, studentController.showHistory);
 router.get("/my-applications", requireUser, studentController.showMyApplications);
+router.get("/view-resume", requireUser, studentController.viewOwnResume);
+router.get("/view-resume/:studentId", requireAdmin, studentController.viewStudentResume);
 
 // ==========================================
 // API / DATA
