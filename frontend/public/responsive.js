@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
         top: 0; left: 0;
         width: 100vw; height: 100vh;
         background: rgba(0,0,0,0.55);
-        z-index: 1040;
+        z-index: 1030;
         transition: opacity 0.3s;
     `;
     document.body.appendChild(overlay);

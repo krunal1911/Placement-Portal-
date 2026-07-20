@@ -42,12 +42,12 @@
             border-radius: 20px;
         }
     </style>
-    <link rel="stylesheet" href="/responsive.css">
+    <link rel="stylesheet" href="/responsive.css?v=2.0">
 </head>
 <body>
 
 <nav>
-    <div class="logo">🚀 Placement Portal</div>
+    <div class="logo">ðŸš€ Placement Portal</div>
     <ul>
         <li><a href="/dashboard">Dashboard</a></li>
         <li><a href="/profile">Profile</a></li>
@@ -60,7 +60,7 @@
 <div class="main-container">
     <div class="hero" style="padding: 32px 48px; margin-bottom: 32px;">
         <div class="hero-left">
-            <h1>💼 Application Tracker</h1>
+            <h1>ðŸ’¼ Application Tracker</h1>
             <p>Track the visual pipeline stage of all your submitted job applications in real-time.</p>
         </div>
     </div>
@@ -83,7 +83,7 @@ async function loadApplications() {
         if (applications.length === 0) {
             container.innerHTML = `
                 <div style="background: white; border: 1px solid var(--border); border-radius: 16px; padding: 48px; text-align: center;">
-                    <div style="font-size: 48px; margin-bottom: 16px;">📁</div>
+                    <div style="font-size: 48px; margin-bottom: 16px;">ðŸ“</div>
                     <h3 style="font-size: 18px; font-weight: 600; color: #1e3a8a; margin-bottom: 8px;">No Applications Yet</h3>
                     <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">Browse and apply to our live placement drives to kickstart your tracking.</p>
                     <a href="/placement-drives" class="btn btn-primary">Browse Companies</a>
@@ -149,7 +149,7 @@ async function loadApplications() {
                         
                         <!-- Step 4: Decision -->
                         <div class="pipeline-step ${currentStatus === 'Selected' ? 'completed' : (isRejected ? 'rejected' : '')}">
-                            ${isRejected ? '✗' : '✓'}
+                            ${isRejected ? 'âœ—' : 'âœ“'}
                             <span class="pipeline-label">${isRejected ? 'Rejected' : 'Decision'}</span>
                         </div>
                     </div>
@@ -171,6 +171,6 @@ async function loadApplications() {
 
 loadApplications();
 </script>
-    <script src="/responsive.js"></script>
+    <script src="/responsive.js?v=2.0"></script>
 </body>
 </html>

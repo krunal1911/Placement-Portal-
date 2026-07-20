@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="/admin-dashboard.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/responsive.css">
+    <link rel="stylesheet" href="/responsive.css?v=2.0">
     <style>
         /* Mobile responsive cards styling */
         .mobile-app-card {
@@ -68,7 +68,7 @@
 
 <!-- Navigation Bar -->
 <nav>
-    <div class="logo">🚀 Placement Portal</div>
+    <div class="logo">ðŸš€ Placement Portal</div>
     <ul>
         <li><a href="/admin-dashboard">Dashboard</a></li>
         <li><a href="/students">Students</a></li>
@@ -79,8 +79,8 @@
 
 <div class="container" style="max-width: 1100px; margin: 40px auto; padding: 0 20px;">
     <div style="margin-bottom: 24px; text-align: left;">
-        <a href="/admin-dashboard" style="text-decoration: none; color: var(--text-muted); font-size: 14px; font-weight: 500;">← Back to Dashboard</a>
-        <h1 style="font-size: 28px; font-weight: 700; color: #1e3a8a; margin-top: 8px;">🏢 Company Applications</h1>
+        <a href="/admin-dashboard" style="text-decoration: none; color: var(--text-muted); font-size: 14px; font-weight: 500;">â† Back to Dashboard</a>
+        <h1 style="font-size: 28px; font-weight: 700; color: #1e3a8a; margin-top: 8px;">ðŸ¢ Company Applications</h1>
         <p style="color: var(--text-muted); font-size: 14px;">Review student job applications, shortlist candidates, download resumes, and update statuses.</p>
     </div>
 
@@ -88,7 +88,7 @@
     <div class="card filter-bar-card" style="margin-bottom: 30px; text-align: left; display: flex; gap: 16px; align-items: center; padding: 20px;">
         <div style="flex: 1;">
             <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Search Applications</label>
-            <input type="text" id="search" placeholder="🔍 Search by student name, company, or job role..." onkeyup="searchApplications()" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;">
+            <input type="text" id="search" placeholder="ðŸ” Search by student name, company, or job role..." onkeyup="searchApplications()" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;">
         </div>
         <div style="margin-top: 20px;">
             <button class="btn btn-secondary" onclick="resetSearch()" style="padding: 11px 20px; font-size: 13px;">Clear Filter</button>
@@ -157,7 +157,7 @@ function displayApplications(data) {
             const status = app.status || "Applied";
             
             const resumeHtml = app.userId && app.userId.resume
-                ? `<a href="/view-resume/${app.userId._id}" target="_blank" class="btn" style="padding: 6px 12px; font-size:11px; background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; font-weight:600; text-decoration:none; border-radius:6px; display:inline-flex; align-items:center; gap:4px;">📄 View PDF</a>`
+                ? `<a href="/view-resume/${app.userId._id}" target="_blank" class="btn" style="padding: 6px 12px; font-size:11px; background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; font-weight:600; text-decoration:none; border-radius:6px; display:inline-flex; align-items:center; gap:4px;">ðŸ“„ View PDF</a>`
                 : `<span style="color:var(--text-muted); font-size:12px;">No Resume</span>`;
 
             const statusOptions = `
@@ -298,6 +298,6 @@ function resetSearch() {
 loadApplications();
 </script>
 
-<script src="/responsive.js"></script>
+<script src="/responsive.js?v=2.0"></script>
 </body>
 </html>

@@ -11,7 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/responsive.css">
+    <link rel="stylesheet" href="/responsive.css?v=2.0">
 </head>
 <body class="tcs-exam-body">
 
@@ -49,8 +49,8 @@
                 <button id="markBtn" class="tcs-btn" style="background: #f39c12; color: white; border-color: #d35400;">Mark for Review & Next</button>
             </div>
             <div>
-                <button id="prevBtn" class="tcs-btn" style="margin-right: 8px;">← Back</button>
-                <button id="nextBtn" class="tcs-btn tcs-btn-primary">Save & Next →</button>
+                <button id="prevBtn" class="tcs-btn" style="margin-right: 8px;">â† Back</button>
+                <button id="nextBtn" class="tcs-btn tcs-btn-primary">Save & Next â†’</button>
                 <button id="submitBtn" class="tcs-btn tcs-btn-success" style="display: none;">Submit Test</button>
             </div>
         </div>
@@ -99,7 +99,7 @@
 
 <!-- Results Panel (Unified Center CSS Layout) -->
 <div class="test-container" id="resultsContainer" style="display: none; max-width: 900px; text-align: center; margin: 40px auto;">
-    <h1 style="font-size: 28px; color: #059669; font-weight: 700; margin-bottom: 8px;">🎉 Test Completed</h1>
+    <h1 style="font-size: 28px; color: #059669; font-weight: 700; margin-bottom: 8px;">ðŸŽ‰ Test Completed</h1>
     <p style="color: #64748b; margin-bottom: 24px;">Your response has been saved and analyzed.</p>
     
     <div style="display: flex; justify-content: center; gap: 40px; margin-bottom: 30px;">
@@ -119,8 +119,8 @@
     <div id="reviewList" style="margin-bottom: 32px;"></div>
     
     <div style="display: flex; justify-content: center; gap: 16px;">
-        <button class="btn btn-primary" onclick="window.location='/dashboard'">🏠 Dashboard</button>
-        <button class="btn" style="background: #64748b; color: white;" onclick="window.location='/aptitude'">🔄 Retake Test</button>
+        <button class="btn btn-primary" onclick="window.location='/dashboard'">ðŸ  Dashboard</button>
+        <button class="btn" style="background: #64748b; color: white;" onclick="window.location='/aptitude'">ðŸ”„ Retake Test</button>
     </div>
 </div>
 
@@ -210,7 +210,7 @@ async function loadQuestions() {
         startTimer();
     } catch (e) {
         console.error(e);
-        document.getElementById("question").innerHTML = `<span style="color:red;">⚠️ Error Loading Test: ${e.message}</span><br/><small>${e.stack}</small>`;
+        document.getElementById("question").innerHTML = `<span style="color:red;">âš ï¸ Error Loading Test: ${e.message}</span><br/><small>${e.stack}</small>`;
         showToast("Error loading test questions.", "error");
     }
 }
@@ -457,9 +457,9 @@ function showResults(score) {
     document.getElementById("resultScore").innerText = `${score} / ${questions.length}`;
     document.getElementById("resultPercentage").innerText = `${pct}%`;
     
-    let msg = "Keep Practicing 💪";
-    if (pct >= 80) msg = "Excellent! Outstanding preparation! 🎉";
-    else if (pct >= 60) msg = "Good Job! You are on the right track. 👍";
+    let msg = "Keep Practicing ðŸ’ª";
+    if (pct >= 80) msg = "Excellent! Outstanding preparation! ðŸŽ‰";
+    else if (pct >= 60) msg = "Good Job! You are on the right track. ðŸ‘";
     document.getElementById("resultMessage").innerText = msg;
     
     let reviewHtml = "";
@@ -474,7 +474,7 @@ function showResults(score) {
                 <p style="font-size: 13px; margin-bottom: 6px;">
                     <b>Your Answer:</b> 
                     <span style="color: ${isCorrect ? '#16a34a' : '#dc2626'}; font-weight: 600;">${userAns}</span> 
-                    ${isCorrect ? '✅' : '❌'}
+                    ${isCorrect ? 'âœ…' : 'âŒ'}
                 </p>
                 <p style="font-size: 13px; margin-bottom: 12px; color: #16a34a;">
                     <b>Correct Answer:</b> <span style="font-weight: 600;">${correctAns}</span>
@@ -492,6 +492,6 @@ function showResults(score) {
 
 loadQuestions();
 </script>
-    <script src="/responsive.js"></script>
+    <script src="/responsive.js?v=2.0"></script>
 </body>
 </html>

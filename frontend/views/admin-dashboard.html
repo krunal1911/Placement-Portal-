@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
     <link rel="stylesheet" href="/admin-dashboard.css">
-    <link rel="stylesheet" href="/responsive.css">
+    <link rel="stylesheet" href="/responsive.css?v=2.0">
 </head>
 
 <body>
@@ -13,7 +13,7 @@
 <nav>
 
 <div class="logo">
-🚀 Placement Portal
+ðŸš€ Placement Portal
 </div>
 
 <ul>
@@ -34,7 +34,7 @@
 
 <div>
 
-<h1>👨‍💼 Admin Dashboard</h1>
+<h1>ðŸ‘¨â€ðŸ’¼ Admin Dashboard</h1>
 
 <p>
 
@@ -48,7 +48,7 @@ Monitor students, placement drives, applications and portal analytics from one p
 
 <a href="/add-company" class="heroBtn">
 
-➕ Add Company
+âž• Add Company
 
 </a>
 
@@ -60,7 +60,7 @@ Monitor students, placement drives, applications and portal analytics from one p
 
 <div class="card">
 
-<div class="icon">👨‍🎓</div>
+<div class="icon">ðŸ‘¨â€ðŸŽ“</div>
 
 <h2 id="totalStudents">0</h2>
 
@@ -70,7 +70,7 @@ Monitor students, placement drives, applications and portal analytics from one p
 
 <div class="card">
 
-<div class="icon">🏢</div>
+<div class="icon">ðŸ¢</div>
 
 <h2 id="totalCompanies">0</h2>
 
@@ -80,7 +80,7 @@ Monitor students, placement drives, applications and portal analytics from one p
 
 <div class="card">
 
-<div class="icon">📄</div>
+<div class="icon">ðŸ“„</div>
 
 <h2 id="totalApplications">0</h2>
 
@@ -90,7 +90,7 @@ Monitor students, placement drives, applications and portal analytics from one p
 
 <div class="card">
 
-<div class="icon">📝</div>
+<div class="icon">ðŸ“</div>
 
 <h2 id="totalTests">0</h2>
 
@@ -100,7 +100,7 @@ Monitor students, placement drives, applications and portal analytics from one p
 
 <div class="card">
 
-<div class="icon">⭐</div>
+<div class="icon">â­</div>
 
 <h2 id="averageScore">0%</h2>
 
@@ -201,7 +201,7 @@ Monitor students, placement drives, applications and portal analytics from one p
 
 </section>
 
-    <script src="/responsive.js"></script>
+    <script src="/responsive.js?v=2.0"></script>
 </body>
 
 <section class="stats">
@@ -367,7 +367,7 @@ async function checkAdminRole() {
         // Render name/role
         const heroText = document.querySelector(".hero h1");
         if (heroText) {
-            heroText.innerHTML = `👨‍💼 Admin Dashboard <span style="font-size: 14px; font-weight: normal; background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 8px; vertical-align: middle; margin-left: 10px;">${admin.role.toUpperCase()}</span>`;
+            heroText.innerHTML = `ðŸ‘¨â€ðŸ’¼ Admin Dashboard <span style="font-size: 14px; font-weight: normal; background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 8px; vertical-align: middle; margin-left: 10px;">${admin.role.toUpperCase()}</span>`;
         }
 
         // Filter features and navigation based on admin role

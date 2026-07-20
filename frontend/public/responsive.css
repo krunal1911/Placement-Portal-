@@ -152,7 +152,7 @@ textarea {
         flex-wrap: nowrap !important;
         position: sticky !important;
         top: 0 !important;
-        z-index: 1000 !important;
+        z-index: 1050 !important;
         gap: 0 !important;
         backdrop-filter: none !important;
         -webkit-backdrop-filter: none !important;
@@ -173,7 +173,7 @@ textarea {
         flex-direction: column !important;
         padding: 80px 20px 32px !important;
         gap: 4px !important;
-        z-index: 1050 !important;
+        z-index: 1060 !important;
         overflow-y: auto !important;
         transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
         list-style: none !important;
