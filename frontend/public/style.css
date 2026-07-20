@@ -244,16 +244,6 @@ footer{
 
 @media(max-width:650px){
 
-nav{
-    flex-direction:column;
-    gap:15px;
-}
-
-nav ul{
-    flex-wrap:wrap;
-    justify-content:center;
-}
-
 .hero-left h1{
     font-size:34px;
 }

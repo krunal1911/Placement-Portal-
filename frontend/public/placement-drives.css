@@ -183,16 +183,6 @@ nav a:hover{
 
 @media(max-width:768px){
 
-    nav{
-        flex-direction:column;
-        gap:15px;
-    }
-
-    nav ul{
-        flex-wrap:wrap;
-        justify-content:center;
-    }
-
     .hero h1{
         font-size:30px;
     }
