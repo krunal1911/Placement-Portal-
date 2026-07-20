@@ -14,6 +14,7 @@ const Company = require("../../database/models/Company");
 const Application = require("../../database/models/Application");
 const ExamSettings = require("../../database/models/ExamSettings");
 const AdminRequest = require("../../database/models/AdminRequest");
+const CheatingLog = require("../../database/models/CheatingLog");
 
 // ==========================================
 // VIEW PAGES
@@ -704,5 +705,21 @@ exports.deleteAdmin = async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).send("Error deleting administrator.");
+    }
+};
+
+exports.showProctoring = (req, res) => {
+    res.sendFile(path.join(__dirname, "../../frontend/views", "proctoring.html"));
+};
+
+exports.getProctoringData = async (req, res) => {
+    try {
+        const logs = await CheatingLog.find()
+            .populate("userId", "name email branch semester")
+            .sort({ createdAt: -1 });
+        res.json(logs);
+    } catch (err) {
+        console.error("Error fetching proctoring data:", err);
+        res.status(500).json({ error: "Failed to load proctoring data" });
     }
 };

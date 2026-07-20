@@ -55,12 +55,13 @@
 <!-- Navigation Bar -->
 <nav>
     <div class="logo">
-        ðŸš€ Placement Portal
+        Ã°Å¸Å¡â‚¬ Placement Portal
     </div>
     <ul>
         <li><a href="/admin-dashboard">Dashboard</a></li>
         <li><a href="/students">Students</a></li>
         <li><a href="/applications">Applications</a></li>
+        <li><a href="/proctoring">Proctoring</a></li>
         <li><a href="/logout">Logout</a></li>
     </ul>
 </nav>
@@ -68,14 +69,14 @@
 <div class="container" style="max-width: 1000px; margin: 40px auto; padding: 0 24px;">
     
     <div style="margin-bottom: 24px; text-align: center;">
-        <a href="/admin-dashboard" style="text-decoration: none; color: var(--text-muted); font-size: 14px; font-weight: 500;">â† Back to Dashboard</a>
-        <h1 style="font-size: 28px; font-weight: 700; color: #1e3a8a; margin-top: 8px;">ðŸ“ Assessment Builder Console</h1>
+        <a href="/admin-dashboard" style="text-decoration: none; color: var(--text-muted); font-size: 14px; font-weight: 500;">Ã¢â€ Â Back to Dashboard</a>
+        <h1 style="font-size: 28px; font-weight: 700; color: #1e3a8a; margin-top: 8px;">Ã°Å¸â€œÂ Assessment Builder Console</h1>
         <p style="color: var(--text-muted); font-size: 14px;">Configure test settings and manage assessment questions.</p>
     </div>
 
     <!-- 1. EXAM CONFIGURATION SECTION -->
     <div class="card" style="margin-bottom: 30px; text-align: left; padding: 24px;">
-        <h3 style="font-size: 16px; font-weight: 600; color: #1e3a8a; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border);">âš™ï¸ Exam Configuration</h3>
+        <h3 style="font-size: 16px; font-weight: 600; color: #1e3a8a; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border);">Ã¢Å¡â„¢Ã¯Â¸Â Exam Configuration</h3>
         <form id="examSettingsForm" style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end;">
             <div style="flex: 1; min-width: 180px;">
                 <label for="configType" style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Select Exam Type</label>
@@ -100,7 +101,7 @@
 
     <!-- 2. QUESTION EDITOR SECTION -->
     <div class="form-card" id="editorCard" style="max-width: 100%; margin: 0 0 30px 0;">
-        <h3 id="formTitle" style="font-size: 16px; font-weight: 600; color: #1e3a8a; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border);">âž• Add Question</h3>
+        <h3 id="formTitle" style="font-size: 16px; font-weight: 600; color: #1e3a8a; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border);">Ã¢Å¾â€¢ Add Question</h3>
         
         <form id="questionForm">
             <input type="hidden" id="editQuestionId" value="">
@@ -177,7 +178,7 @@
 
     <!-- 3. ADDED QUESTIONS LIST -->
     <div class="added-questions-section">
-        <h2 style="font-size: 20px; font-weight: 600; color: #1e3a8a; margin-bottom: 16px; text-align: left;">ðŸ“‹ Questions List</h2>
+        <h2 style="font-size: 20px; font-weight: 600; color: #1e3a8a; margin-bottom: 16px; text-align: left;">Ã°Å¸â€œâ€¹ Questions List</h2>
         
         <div style="background: white; border-radius: 16px; border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow-sm);">
             <table style="margin: 0; border: none; box-shadow: none;">
@@ -348,7 +349,7 @@ function buildPaginationButtons(totalPages) {
     
     // Previous Button
     const prevBtn = document.createElement("button");
-    prevBtn.innerText = "â€¹";
+    prevBtn.innerText = "Ã¢â‚¬Â¹";
     prevBtn.style.padding = "4px 10px";
     prevBtn.style.background = currentPage === 1 ? "#e2e8f0" : "var(--primary-light)";
     prevBtn.style.color = currentPage === 1 ? "var(--text-muted)" : "var(--primary)";
@@ -386,7 +387,7 @@ function buildPaginationButtons(totalPages) {
     
     // Next Button
     const nextBtn = document.createElement("button");
-    nextBtn.innerText = "â€º";
+    nextBtn.innerText = "Ã¢â‚¬Âº";
     nextBtn.style.padding = "4px 10px";
     nextBtn.style.background = currentPage === totalPages ? "#e2e8f0" : "var(--primary-light)";
     nextBtn.style.color = currentPage === totalPages ? "var(--text-muted)" : "var(--primary)";
@@ -555,7 +556,7 @@ function enterEditMode(id) {
     else if (q.answer === q.options[3]) document.getElementById("answerSelect").value = "o4";
     
     // UI adjustments
-    document.getElementById("formTitle").innerText = "âœï¸ Edit Question";
+    document.getElementById("formTitle").innerText = "Ã¢Å“ÂÃ¯Â¸Â Edit Question";
     document.getElementById("submitBtn").innerText = "Update Question";
     document.getElementById("cancelEditBtn").style.display = "inline-flex";
     document.getElementById("editorCard").classList.add("edit-mode");
@@ -570,7 +571,7 @@ function enterEditMode(id) {
 function exitEditMode() {
     isEditMode = false;
     document.getElementById("editQuestionId").value = "";
-    document.getElementById("formTitle").innerText = "âž• Add Question";
+    document.getElementById("formTitle").innerText = "Ã¢Å¾â€¢ Add Question";
     document.getElementById("submitBtn").innerText = "Add Question";
     document.getElementById("cancelEditBtn").style.display = "none";
     document.getElementById("editorCard").classList.remove("edit-mode");

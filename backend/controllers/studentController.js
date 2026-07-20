@@ -12,6 +12,7 @@ const Notification = require("../../database/models/Notification");
 const ExamSettings = require("../../database/models/ExamSettings");
 const Question = require("../../database/models/Question");
 const TechnicalQuestion = require("../../database/models/TechnicalQuestion");
+const CheatingLog = require("../../database/models/CheatingLog");
 
 // ==========================================
 // VIEW PAGES
@@ -965,5 +966,38 @@ exports.viewStudentResume = async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).send("Server error");
+    }
+};
+
+exports.logCheating = async (req, res) => {
+    try {
+        const { testType, incidentType, details } = req.body;
+        const userId = req.session.user._id;
+
+        let aiAnalysis = "";
+        if (incidentType === "Tab Switch") {
+            aiAnalysis = "High Severity: Student switched windows or tabs, likely to search search engines or external resources for question content.";
+        } else if (incidentType === "Copy Action") {
+            aiAnalysis = "Medium Severity: Student attempted to copy questions or options from the assessment page, suggesting intent to share or translate.";
+        } else if (incidentType === "Screenshot Attempt") {
+            aiAnalysis = "High Severity: Student attempted a print-screen or screen capture shortcut, indicating an effort to capture and distribute test content.";
+        } else if (incidentType === "Exit Fullscreen") {
+            aiAnalysis = "Medium Severity: Student exited forced fullscreen mode, violating exam guidelines and enabling split-screen operations.";
+        } else {
+            aiAnalysis = "Unknown Proctor Alert: Unusual activity detected during the exam session.";
+        }
+
+        const log = await CheatingLog.create({
+            userId,
+            testType,
+            incidentType,
+            details,
+            aiAnalysis
+        });
+
+        res.json({ success: true, log });
+    } catch (err) {
+        console.error("Error logging cheating incident:", err);
+        res.status(500).json({ error: "Failed to log proctoring incident" });
     }
 };

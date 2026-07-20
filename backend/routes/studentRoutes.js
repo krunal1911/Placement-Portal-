@@ -72,6 +72,7 @@ router.post("/build-resume", requireUser, studentController.buildResume);
 router.post("/delete-resume", requireUser, studentController.deleteResume);
 router.post("/submit-test", requireUser, studentController.submitTest);
 router.post("/apply-company", requireUser, studentController.applyCompany);
+router.post("/log-cheating", requireUser, studentController.logCheating);
 
 
 
