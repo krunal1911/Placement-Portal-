@@ -35,7 +35,7 @@ const uploadFile = (buffer, subfolder, originalName, resourceType = 'image') => 
                 {
                     folder: `placement-portal/${subfolder}`,
                     resource_type: resourceType,
-                    transformation: resourceType === 'image'
+                    transformation: (resourceType === 'image' && subfolder === 'profiles')
                         ? [{ width: 400, height: 400, crop: 'fill', gravity: 'face' }]
                         : undefined,
                 },
