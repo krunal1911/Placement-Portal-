@@ -109,7 +109,13 @@ app.use('/login', authLimiter);
 app.use('/admin-login', authLimiter);
 app.use('/register', authLimiter);
 
-// 3. NoSQL Sanitizer — strips MongoDB operator keys from req.body (Express 5 compatible)
+
+
+// ─── Standard Middlewares ─────────────────────────────────────────────────────
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// 3. NoSQL Sanitizer & XSS Prevention — strips MongoDB operator keys and scripts from requests
 const sanitizeBody = (obj) => {
     if (!obj || typeof obj !== 'object') return;
     for (const key in obj) {
@@ -120,14 +126,35 @@ const sanitizeBody = (obj) => {
         }
     }
 };
+
+const sanitizeXSS = (val) => {
+    if (typeof val === 'string') {
+        return val.replace(/<[^>]*>/g, '').replace(/javascript:/gi, '').trim();
+    }
+    if (Array.isArray(val)) {
+        return val.map(sanitizeXSS);
+    }
+    if (val && typeof val === 'object') {
+        for (const key in val) {
+            val[key] = sanitizeXSS(val[key]);
+        }
+    }
+    return val;
+};
+
 app.use((req, res, next) => {
-    if (req.body) sanitizeBody(req.body);
+    if (req.body) {
+        sanitizeBody(req.body);
+        req.body = sanitizeXSS(req.body);
+    }
+    if (req.query) {
+        req.query = sanitizeXSS(req.query);
+    }
+    if (req.params) {
+        req.params = sanitizeXSS(req.params);
+    }
     next();
 });
-
-// ─── Standard Middlewares ─────────────────────────────────────────────────────
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
 app.use(session({
     secret: process.env.SESSION_SECRET || 'placementPortalSecret',
@@ -136,6 +163,7 @@ app.use(session({
     cookie: {
         maxAge: 24 * 60 * 60 * 1000,   // 24 hours
         httpOnly: true,                  // Prevents client-side JS from reading cookie
+        secure: process.env.NODE_ENV === 'production', // Secure cookies in production
         sameSite: 'lax'
     }
 }));

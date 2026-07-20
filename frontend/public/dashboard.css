@@ -745,3 +745,53 @@ tr:hover {
         width: 95%;
     }
 }
+
+/* ================= DARK THEME OVERRIDES ================= */
+[data-theme="dark"] {
+    --bg-main: #0f172a;
+    --bg-card: #1e293b;
+    --border: #334155;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --primary-light: #172554;
+    --success-light: #064e3b;
+    --warning-light: #78350f;
+    --error-light: #7f1d1d;
+}
+
+[data-theme="dark"] nav {
+    background: rgba(15, 23, 42, 0.85) !important;
+}
+
+[data-theme="dark"] .quick-actions .action-card {
+    background: var(--bg-card);
+}
+
+[data-theme="dark"] .notification-dropdown {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+}
+
+[data-theme="dark"] .notification-item {
+    border-bottom: 1px solid var(--border);
+}
+
+[data-theme="dark"] .notification-item:hover {
+    background: var(--primary-light);
+}
+
+[data-theme="dark"] select, [data-theme="dark"] input, [data-theme="dark"] textarea {
+    background-color: #0f172a;
+    color: #f8fafc;
+    border-color: #334155;
+}
+
+[data-theme="dark"] .stat-card {
+    background: var(--bg-card);
+    border-color: var(--border);
+}
+
+[data-theme="dark"] .card {
+    background: var(--bg-card);
+    border-color: var(--border);
+}
