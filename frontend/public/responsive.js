@@ -5,31 +5,66 @@ document.addEventListener("DOMContentLoaded", () => {
     const ul = nav.querySelector("ul");
     if (!ul) return;
 
-    // Create hamburger element
+    // Create overlay for mobile nav
+    const overlay = document.createElement("div");
+    overlay.style.cssText = `
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        background: rgba(0,0,0,0.4);
+        z-index: 1040;
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+        transition: opacity 0.3s;
+    `;
+    document.body.appendChild(overlay);
+
+    // Create hamburger button
     const hamburger = document.createElement("button");
     hamburger.className = "hamburger";
     hamburger.setAttribute("aria-label", "Toggle navigation");
-    hamburger.innerHTML = `
-        <span></span>
-        <span></span>
-        <span></span>
-    `;
-
-    // Insert hamburger into navbar
+    hamburger.setAttribute("aria-expanded", "false");
+    hamburger.innerHTML = `<span></span><span></span><span></span>`;
     nav.appendChild(hamburger);
 
-    // Toggle navigation when hamburger is clicked
+    function openMenu() {
+        ul.classList.add("open");
+        hamburger.classList.add("active");
+        hamburger.setAttribute("aria-expanded", "true");
+        overlay.style.display = "block";
+        document.body.style.overflow = "hidden";
+    }
+
+    function closeMenu() {
+        ul.classList.remove("open");
+        hamburger.classList.remove("active");
+        hamburger.setAttribute("aria-expanded", "false");
+        overlay.style.display = "none";
+        document.body.style.overflow = "";
+    }
+
     hamburger.addEventListener("click", (e) => {
         e.stopPropagation();
-        ul.classList.toggle("open");
-        hamburger.classList.toggle("active");
+        ul.classList.contains("open") ? closeMenu() : openMenu();
     });
 
-    // Close navigation when clicking outside
-    document.addEventListener("click", (e) => {
-        if (!nav.contains(e.target)) {
-            ul.classList.remove("open");
-            hamburger.classList.remove("active");
-        }
+    overlay.addEventListener("click", closeMenu);
+
+    // Close menu when a nav link is clicked
+    ul.querySelectorAll("a").forEach(link => {
+        link.addEventListener("click", () => {
+            if (window.innerWidth <= 768) closeMenu();
+        });
+    });
+
+    // Close menu on resize to desktop
+    window.addEventListener("resize", () => {
+        if (window.innerWidth > 768) closeMenu();
+    });
+
+    // Close on Escape key
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeMenu();
     });
 });
