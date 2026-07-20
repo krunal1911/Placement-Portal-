@@ -17,6 +17,11 @@ const adminSchema = new mongoose.Schema({
         type: String,
         enum: ["superadmin", "admin"],
         default: "admin"
+    },
+
+    companyName: {
+        type: String,
+        default: ""
     }
 
 });

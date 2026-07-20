@@ -56,6 +56,10 @@ Login
 </form>
 
 <br>
+<div style="margin-top: 15px; text-align: center;">
+    <a href="#" id="requestAccessBtn" style="font-size: 14px; color: #1e3a8a; text-decoration: underline;">Request Access to Admin Panel</a>
+</div>
+<br>
 
 <a href="/">← Back to Home</a>
 
@@ -63,6 +67,7 @@ Login
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 
 document.getElementById("adminLoginForm").addEventListener("submit",async(e)=>{
@@ -103,6 +108,77 @@ window.location.href="/admin-dashboard";
 
 });
 
+document.getElementById("requestAccessBtn").addEventListener("click", (e) => {
+    e.preventDefault();
+    Swal.fire({
+        title: "Request Admin Access",
+        html: `
+            <div style="text-align: left;">
+                <label style="font-weight: 600; display: block; margin-bottom: 5px;">Desired Username</label>
+                <input id="swal-username" class="swal2-input" style="width: 85%; margin-bottom: 15px;" placeholder="e.g. google_recruiter" required>
+                
+                <label style="font-weight: 600; display: block; margin-bottom: 5px;">Desired Password</label>
+                <input id="swal-password" type="password" class="swal2-input" style="width: 85%; margin-bottom: 15px;" placeholder="e.g. securepwd123" required>
+                
+                <label style="font-weight: 600; display: block; margin-bottom: 5px;">Company Name</label>
+                <input id="swal-company" class="swal2-input" style="width: 85%; margin-bottom: 15px;" placeholder="e.g. Google LLC" required>
+                
+                <label style="font-weight: 600; display: block; margin-bottom: 5px;">What do you want to use it for?</label>
+                <textarea id="swal-reason" class="swal2-textarea" style="width: 85%; margin-bottom: 15px; height: 80px;" placeholder="Describe your placement/recruitment requirements..." required></textarea>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: "Submit Request",
+        confirmButtonColor: "#1e3a8a",
+        preConfirm: () => {
+            const username = document.getElementById("swal-username").value.trim();
+            const password = document.getElementById("swal-password").value.trim();
+            const companyName = document.getElementById("swal-company").value.trim();
+            const reason = document.getElementById("swal-reason").value.trim();
+            
+            if (!username || !password || !companyName || !reason) {
+                Swal.showValidationMessage("Please fill in all fields");
+                return false;
+            }
+            return { username, password, companyName, reason };
+        }
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            try {
+                const response = await fetch("/admin-request", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(result.value)
+                });
+                
+                if (response.ok) {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Request Submitted!",
+                        text: "Your admin access request has been sent. The main administrator will review it.",
+                        confirmButtonColor: "#1e3a8a"
+                    });
+                } else {
+                    const err = await response.text();
+                    Swal.fire({
+                        icon: "error",
+                        title: "Submission Failed",
+                        text: err || "Could not submit your request.",
+                        confirmButtonColor: "#1e3a8a"
+                    });
+                }
+            } catch (err) {
+                console.error(err);
+                Swal.fire({
+                    icon: "error",
+                    title: "Network Error",
+                    text: "Failed to connect to the server.",
+                    confirmButtonColor: "#1e3a8a"
+                });
+            }
+        }
+    });
+});
 </script>
 
     <script src="/responsive.js"></script>

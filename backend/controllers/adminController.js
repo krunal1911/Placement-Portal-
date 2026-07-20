@@ -13,6 +13,7 @@ const Notification = require("../../database/models/Notification");
 const Company = require("../../database/models/Company");
 const Application = require("../../database/models/Application");
 const ExamSettings = require("../../database/models/ExamSettings");
+const AdminRequest = require("../../database/models/AdminRequest");
 
 // ==========================================
 // VIEW PAGES
@@ -77,7 +78,8 @@ exports.getCurrentAdmin = (req, res) => {
     res.json({
         _id: req.session.admin._id,
         username: req.session.admin.username,
-        role: req.session.admin.role
+        role: req.session.admin.role,
+        companyName: req.session.admin.companyName || ""
     });
 };
 
@@ -137,20 +139,45 @@ exports.getAdminAnalytics = async (req, res) => {
             return res.status(401).send("Login First");
         }
 
-        const totalStudents = await User.countDocuments();
-        const totalCompanies = await Company.countDocuments();
-        const totalApplications = await Application.countDocuments();
+        const isSuper = req.session.admin.role === "superadmin";
+        const companyName = req.session.admin.companyName;
 
-        const users = await User.find();
+        let totalStudents;
+        let totalCompanies;
+        let totalApplications;
         let totalTests = 0;
-        let totalScore = 0;
+        let averageScore = 0;
 
-        users.forEach(user => {
-            totalTests += user.testsTaken || 0;
-            totalScore += user.averageScore || 0;
-        });
+        if (isSuper) {
+            totalStudents = await User.countDocuments();
+            totalCompanies = await Company.countDocuments();
+            totalApplications = await Application.countDocuments();
+            const users = await User.find();
+            let totalScore = 0;
+            users.forEach(user => {
+                totalTests += user.testsTaken || 0;
+                totalScore += user.averageScore || 0;
+            });
+            averageScore = users.length > 0 ? Math.round(totalScore / users.length) : 0;
+        } else {
+            // Filtered by company name
+            const myCompanies = await Company.find({ companyName });
+            const myCompanyIds = myCompanies.map(c => c._id);
+            totalCompanies = myCompanies.length;
+            totalApplications = await Application.countDocuments({ companyId: { $in: myCompanyIds } });
+            
+            // Students who applied to this company's drives
+            const appliedUserIds = await Application.distinct('userId', { companyId: { $in: myCompanyIds } });
+            totalStudents = appliedUserIds.length;
 
-        const averageScore = users.length > 0 ? Math.round(totalScore / users.length) : 0;
+            const users = await User.find({ _id: { $in: appliedUserIds } });
+            let totalScore = 0;
+            users.forEach(user => {
+                totalTests += user.testsTaken || 0;
+                totalScore += user.averageScore || 0;
+            });
+            averageScore = users.length > 0 ? Math.round(totalScore / users.length) : 0;
+        }
 
         res.json({
             totalStudents,
@@ -168,7 +195,14 @@ exports.getAdminAnalytics = async (req, res) => {
 // Get all applications list
 exports.getApplicationsData = async (req, res) => {
     try {
-        const applications = await Application.find()
+        let query = {};
+        if (req.session.admin && req.session.admin.role !== "superadmin") {
+            const companyName = req.session.admin.companyName;
+            const myCompanies = await Company.find({ companyName });
+            const myCompanyIds = myCompanies.map(c => c._id);
+            query = { companyId: { $in: myCompanyIds } };
+        }
+        const applications = await Application.find(query)
             .populate('userId')
             .populate('companyId');
         res.json(applications);
@@ -195,7 +229,16 @@ exports.getRecentActivity = async (req, res) => {
         if (!req.session.admin) {
             return res.status(401).send("Login First");
         }
-        const activities = await Application.find()
+
+        let query = {};
+        if (req.session.admin.role !== "superadmin") {
+            const companyName = req.session.admin.companyName;
+            const myCompanies = await Company.find({ companyName });
+            const myCompanyIds = myCompanies.map(c => c._id);
+            query = { companyId: { $in: myCompanyIds } };
+        }
+
+        const activities = await Application.find(query)
             .populate('userId')
             .populate('companyId')
             .sort({ appliedAt: -1 })
@@ -280,7 +323,8 @@ exports.adminLogin = async (req, res) => {
         req.session.admin = {
             _id: admin._id,
             username: admin.username,
-            role: admin.role
+            role: admin.role,
+            companyName: admin.companyName || ""
         };
 
         req.session.save((err) => {
@@ -300,7 +344,7 @@ exports.adminLogin = async (req, res) => {
 // Add sub-admin profile
 exports.addAdmin = async (req, res) => {
     try {
-        const { username, password, role } = req.body;
+        const { username, password, role, companyName } = req.body;
         if (!username || !password || !role) {
             return res.status(400).send("All fields are required");
         }
@@ -312,12 +356,99 @@ exports.addAdmin = async (req, res) => {
         await Admin.create({
             username,
             password: hashedPassword,
-            role
+            role,
+            companyName: companyName || ""
         });
         res.send("Admin created successfully");
     } catch (err) {
         console.error(err);
         res.status(500).send("Failed to create admin");
+    }
+};
+
+// Submit admin access request
+exports.postAdminRequest = async (req, res) => {
+    try {
+        const { username, password, companyName, reason } = req.body;
+        if (!username || !password || !companyName || !reason) {
+            return res.status(400).send("All fields are required");
+        }
+        const existingRequest = await AdminRequest.findOne({ username, status: "pending" });
+        const existingAdmin = await Admin.findOne({ username });
+        if (existingRequest || existingAdmin) {
+            return res.status(400).send("Username is already taken or pending request exists.");
+        }
+        const hashedPassword = await bcrypt.hash(password, 10);
+        await AdminRequest.create({
+            username,
+            password: hashedPassword,
+            companyName,
+            reason,
+            status: "pending"
+        });
+        res.send("Success");
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Failed to submit request");
+    }
+};
+
+// Get list of all admin requests (superadmin only)
+exports.getAdminRequests = async (req, res) => {
+    try {
+        const requests = await AdminRequest.find().sort({ createdAt: -1 });
+        res.json(requests);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error");
+    }
+};
+
+// Approve access request (superadmin only)
+exports.approveAdminRequest = async (req, res) => {
+    try {
+        const request = await AdminRequest.findById(req.params.id);
+        if (!request || request.status !== "pending") {
+            return res.status(400).send("Invalid or non-pending request");
+        }
+        
+        const existingAdmin = await Admin.findOne({ username: request.username });
+        if (existingAdmin) {
+            request.status = "rejected";
+            await request.save();
+            return res.status(400).send("Admin username already exists. Request rejected.");
+        }
+
+        // Create the Admin account using the hashed password from the request
+        await Admin.create({
+            username: request.username,
+            password: request.password,
+            role: "admin",
+            companyName: request.companyName
+        });
+
+        request.status = "approved";
+        await request.save();
+        res.send("Request Approved Successfully");
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error approving request");
+    }
+};
+
+// Reject access request (superadmin only)
+exports.rejectAdminRequest = async (req, res) => {
+    try {
+        const request = await AdminRequest.findById(req.params.id);
+        if (!request) {
+            return res.status(404).send("Request not found");
+        }
+        request.status = "rejected";
+        await request.save();
+        res.send("Request Rejected Successfully");
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error rejecting request");
     }
 };
 
@@ -498,8 +629,14 @@ exports.addCompany = async (req, res) => {
             deadline
         } = req.body;
 
+        let finalCompanyName = companyName;
+        // Enforce company name if not superadmin
+        if (req.session.admin && req.session.admin.role !== "superadmin") {
+            finalCompanyName = req.session.admin.companyName;
+        }
+
         const company = new Company({
-            companyName,
+            companyName: finalCompanyName,
             jobRole,
             package,
             location,
@@ -519,17 +656,26 @@ exports.addCompany = async (req, res) => {
 exports.updateStatus = async (req, res) => {
     try {
         const { id, status } = req.body;
-        const app = await Application.findByIdAndUpdate(id, {
-            status: status
-        }, { new: true });
-
-        if (app) {
-            await Notification.create({
-                userId: app.userId,
-                title: "Application Status Updated",
-                message: `Your application status has been changed to "${status}".`
-            });
+        const app = await Application.findById(id).populate('companyId');
+        if (!app) {
+            return res.status(404).send("Application not found");
         }
+
+        // Verify ownership if not superadmin
+        if (req.session.admin && req.session.admin.role !== "superadmin") {
+            if (!app.companyId || app.companyId.companyName !== req.session.admin.companyName) {
+                return res.status(403).send("Forbidden: You cannot modify this application.");
+            }
+        }
+
+        app.status = status;
+        await app.save();
+
+        await Notification.create({
+            userId: app.userId,
+            title: "Application Status Updated",
+            message: `Your application status has been changed to "${status}".`
+        });
 
         res.send("Status Updated Successfully ✅");
     } catch (err) {

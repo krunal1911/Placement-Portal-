@@ -39,11 +39,11 @@ router.get("/students", requireSuperAdmin, adminController.showStudents);
 router.get("/manage-questions", requireSuperAdmin, adminController.showManageQuestions);
 router.get("/add-question", requireSuperAdmin, adminController.showAddQuestion);
 router.get("/import-questions", requireSuperAdmin, adminController.showImportQuestions);
-router.get("/add-company", requireSuperAdmin, adminController.showAddCompany);
-router.get("/manage-companies", requireSuperAdmin, adminController.showManageCompanies);
+router.get("/add-company", requireAdmin, adminController.showAddCompany);
+router.get("/manage-companies", requireAdmin, adminController.showManageCompanies);
 router.get("/results", requireSuperAdmin, adminController.showResults);
-router.get("/applications", requireSuperAdmin, adminController.showApplications);
-router.get("/update-status", requireSuperAdmin, adminController.showUpdateStatus);
+router.get("/applications", requireAdmin, adminController.showApplications);
+router.get("/update-status", requireAdmin, adminController.showUpdateStatus);
 
 // ==========================================
 // API / DATA
@@ -54,10 +54,16 @@ router.get("/students-data", requireSuperAdmin, adminController.getStudentsData)
 router.get("/exam-settings/:type", adminController.getExamSettings);
 router.get("/questions-list/:type", requireAdmin, adminController.getQuestionsList);
 router.get("/admin-analytics", requireAdmin, adminController.getAdminAnalytics);
-router.get("/applications-data", requireSuperAdmin, adminController.getApplicationsData);
+router.get("/applications-data", requireAdmin, adminController.getApplicationsData);
 router.get("/results-data", requireSuperAdmin, adminController.getResultsData);
 router.get("/recent-activity", requireAdmin, adminController.getRecentActivity);
 router.get("/export-students", requireSuperAdmin, adminController.exportStudents);
+
+// Admin Requests API (for approval flow)
+router.post("/admin-request", adminController.postAdminRequest);
+router.get("/admin-requests-data", requireSuperAdmin, adminController.getAdminRequests);
+router.post("/admin-request/approve/:id", requireSuperAdmin, adminController.approveAdminRequest);
+router.post("/admin-request/reject/:id", requireSuperAdmin, adminController.rejectAdminRequest);
 
 // ==========================================
 // POST WRITE ACTIONS
@@ -71,7 +77,7 @@ router.post("/update-technical/:id", requireSuperAdmin, adminController.updateTe
 router.get("/delete-question/:id", requireSuperAdmin, adminController.deleteQuestion);
 router.get("/delete-technical/:id", requireSuperAdmin, adminController.deleteTechnicalQuestion);
 router.post("/import-questions", requireSuperAdmin, excelUpload.single("excelFile"), adminController.importQuestions);
-router.post("/add-company", requireSuperAdmin, adminController.addCompany);
-router.post("/update-status", requireSuperAdmin, adminController.updateStatus);
+router.post("/add-company", requireAdmin, adminController.addCompany);
+router.post("/update-status", requireAdmin, adminController.updateStatus);
 
 module.exports = router;

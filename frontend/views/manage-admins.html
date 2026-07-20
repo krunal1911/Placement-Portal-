@@ -123,9 +123,13 @@
                     <label for="password">Password</label>
                     <input type="password" id="password" placeholder="Enter password" required>
                 </div>
+                <div class="form-group" id="companyFieldGroup">
+                    <label for="companyName">Company Name</label>
+                    <input type="text" id="companyName" placeholder="e.g. Google LLC (leave empty for superadmin)">
+                </div>
                 <div class="form-group">
                     <label for="role">Access Role</label>
-                    <select id="role" required>
+                    <select id="role" onchange="toggleCompanyField()" required>
                         <option value="admin">Other Admin (Restricted)</option>
                         <option value="superadmin">Super Admin (Full Access)</option>
                     </select>
@@ -143,13 +147,32 @@
                 <thead>
                     <tr>
                         <th>Username</th>
+                        <th>Company</th>
                         <th>Role</th>
                         <th>Action</th>
                     </tr>
                 </thead>
                 <tbody id="adminsTableBody">
                     <tr>
-                        <td colspan="3" style="text-align: center;">Loading administrators...</td>
+                        <td colspan="4" style="text-align: center;">Loading administrators...</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <br><br>
+            <h2>Pending Access Requests</h2>
+            <table class="admin-list-table">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Company</th>
+                        <th>Reason</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="requestsTableBody">
+                    <tr>
+                        <td colspan="4" style="text-align: center;">Loading requests...</td>
                     </tr>
                 </tbody>
             </table>
@@ -159,6 +182,16 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+function toggleCompanyField() {
+    const role = document.getElementById("role").value;
+    const group = document.getElementById("companyFieldGroup");
+    if (role === "superadmin") {
+        group.style.display = "none";
+    } else {
+        group.style.display = "block";
+    }
+}
+
 // Load all admin accounts
 async function loadAdmins() {
     try {
@@ -179,6 +212,7 @@ async function loadAdmins() {
             html += `
                 <tr>
                     <td style="font-weight: 500;">${admin.username}</td>
+                    <td>${admin.companyName || "N/A"}</td>
                     <td><span class="role-badge ${roleClass}">${admin.role}</span></td>
                     <td>
                         <button class="btn-delete" onclick="deleteAdmin('${admin._id}', '${admin.username}')">Delete</button>
@@ -187,10 +221,43 @@ async function loadAdmins() {
             `;
         });
         
-        document.getElementById("adminsTableBody").innerHTML = html || '<tr><td colspan="3" style="text-align:center;">No administrators found.</td></tr>';
+        document.getElementById("adminsTableBody").innerHTML = html || '<tr><td colspan="4" style="text-align:center;">No administrators found.</td></tr>';
     } catch (e) {
         console.error(e);
-        document.getElementById("adminsTableBody").innerHTML = '<tr><td colspan="3" style="text-align:center; color:red;">Failed to load accounts.</td></tr>';
+        document.getElementById("adminsTableBody").innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Failed to load accounts.</td></tr>';
+    }
+}
+
+// Load all pending admin access requests
+async function loadRequests() {
+    try {
+        const response = await fetch("/admin-requests-data");
+        if (!response.ok) throw new Error("Failed to load requests");
+        const requests = await response.json();
+        
+        let html = "";
+        requests.forEach(req => {
+            if (req.status === "pending") {
+                html += `
+                    <tr>
+                        <td style="font-weight: 500;">${req.username}</td>
+                        <td><b>${req.companyName}</b></td>
+                        <td>${req.reason}</td>
+                        <td>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn btn-primary" style="padding: 4px 10px; font-size: 11px;" onclick="approveRequest('${req._id}', '${req.username}')">Approve</button>
+                                <button class="btn-delete" style="padding: 4px 10px; font-size: 11px;" onclick="rejectRequest('${req._id}')">Reject</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }
+        });
+        
+        document.getElementById("requestsTableBody").innerHTML = html || '<tr><td colspan="4" style="text-align:center;">No pending access requests.</td></tr>';
+    } catch (e) {
+        console.error(e);
+        document.getElementById("requestsTableBody").innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Failed to load requests.</td></tr>';
     }
 }
 
@@ -200,6 +267,7 @@ document.getElementById("addAdminForm").addEventListener("submit", async functio
     const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value.trim();
     const role = document.getElementById("role").value;
+    const companyName = document.getElementById("companyName").value.trim();
 
     const submitBtn = event.target.querySelector("button[type='submit']");
     submitBtn.disabled = true;
@@ -209,7 +277,7 @@ document.getElementById("addAdminForm").addEventListener("submit", async functio
         const response = await fetch("/add-admin", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, password, role })
+            body: JSON.stringify({ username, password, role, companyName })
         });
 
         const text = await response.text();
@@ -239,6 +307,54 @@ document.getElementById("addAdminForm").addEventListener("submit", async functio
         submitBtn.innerText = "Create Account";
     }
 });
+
+// Approve Request
+async function approveRequest(id, username) {
+    try {
+        const response = await fetch(`/admin-request/approve/${id}`, {
+            method: "POST"
+        });
+        const text = await response.text();
+        if (response.ok) {
+            Swal.fire({
+                icon: "success",
+                title: "Request Approved!",
+                text: `Account for '${username}' has been successfully created.`,
+                confirmButtonColor: "#3b82f6"
+            });
+            loadRequests();
+            loadAdmins();
+        } else {
+            Swal.fire({ icon: "error", title: "Error", text: text });
+        }
+    } catch (e) {
+        console.error(e);
+        showToast("Approve failed.", "error");
+    }
+}
+
+// Reject Request
+async function rejectRequest(id) {
+    try {
+        const response = await fetch(`/admin-request/reject/${id}`, {
+            method: "POST"
+        });
+        if (response.ok) {
+            Swal.fire({
+                icon: "info",
+                title: "Request Rejected",
+                text: "Access request has been declined.",
+                confirmButtonColor: "#3b82f6"
+            });
+            loadRequests();
+        } else {
+            Swal.fire({ icon: "error", title: "Error", text: "Failed to reject request." });
+        }
+    } catch (e) {
+        console.error(e);
+        showToast("Reject failed.", "error");
+    }
+}
 
 // Delete Admin Account
 async function deleteAdmin(id, username) {
@@ -283,6 +399,7 @@ async function deleteAdmin(id, username) {
 }
 
 loadAdmins();
+loadRequests();
 </script>
 
     <script src="/responsive.js"></script>

@@ -372,23 +372,32 @@ async function checkAdminRole() {
             heroText.innerHTML = `👨‍💼 Admin Dashboard <span style="font-size: 14px; font-weight: normal; background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 8px; vertical-align: middle; margin-left: 10px;">${admin.role.toUpperCase()}</span>`;
         }
 
-        // If regular admin, hide management features
+        // Filter features and navigation based on admin role
         if (admin.role === "admin") {
-            // Hide nav items
+            // Hide /students nav item, keep /applications
             document.querySelectorAll("nav ul li").forEach(li => {
                 const a = li.querySelector("a");
-                if (a && (a.getAttribute("href") === "/students" || a.getAttribute("href") === "/applications")) {
+                if (a && a.getAttribute("href") === "/students") {
                     li.style.display = "none";
                 }
             });
             
-            // Hide Hero button
+            // Keep the heroBtn (Add Company) visible
             const heroBtn = document.querySelector(".heroBtn");
-            if (heroBtn) heroBtn.style.display = "none";
+            if (heroBtn) heroBtn.style.display = "block";
             
-            // Hide Features section
-            const featuresSec = document.querySelector(".features");
-            if (featuresSec) featuresSec.style.display = "none";
+            // Filter features cards to only show: Add Placement Drive, Job Applications
+            document.querySelectorAll(".features .feature-card").forEach(card => {
+                const h3 = card.querySelector("h3");
+                if (h3) {
+                    const text = h3.innerText.toLowerCase();
+                    if (text.includes("add placement") || text.includes("job applications")) {
+                        card.style.display = "block";
+                    } else {
+                        card.style.display = "none";
+                    }
+                }
+            });
         } else if (admin.role === "superadmin") {
             // Show Admin Management Card
             const featuresSec = document.querySelector(".features");

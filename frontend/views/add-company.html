@@ -75,6 +75,27 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+// Check admin profile and lock companyName if not superadmin
+async function checkAdminProfile() {
+    try {
+        const res = await fetch("/current-admin");
+        if (res.ok) {
+            const admin = await res.json();
+            if (admin.role !== "superadmin") {
+                const compInput = document.getElementById("companyName");
+                compInput.value = admin.companyName || "";
+                compInput.readOnly = true;
+                compInput.style.backgroundColor = "#e2e8f0";
+                compInput.style.color = "#475569";
+                compInput.style.cursor = "not-allowed";
+            }
+        }
+    } catch (e) {
+        console.error("Failed to load admin profile:", e);
+    }
+}
+checkAdminProfile();
+
 document.getElementById("addCompanyForm").addEventListener("submit", async function(event) {
     event.preventDefault();
     
