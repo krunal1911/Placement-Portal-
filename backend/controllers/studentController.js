@@ -269,13 +269,17 @@ exports.getCareerGuideRoadmap = async (req, res) => {
 exports.getQuestions = async (req, res) => {
     try {
         const company = req.query.company || "General";
+        const queryFilter = company === "General" 
+            ? { $or: [{ companyName: "General" }, { companyName: { $exists: false } }, { companyName: "" }] }
+            : { companyName: company };
+
         const questions = await Question.aggregate([
-            { $match: { companyName: company } },
+            { $match: queryFilter },
             { $sample: { size: 20 } }
         ]);
         if (questions.length === 0 && company !== "General") {
             const fallback = await Question.aggregate([
-                { $match: { companyName: "General" } },
+                { $match: { $or: [{ companyName: "General" }, { companyName: { $exists: false } }, { companyName: "" }] } },
                 { $sample: { size: 20 } }
             ]);
             return res.json(fallback);
@@ -291,13 +295,17 @@ exports.getQuestions = async (req, res) => {
 exports.getTechnicalQuestions = async (req, res) => {
     try {
         const company = req.query.company || "General";
+        const queryFilter = company === "General" 
+            ? { $or: [{ companyName: "General" }, { companyName: { $exists: false } }, { companyName: "" }] }
+            : { companyName: company };
+
         const questions = await TechnicalQuestion.aggregate([
-            { $match: { companyName: company } },
+            { $match: queryFilter },
             { $sample: { size: 20 } }
         ]);
         if (questions.length === 0 && company !== "General") {
             const fallback = await TechnicalQuestion.aggregate([
-                { $match: { companyName: "General" } },
+                { $match: { $or: [{ companyName: "General" }, { companyName: { $exists: false } }, { companyName: "" }] } },
                 { $sample: { size: 20 } }
             ]);
             return res.json(fallback);

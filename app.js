@@ -23,9 +23,22 @@ connectDB();
 const Admin = require('./database/models/Admin');
 const bcrypt = require('bcrypt');
 
-// ─── Seed Exam Settings ───────────────────────────────────────────────────────
+// ─── Seed Exam Settings & Migrate Schemas ─────────────────────────────────────
 const initializeSettings = async () => {
     try {
+        const Question = require('./database/models/Question');
+        const TechnicalQuestion = require('./database/models/TechnicalQuestion');
+
+        // Migrate existing questions to have companyName: 'General' if missing
+        await Question.updateMany(
+            { companyName: { $exists: false } },
+            { $set: { companyName: 'General' } }
+        );
+        await TechnicalQuestion.updateMany(
+            { companyName: { $exists: false } },
+            { $set: { companyName: 'General' } }
+        );
+
         const aptitude = await ExamSettings.findOne({ examType: 'aptitude' });
         if (!aptitude) {
             await ExamSettings.create({

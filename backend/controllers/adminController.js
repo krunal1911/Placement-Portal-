@@ -120,12 +120,18 @@ exports.getExamSettings = async (req, res) => {
 // Get list of questions (paginated in views)
 exports.getQuestionsList = async (req, res) => {
     try {
-        const filter = {};
+        let filter = {};
         if (req.session.admin.role === "admin") {
-            filter.companyName = req.session.admin.companyName;
+            const co = req.session.admin.companyName;
+            filter = co === "General" 
+                ? { $or: [{ companyName: "General" }, { companyName: { $exists: false } }, { companyName: "" }] }
+                : { companyName: co };
         } else {
             if (req.query.company) {
-                filter.companyName = req.query.company;
+                const co = req.query.company;
+                filter = co === "General" 
+                    ? { $or: [{ companyName: "General" }, { companyName: { $exists: false } }, { companyName: "" }] }
+                    : { companyName: co };
             }
         }
 
