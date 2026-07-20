@@ -389,7 +389,7 @@ exports.uploadResume = async (req, res) => {
             req.file.buffer,
             'resumes',
             req.file.originalname,
-            'image'
+            'raw'
         );
 
         user.resume = resumeUrl;
@@ -696,7 +696,7 @@ exports.buildResume = async (req, res) => {
                     fileBuffer,
                     'resumes',
                     filename,
-                    'image'
+                    'raw'
                 );
 
                 user.resume = cloudResumeUrl;
