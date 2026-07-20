@@ -212,9 +212,10 @@ async function verifyGitHubUsername(input) {
     if (!username || username === "-") return true;
     try {
         const res = await fetch("https://api.github.com/users/" + username);
-        return res.ok;
+        if (res.status === 404) return false;
+        return true;
     } catch (e) {
-        return true; // Fallback in case of CORS or API limit
+        return true; // Fallback in case of network or CORS issue
     }
 }
 
