@@ -588,13 +588,27 @@ exports.buildResume = async (req, res) => {
 
         // Core Strengths
         sidebarSection("CORE STRENGTHS");
-        const strengths = [
-            "Problem Solving",
-            "Team Collaboration",
-            "Quick Learner",
-            "Analytical Thinking",
-            "Time Management"
-        ];
+        let strengths = ["Problem Solving", "Quick Learner", "Team Collaboration"];
+        if (user.branch) {
+            if (user.branch.includes("Computer") || user.branch.includes("Information")) {
+                strengths.push("Software Design", "Logic & Analysis");
+            } else if (user.branch.includes("Mechanical")) {
+                strengths.push("CAD/CAE Design", "System Dynamics");
+            } else if (user.branch.includes("Electrical") || user.branch.includes("Electronic")) {
+                strengths.push("Circuit Design", "Signal Analysis");
+            } else if (user.branch.includes("Civil")) {
+                strengths.push("Structural Analysis", "Project Supervision");
+            }
+        }
+        if (user.cgpa && parseFloat(user.cgpa) >= 8.5) {
+            strengths.push("Academic Excellence");
+        }
+        if (user.skills && user.skills.trim()) {
+            const list = user.skills.split(",").map(s => s.trim());
+            if (list.length > 0) strengths.unshift(list[0] + " Specialist");
+        }
+        strengths = [...new Set(strengths)].slice(0, 5);
+
         doc.fillColor("#bfdbfe").font("Helvetica").fontSize(8.5);
         strengths.forEach(s => {
             doc.text("  > " + s, 14, sideY, { width: SIDEBAR_W - 20 });
@@ -660,11 +674,30 @@ exports.buildResume = async (req, res) => {
         // CERTIFICATIONS (if space allows)
         if (rightY < 700) {
             rightSection("CERTIFICATIONS & ACHIEVEMENTS");
-            const certs = [
-                "Participated in campus placement preparation drives and aptitude training.",
-                "Completed technical practice modules covering DBMS, OS, and Computer Networks.",
-                "Active contributor in team-based software engineering project development."
-            ];
+            const certs = [];
+            
+            // 1. Dynamic aptitude/technical test stats
+            if (user.testsTaken && user.testsTaken > 0) {
+                certs.push(`Successfully completed ${user.testsTaken} assessment modules with an average score of ${user.averageScore}%.`);
+            } else {
+                certs.push("Completed university engineering curriculum modules and coursework.");
+            }
+            
+            // 2. Dynamic projects achievement
+            if (user.projects && user.projects.length > 0) {
+                const projNames = user.projects.map(p => p.title).join(", ");
+                certs.push(`Designed and deployed professional software engineering projects including: ${projNames}.`);
+            } else {
+                certs.push("Active contributor in team-based software engineering project development.");
+            }
+
+            // 3. Dynamic branch/CGPA achievement
+            if (user.cgpa && parseFloat(user.cgpa) >= 7.5) {
+                certs.push(`Maintained an exceptional academic standard with a current CGPA of ${user.cgpa}.`);
+            } else {
+                certs.push("Participated in campus placement preparation drives and mock interviews.");
+            }
+
             doc.fillColor(mutedText).font("Helvetica").fontSize(8.5);
             certs.forEach(c => {
                 doc.text("  -  " + c, RIGHT_X + 8, rightY, { width: RIGHT_W });
