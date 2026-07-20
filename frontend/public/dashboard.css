@@ -795,3 +795,10 @@ tr:hover {
     background: var(--bg-card);
     border-color: var(--border);
 }
+
+/* Global Select Input styling for high contrast compatibility */
+select {
+    color: var(--text-main) !important;
+    background-color: var(--bg-card) !important;
+    border-color: var(--border) !important;
+}
