@@ -156,8 +156,16 @@ function displayApplications(data) {
             const jobRole = app.companyId ? app.companyId.jobRole : "N/A";
             const status = app.status || "Applied";
             
-            const resumeHtml = app.userId && app.userId.resume
-                ? `<a href="${app.userId.resume}" target="_blank" class="btn" style="padding: 6px 12px; font-size:11px; background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; font-weight:600; text-decoration:none; border-radius:6px; display:inline-flex; align-items:center; gap:4px;">📄 View PDF</a>`
+            let resumePath = "";
+            if (app.userId && app.userId.resume) {
+                resumePath = app.userId.resume;
+                if (!resumePath.startsWith("http") && !resumePath.startsWith("/uploads") && !resumePath.startsWith("/")) {
+                    resumePath = `/uploads/resumes/${resumePath}`;
+                }
+            }
+            
+            const resumeHtml = resumePath
+                ? `<a href="${resumePath}" target="_blank" class="btn" style="padding: 6px 12px; font-size:11px; background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; font-weight:600; text-decoration:none; border-radius:6px; display:inline-flex; align-items:center; gap:4px;">📄 View PDF</a>`
                 : `<span style="color:var(--text-muted); font-size:12px;">No Resume</span>`;
 
             const statusOptions = `
