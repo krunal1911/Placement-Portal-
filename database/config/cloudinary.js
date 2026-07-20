@@ -31,10 +31,16 @@ const uploadFile = (buffer, subfolder, originalName, resourceType = 'image') => 
     return new Promise((resolve, reject) => {
         if (isCloudinaryConfigured) {
             // Upload directly to Cloudinary
+            const ext = path.extname(originalName);
+            const baseName = path.parse(originalName).name;
+            const uniqueId = `${baseName}-${Date.now()}-${Math.round(Math.random() * 1e6)}`;
+            const pubId = resourceType === 'raw' ? `${uniqueId}${ext}` : uniqueId;
+
             const uploadStream = cloudinary.uploader.upload_stream(
                 {
                     folder: `placement-portal/${subfolder}`,
                     resource_type: resourceType,
+                    public_id: pubId,
                     transformation: (resourceType === 'image' && subfolder === 'profiles')
                         ? [{ width: 400, height: 400, crop: 'fill', gravity: 'face' }]
                         : undefined,
