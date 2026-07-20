@@ -13,6 +13,11 @@ const technicalQuestionSchema = new mongoose.Schema({
     marks: {
         type: Number,
         default: 1
+    },
+
+    companyName: {
+        type: String,
+        default: "General"
     }
 
 });

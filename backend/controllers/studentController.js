@@ -268,9 +268,18 @@ exports.getCareerGuideRoadmap = async (req, res) => {
 // Get randomized aptitude MCQ questions
 exports.getQuestions = async (req, res) => {
     try {
+        const company = req.query.company || "General";
         const questions = await Question.aggregate([
+            { $match: { companyName: company } },
             { $sample: { size: 20 } }
         ]);
+        if (questions.length === 0 && company !== "General") {
+            const fallback = await Question.aggregate([
+                { $match: { companyName: "General" } },
+                { $sample: { size: 20 } }
+            ]);
+            return res.json(fallback);
+        }
         res.json(questions);
     } catch (err) {
         console.log(err);
@@ -281,9 +290,18 @@ exports.getQuestions = async (req, res) => {
 // Get all technical MCQ coding questions
 exports.getTechnicalQuestions = async (req, res) => {
     try {
+        const company = req.query.company || "General";
         const questions = await TechnicalQuestion.aggregate([
+            { $match: { companyName: company } },
             { $sample: { size: 20 } }
         ]);
+        if (questions.length === 0 && company !== "General") {
+            const fallback = await TechnicalQuestion.aggregate([
+                { $match: { companyName: "General" } },
+                { $sample: { size: 20 } }
+            ]);
+            return res.json(fallback);
+        }
         res.json(questions);
     } catch (err) {
         console.log(err);

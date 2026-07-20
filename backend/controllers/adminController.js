@@ -120,11 +120,20 @@ exports.getExamSettings = async (req, res) => {
 // Get list of questions (paginated in views)
 exports.getQuestionsList = async (req, res) => {
     try {
+        const filter = {};
+        if (req.session.admin.role === "admin") {
+            filter.companyName = req.session.admin.companyName;
+        } else {
+            if (req.query.company) {
+                filter.companyName = req.query.company;
+            }
+        }
+
         if (req.params.type === "aptitude") {
-            const list = await Question.find();
+            const list = await Question.find(filter);
             res.json(list);
         } else {
-            const list = await TechnicalQuestion.find();
+            const list = await TechnicalQuestion.find(filter);
             res.json(list);
         }
     } catch (err) {
@@ -456,14 +465,18 @@ exports.rejectAdminRequest = async (req, res) => {
 // Add MCQ to database
 exports.addQuestion = async (req, res) => {
     try {
-        const { type, subject, question, options, answer, marks } = req.body;
+        const { type, subject, question, options, answer, marks, companyName } = req.body;
+        const adminCompany = req.session.admin.role === "admin" 
+            ? req.session.admin.companyName 
+            : (companyName || "General");
 
         if (type === "aptitude") {
             const newQuestion = new Question({
                 question,
                 options,
                 answer,
-                marks: Number(marks) || 1
+                marks: Number(marks) || 1,
+                companyName: adminCompany
             });
             await newQuestion.save();
         } else {
@@ -472,7 +485,8 @@ exports.addQuestion = async (req, res) => {
                 question,
                 options,
                 answer,
-                marks: Number(marks) || 1
+                marks: Number(marks) || 1,
+                companyName: adminCompany
             });
             await newQuestion.save();
         }
@@ -564,6 +578,10 @@ exports.importQuestions = async (req, res) => {
             return res.send("Please select an Excel file.");
         }
 
+        const adminCompany = req.session.admin.role === "admin" 
+            ? req.session.admin.companyName 
+            : "General";
+
         const workbook = XLSX.readFile(req.file.path);
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
@@ -593,7 +611,8 @@ exports.importQuestions = async (req, res) => {
                 answer: row.Answer,
                 explanation: row.Explanation || "",
                 topic: row.Topic || "General",
-                difficulty: row.Difficulty || "Easy"
+                difficulty: row.Difficulty || "Easy",
+                companyName: adminCompany
             });
             imported++;
         }
