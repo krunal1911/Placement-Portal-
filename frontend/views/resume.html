@@ -207,6 +207,95 @@ async function loadResume() {
 }
 
 async function generateResume() {
+    let user;
+    try {
+        const userRes = await fetch("/current-user");
+        if (!userRes.ok) {
+            showToast("Failed to fetch user profile.", "error");
+            return;
+        }
+        user = await userRes.json();
+    } catch (e) {
+        console.error(e);
+        showToast("Error getting user profile.", "error");
+        return;
+    }
+
+    // 1. Ask about projects
+    const projectResult = await Swal.fire({
+        title: "Projects",
+        text: "Have you worked on any projects?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Yes",
+        cancelButtonText: "No",
+        confirmButtonColor: "#3b82f6",
+        cancelButtonColor: "#ef4444"
+    });
+    const hasProjects = projectResult.isConfirmed;
+
+    // 2. Ask about LinkedIn if not specified
+    let linkedinVal = user.linkedin || "";
+    if (linkedinVal.trim() === "") {
+        const hasLinkedin = await Swal.fire({
+            title: "LinkedIn Profile",
+            text: "Do you have a LinkedIn account?",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: "Yes",
+            cancelButtonText: "No",
+            confirmButtonColor: "#3b82f6",
+            cancelButtonColor: "#6b7280"
+        });
+        if (hasLinkedin.isConfirmed) {
+            const { value: link } = await Swal.fire({
+                title: "Enter LinkedIn Profile",
+                input: "text",
+                inputLabel: "LinkedIn Profile URL or ID",
+                inputPlaceholder: "e.g. linkedin.com/in/username",
+                inputValidator: (value) => {
+                    if (!value) {
+                        return "You must write something!";
+                    }
+                }
+            });
+            linkedinVal = link || "-";
+        } else {
+            linkedinVal = "-";
+        }
+    }
+
+    // 3. Ask about GitHub if not specified
+    let githubVal = user.github || "";
+    if (githubVal.trim() === "") {
+        const hasGithub = await Swal.fire({
+            title: "GitHub Profile",
+            text: "Do you have a GitHub account?",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: "Yes",
+            cancelButtonText: "No",
+            confirmButtonColor: "#3b82f6",
+            cancelButtonColor: "#6b7280"
+        });
+        if (hasGithub.isConfirmed) {
+            const { value: link } = await Swal.fire({
+                title: "Enter GitHub Profile",
+                input: "text",
+                inputLabel: "GitHub Profile URL or ID",
+                inputPlaceholder: "e.g. github.com/username",
+                inputValidator: (value) => {
+                    if (!value) {
+                        return "You must write something!";
+                    }
+                }
+            });
+            githubVal = link || "-";
+        } else {
+            githubVal = "-";
+        }
+    }
+
     const btn = document.getElementById("buildResumeBtn");
     btn.disabled = true;
     btn.innerText = "Generating Resume PDF...";
@@ -214,7 +303,12 @@ async function generateResume() {
     try {
         const res = await fetch("/build-resume", {
             method: "POST",
-            headers: { "Content-Type": "application/json" }
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                hasProjects,
+                linkedin: linkedinVal,
+                github: githubVal
+            })
         });
         
         const data = await res.json();

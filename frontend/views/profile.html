@@ -197,6 +197,15 @@ async function loadProfile() {
 }
 
 async function updateProfile() {
+    const phone = document.getElementById("phone").value.trim();
+    if (phone !== "" && !/^\d{10}$/.test(phone)) {
+        Swal.fire({
+            icon: "warning",
+            title: "Invalid Contact Number",
+            text: "Contact number must be exactly 10 digits."
+        });
+        return;
+    }
 
     const response = await fetch("/update-profile", {
 
