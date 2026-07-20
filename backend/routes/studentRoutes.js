@@ -36,12 +36,12 @@ const profileUpload = multer({
 // ==========================================
 router.get("/dashboard", requireUser, studentController.showDashboard);
 router.get("/profile", requireUser, studentController.showProfile);
-router.get("/resume", studentController.showResume);
-router.get("/aptitude", studentController.showAptitude);
-router.get("/technical", studentController.showTechnical);
-router.get("/career-guide", studentController.showCareerGuide);
-router.get("/leaderboard", studentController.showLeaderboard);
-router.get("/placement-drives", studentController.showPlacementDrives);
+router.get("/resume", requireUser, studentController.showResume);
+router.get("/aptitude", requireUser, studentController.showAptitude);
+router.get("/technical", requireUser, studentController.showTechnical);
+router.get("/career-guide", requireUser, studentController.showCareerGuide);
+router.get("/leaderboard", requireUser, studentController.showLeaderboard);
+router.get("/placement-drives", requireUser, studentController.showPlacementDrives);
 router.get("/history", requireUser, studentController.showHistory);
 router.get("/my-applications", requireUser, studentController.showMyApplications);
 router.get("/view-resume", requireUser, studentController.viewOwnResume);
@@ -50,16 +50,16 @@ router.get("/view-resume/:studentId", requireAdmin, studentController.viewStuden
 // ==========================================
 // API / DATA
 // ==========================================
-router.get("/current-user", studentController.getCurrentUser);
+router.get("/current-user", requireUser, studentController.getCurrentUser);
 router.get("/dashboard-data", requireUser, studentController.getDashboardData);
 router.get("/history-data", requireUser, studentController.getHistoryData);
-router.get("/leaderboard-data", studentController.getLeaderboardData);
-router.get("/companies", studentController.getCompanies);
+router.get("/leaderboard-data", requireUser, studentController.getLeaderboardData);
+router.get("/companies", requireUser, studentController.getCompanies);
 router.get("/my-applications-data", requireUser, studentController.getMyApplicationsData);
 router.get("/notifications", requireUser, studentController.getNotifications);
-router.get("/career-guide/:career", studentController.getCareerGuideRoadmap);
-router.get("/questions", studentController.getQuestions);
-router.get("/technical-questions", studentController.getTechnicalQuestions);
+router.get("/career-guide/:career", requireUser, studentController.getCareerGuideRoadmap);
+router.get("/questions", requireUser, studentController.getQuestions);
+router.get("/technical-questions", requireUser, studentController.getTechnicalQuestions);
 router.get("/user", requireUser, studentController.getUserCompletionData);
 
 // ==========================================
