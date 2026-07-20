@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -100,7 +100,7 @@
 <body>
 
 <nav>
-    <div class="logo">ðŸš€ Placement Portal</div>
+    <div class="logo">🚀 Placement Portal</div>
     <ul>
         <li><a href="/dashboard">Dashboard</a></li>
         <li><a href="/profile">Profile</a></li>
@@ -113,7 +113,7 @@
 <div class="main-container">
     <div class="hero" style="padding: 32px 48px; margin-bottom: 0;">
         <div class="hero-left">
-            <h1>ðŸ“„ Resume Management</h1>
+            <h1>📄 Resume Management</h1>
             <p>Upload a custom PDF resume or dynamically build a professional PDF resume using your profile details.</p>
         </div>
     </div>
@@ -122,7 +122,7 @@
         <!-- Option 1: Upload -->
         <div class="action-card">
             <div>
-                <div class="icon-circle">ðŸ“</div>
+                <div class="icon-circle">📁</div>
                 <h2>Upload Custom Resume</h2>
                 <p>Already have a designed resume? Upload your PDF copy (Max 5MB) here.</p>
             </div>
@@ -138,13 +138,13 @@
         <!-- Option 2: Build -->
         <div class="action-card">
             <div>
-                <div class="icon-circle">âš™ï¸</div>
+                <div class="icon-circle">⚙️</div>
                 <h2>AI Resume Builder</h2>
                 <p>Generate a professional, fully-formatted PDF resume based on your current profile information instantly.</p>
             </div>
             <div style="width: 100%;">
                 <button id="buildResumeBtn" class="btn btn-success" style="width: 100%; padding: 14px 20px;" onclick="generateResume()">
-                    âš¡ Build PDF Resume
+                    ⚡ Build PDF Resume
                 </button>
             </div>
         </div>
@@ -152,12 +152,12 @@
 
     <div class="status-container" id="statusContainer" style="display: none;">
         <h3 style="font-size: 18px; font-weight: 600; color: #059669; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
-            <span>âœ…</span> Active Resume Attached
+            <span>✅</span> Active Resume Attached
         </h3>
         <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;" id="resumeFilenameText">Filename: </p>
         <div style="display: flex; justify-content: center; gap: 12px;">
-            <a id="viewResumeLink" href="#" target="_blank" class="btn btn-primary">ðŸ‘ View PDF</a>
-            <button onclick="removeResume()" class="btn btn-danger" style="background-color: #ef4444; border-color: #ef4444; color: white; border-radius: 8px; padding: 10px 20px; font-weight: 500; cursor: pointer;">ðŸ—‘ Delete Resume</button>
+            <a id="viewResumeLink" href="#" target="_blank" class="btn btn-primary">👁 View PDF</a>
+            <button onclick="removeResume()" class="btn btn-danger" style="background-color: #ef4444; border-color: #ef4444; color: white; border-radius: 8px; padding: 10px 20px; font-weight: 500; cursor: pointer;">🗑 Delete Resume</button>
         </div>
     </div>
 </div>
@@ -469,7 +469,7 @@ async function generateResume() {
         showToast("Error generating resume.", "error");
     } finally {
         btn.disabled = false;
-        btn.innerText = "âš¡ Build PDF Resume";
+        btn.innerText = "⚡ Build PDF Resume";
     }
 }
 async function removeResume() {

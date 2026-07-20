@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -51,7 +51,7 @@
 <!-- Navigation Bar -->
 <nav>
     <div class="logo">
-        Ã°Å¸Å¡â‚¬ Placement Portal
+        🚀 Placement Portal
     </div>
     <ul>
         <li><a href="/admin-dashboard">Dashboard</a></li>
@@ -64,14 +64,14 @@
 
 <div class="container" style="max-width: 700px; margin: 40px auto; padding: 0 24px;">
     <div style="margin-bottom: 24px; text-align: center;">
-        <h1 style="font-size: 28px; font-weight: 700; color: #1e3a8a;">Ã°Å¸â€œÂ¥ Import Questions via Excel</h1>
+        <h1 style="font-size: 28px; font-weight: 700; color: #1e3a8a;">📥 Import Questions via Excel</h1>
         <p style="color: var(--text-muted); font-size: 14px;">Upload an Excel spreadsheet (.xlsx or .xls) to bulk import aptitude questions.</p>
     </div>
 
     <div class="form-card" style="max-width: 100%;">
         <form action="/import-questions" method="POST" enctype="multipart/form-data">
             <div class="import-box" onclick="document.getElementById('excelFile').click()">
-                <div style="font-size: 40px; margin-bottom: 12px;">Ã°Å¸â€œÅ </div>
+                <div style="font-size: 40px; margin-bottom: 12px;">📊</div>
                 <div style="font-weight: 600; font-size: 15px; color: var(--text-main); margin-bottom: 4px;">Click to Select Spreadsheet</div>
                 <div style="font-size: 12px; color: var(--text-muted);">Supports .xlsx and .xls formats</div>
                 
@@ -100,7 +100,7 @@
 function showFilename(input) {
     const filenameDiv = document.getElementById("selectedFilename");
     if (input.files && input.files.length > 0) {
-        filenameDiv.innerText = "Ã°Å¸â€œÂ Selected: " + input.files[0].name;
+        filenameDiv.innerText = "📁 Selected: " + input.files[0].name;
         filenameDiv.style.display = "block";
     } else {
         filenameDiv.style.display = "none";

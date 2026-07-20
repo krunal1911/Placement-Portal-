@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -129,7 +129,7 @@
 <body>
 
 <nav>
-    <div class="logo">ðŸš€ Placement Portal</div>
+    <div class="logo">🚀 Placement Portal</div>
     <ul>
         <li><a href="/dashboard">Dashboard</a></li>
         <li><a href="/profile">Profile</a></li>
@@ -141,14 +141,14 @@
 
 <div class="main-container" style="max-width: 950px; margin: 40px auto; padding: 0 20px;">
     <div class="hero" style="padding: 32px 48px; margin-bottom: 32px; text-align: left;">
-        <h1>ðŸ¤– Academic & Career Advisor</h1>
+        <h1>🤖 Academic & Career Advisor</h1>
         <p>Explore customized job role roadmaps or inspect what tools, frameworks, and subjects you should master according to your engineering branch.</p>
     </div>
 
     <!-- Dual Tab Selector -->
     <div class="advisor-tabs">
-        <button class="tab-btn active" onclick="switchTab('jobs')">ðŸ’¼ Job Role Roadmaps</button>
-        <button class="tab-btn" onclick="switchTab('branches')">ðŸŽ“ Engineering Branch Guide</button>
+        <button class="tab-btn active" onclick="switchTab('jobs')">💼 Job Role Roadmaps</button>
+        <button class="tab-btn" onclick="switchTab('branches')">🎓 Engineering Branch Guide</button>
     </div>
 
     <!-- Content 1: Job Role Advisor -->
@@ -222,25 +222,25 @@
 
             <!-- Programming & Software Details -->
             <div>
-                <h3 class="roadmap-section-title">ðŸ’» Technical Skills (Frontend, Backend, Design)</h3>
+                <h3 class="roadmap-section-title">💻 Technical Skills (Frontend, Backend, Design)</h3>
                 <ol class="step-list" id="branchProgContainer"></ol>
             </div>
 
             <!-- Core Engineering Subjects -->
             <div style="margin-top: 12px;">
-                <h3 class="roadmap-section-title">ðŸ“š Core Engineering Subjects</h3>
+                <h3 class="roadmap-section-title">📚 Core Engineering Subjects</h3>
                 <ol class="step-list" id="branchSubjectsContainer"></ol>
             </div>
 
             <!-- Software Tools -->
             <div style="margin-top: 12px;">
-                <h3 class="roadmap-section-title">ðŸ› ï¸ Essential Software & Hardware Tools</h3>
+                <h3 class="roadmap-section-title">🛠️ Essential Software & Hardware Tools</h3>
                 <div class="skills-grid" id="branchToolsContainer"></div>
             </div>
 
             <!-- Professional Roles -->
             <div style="margin-top: 12px;">
-                <h3 class="roadmap-section-title">ðŸ’¼ Top Professional Roles</h3>
+                <h3 class="roadmap-section-title">💼 Top Professional Roles</h3>
                 <div class="company-grid" id="branchRolesContainer"></div>
             </div>
         </div>
@@ -285,7 +285,7 @@ function switchTab(tab) {
     }
 }
 
-// ðŸ’¼ Job Roadmaps API Fetch
+// 💼 Job Roadmaps API Fetch
 async function getAIAdvice() {
     const career = document.getElementById("careerSelect").value;
     if (!career) {
@@ -406,7 +406,7 @@ const branchGuides = {
     }
 };
 
-// ðŸŽ“ Engineering Branch Guide Selection
+// 🎓 Engineering Branch Guide Selection
 function loadBranchGuide() {
     const branch = document.getElementById("branchSelect").value;
     const panel = document.getElementById("branchPanel");

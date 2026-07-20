@@ -49,8 +49,8 @@
                 <button id="markBtn" class="tcs-btn" style="background: #f39c12; color: white; border-color: #d35400;">Mark for Review & Next</button>
             </div>
             <div>
-                <button id="prevBtn" class="tcs-btn" style="margin-right: 8px;">â† Back</button>
-                <button id="nextBtn" class="tcs-btn tcs-btn-primary">Save & Next â†’</button>
+                <button id="prevBtn" class="tcs-btn" style="margin-right: 8px;">← Back</button>
+                <button id="nextBtn" class="tcs-btn tcs-btn-primary">Save & Next →</button>
                 <button id="submitBtn" class="tcs-btn tcs-btn-success" style="display: none;">Submit Test</button>
             </div>
         </div>
@@ -99,7 +99,7 @@
 
 <!-- Results Panel (Unified Center CSS Layout) -->
 <div class="test-container" id="resultsContainer" style="display: none; max-width: 900px; text-align: center; margin: 40px auto;">
-    <h1 style="font-size: 28px; color: #059669; font-weight: 700; margin-bottom: 8px;">ðŸŽ‰ Test Completed</h1>
+    <h1 style="font-size: 28px; color: #059669; font-weight: 700; margin-bottom: 8px;">🎉 Test Completed</h1>
     <p style="color: #64748b; margin-bottom: 24px;">Your response has been saved and analyzed.</p>
     
     <div style="display: flex; justify-content: center; gap: 40px; margin-bottom: 30px;">
@@ -119,8 +119,8 @@
     <div id="reviewList" style="margin-bottom: 32px;"></div>
     
     <div style="display: flex; justify-content: center; gap: 16px;">
-        <button class="btn btn-primary" onclick="window.location='/dashboard'">ðŸ  Dashboard</button>
-        <button class="btn" style="background: #64748b; color: white;" onclick="window.location='/aptitude'">ðŸ”„ Retake Test</button>
+        <button class="btn btn-primary" onclick="window.location='/dashboard'">🏠 Dashboard</button>
+        <button class="btn" style="background: #64748b; color: white;" onclick="window.location='/aptitude'">🔄 Retake Test</button>
     </div>
 </div>
 
@@ -207,10 +207,37 @@ async function loadQuestions() {
         
         buildNavigator();
         showQuestion();
-        startTimer();
+        
+        Swal.fire({
+            icon: "info",
+            title: "Security Proctoring System Active",
+            html: `
+                <div style="text-align: left; font-size: 14px; line-height: 1.6;">
+                    <p style="margin-bottom: 12px;">This exam requires a secure fullscreen environment. Please adhere to the guidelines:</p>
+                    <ul style="padding-left: 20px; margin-bottom: 16px;">
+                        <li>Do not exit fullscreen mode.</li>
+                        <li>Do not switch tabs or minimize the browser window.</li>
+                        <li>Copying, cutting, or right-clicking is disabled.</li>
+                        <li>Screen capturing/shortcuts are monitored.</li>
+                    </ul>
+                    <p style="color: #ef4444; font-weight: 600;">Any violations will generate warnings and will be logged directly for Admin review. Max warnings allowed: 3.</p>
+                </div>
+            `,
+            confirmButtonText: "I Agree, Enter Fullscreen & Start Exam",
+            confirmButtonColor: "#2563eb",
+            allowOutsideClick: false,
+            allowEscapeKey: false
+        }).then((result) => {
+            if (result.isConfirmed) {
+                enterFullscreenMode();
+                isExamActive = true;
+                setupProctoring();
+                startTimer();
+            }
+        });
     } catch (e) {
         console.error(e);
-        document.getElementById("question").innerHTML = `<span style="color:red;">âš ï¸ Error Loading Test: ${e.message}</span><br/><small>${e.stack}</small>`;
+        document.getElementById("question").innerHTML = `<span style="color:red;">⚠️ Error Loading Test: ${e.message}</span><br/><small>${e.stack}</small>`;
         showToast("Error loading test questions.", "error");
     }
 }
@@ -461,9 +488,9 @@ function showResults(score) {
     document.getElementById("resultScore").innerText = `${score} / ${questions.length}`;
     document.getElementById("resultPercentage").innerText = `${pct}%`;
     
-    let msg = "Keep Practicing ðŸ’ª";
-    if (pct >= 80) msg = "Excellent! Outstanding preparation! ðŸŽ‰";
-    else if (pct >= 60) msg = "Good Job! You are on the right track. ðŸ‘";
+    let msg = "Keep Practicing 💪";
+    if (pct >= 80) msg = "Excellent! Outstanding preparation! 🎉";
+    else if (pct >= 60) msg = "Good Job! You are on the right track. 👍";
     document.getElementById("resultMessage").innerText = msg;
     
     let reviewHtml = "";
@@ -478,7 +505,7 @@ function showResults(score) {
                 <p style="font-size: 13px; margin-bottom: 6px;">
                     <b>Your Answer:</b> 
                     <span style="color: ${isCorrect ? '#16a34a' : '#dc2626'}; font-weight: 600;">${userAns}</span> 
-                    ${isCorrect ? 'âœ…' : 'âŒ'}
+                    ${isCorrect ? '✅' : '❌'}
                 </p>
                 <p style="font-size: 13px; margin-bottom: 12px; color: #16a34a;">
                     <b>Correct Answer:</b> <span style="font-weight: 600;">${correctAns}</span>
