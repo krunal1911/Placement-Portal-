@@ -454,6 +454,10 @@ exports.buildResume = async (req, res) => {
             user.github = github;
             needsSave = true;
         }
+        if (hasProjects && Array.isArray(projects)) {
+            user.projects = projects;
+            needsSave = true;
+        }
         if (needsSave) {
             await user.save();
         }
@@ -628,10 +632,14 @@ exports.buildResume = async (req, res) => {
 
         // PROJECTS
         // PROJECTS
-        if (hasProjects !== false && Array.isArray(projects) && projects.length > 0) {
+        const finalProjects = (projects && Array.isArray(projects) && projects.length > 0) 
+            ? projects 
+            : (user.projects || []);
+
+        if (hasProjects !== false && finalProjects.length > 0) {
             rightSection("PROJECTS");
 
-            projects.forEach((proj) => {
+            finalProjects.forEach((proj) => {
                 doc.fillColor(darkText).font("Helvetica-Bold").fontSize(10)
                    .text(proj.title || "Project Title", RIGHT_X + 8, rightY, { width: RIGHT_W });
                 rightY = doc.y + 2;

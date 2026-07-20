@@ -58,7 +58,13 @@ linkedin: {
 github: {
     type: String,
     default: ""
-}
+},
+
+    projects: [{
+        title: String,
+        tech: String,
+        desc: String
+    }]
 
 });
 

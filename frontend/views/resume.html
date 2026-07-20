@@ -257,6 +257,14 @@ async function generateResume() {
 
     let projectsData = [];
     if (hasProjects) {
+        const p1TitleVal = user.projects && user.projects[0] ? user.projects[0].title || "" : "";
+        const p1TechVal = user.projects && user.projects[0] ? user.projects[0].tech || "" : "";
+        const p1DescVal = user.projects && user.projects[0] ? user.projects[0].desc || "" : "";
+
+        const p2TitleVal = user.projects && user.projects[1] ? user.projects[1].title || "" : "";
+        const p2TechVal = user.projects && user.projects[1] ? user.projects[1].tech || "" : "";
+        const p2DescVal = user.projects && user.projects[1] ? user.projects[1].desc || "" : "";
+
         const { value: formValues } = await Swal.fire({
             title: "Enter Project Details",
             html: `
@@ -265,25 +273,25 @@ async function generateResume() {
                         <h4 style="margin: 0; color: #1e3a8a; font-size: 16px;">Project 1 (Required)</h4>
                     </div>
                     <label style="font-weight: 500; font-size: 12px; color: #475569;">Project Title</label>
-                    <input id="p1-title" class="swal2-input" placeholder="e.g. AI Interview Assistant" style="width: 85%; font-size: 14px; height: 36px; margin-top: 4px; margin-bottom: 12px;">
+                    <input id="p1-title" class="swal2-input" placeholder="e.g. AI Interview Assistant" style="width: 85%; font-size: 14px; height: 36px; margin-top: 4px; margin-bottom: 12px;" value="${p1TitleVal}">
                     
                     <label style="font-weight: 500; font-size: 12px; color: #475569;">Technologies Used</label>
-                    <input id="p1-tech" class="swal2-input" placeholder="e.g. React, Node.js, Python" style="width: 85%; font-size: 14px; height: 36px; margin-top: 4px; margin-bottom: 12px;">
+                    <input id="p1-tech" class="swal2-input" placeholder="e.g. React, Node.js, Python" style="width: 85%; font-size: 14px; height: 36px; margin-top: 4px; margin-bottom: 12px;" value="${p1TechVal}">
                     
                     <label style="font-weight: 500; font-size: 12px; color: #475569;">Short Description</label>
-                    <textarea id="p1-desc" class="swal2-textarea" placeholder="Describe key highlights or features..." style="width: 85%; font-size: 13px; height: 60px; margin-top: 4px; margin-bottom: 20px;"></textarea>
+                    <textarea id="p1-desc" class="swal2-textarea" placeholder="Describe key highlights or features..." style="width: 85%; font-size: 13px; height: 60px; margin-top: 4px; margin-bottom: 20px;">${p1DescVal}</textarea>
 
                     <div style="border-bottom: 2px solid #94a3b8; padding-bottom: 6px; margin-bottom: 12px;">
                         <h4 style="margin: 0; color: #475569; font-size: 16px;">Project 2 (Optional)</h4>
                     </div>
                     <label style="font-weight: 500; font-size: 12px; color: #64748b;">Project Title</label>
-                    <input id="p2-title" class="swal2-input" placeholder="e.g. E-Commerce App" style="width: 85%; font-size: 14px; height: 36px; margin-top: 4px; margin-bottom: 12px;">
+                    <input id="p2-title" class="swal2-input" placeholder="e.g. E-Commerce App" style="width: 85%; font-size: 14px; height: 36px; margin-top: 4px; margin-bottom: 12px;" value="${p2TitleVal}">
                     
                     <label style="font-weight: 500; font-size: 12px; color: #64748b;">Technologies Used</label>
-                    <input id="p2-tech" class="swal2-input" placeholder="e.g. Flutter, Firebase" style="width: 85%; font-size: 14px; height: 36px; margin-top: 4px; margin-bottom: 12px;">
+                    <input id="p2-tech" class="swal2-input" placeholder="e.g. Flutter, Firebase" style="width: 85%; font-size: 14px; height: 36px; margin-top: 4px; margin-bottom: 12px;" value="${p2TechVal}">
                     
                     <label style="font-weight: 500; font-size: 12px; color: #64748b;">Short Description</label>
-                    <textarea id="p2-desc" class="swal2-textarea" placeholder="Describe key highlights or features..." style="width: 85%; font-size: 13px; height: 60px; margin-top: 4px; margin-bottom: 10px;"></textarea>
+                    <textarea id="p2-desc" class="swal2-textarea" placeholder="Describe key highlights or features..." style="width: 85%; font-size: 13px; height: 60px; margin-top: 4px; margin-bottom: 10px;">${p2DescVal}</textarea>
                 </div>
             `,
             focusConfirm: false,
