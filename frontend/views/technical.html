@@ -175,7 +175,9 @@ async function loadQuestions() {
             timeLeft = (settings.duration || 20) * 60;
         }
 
-        const response = await fetch("/technical-questions");
+        const urlParams = new URLSearchParams(window.location.search);
+        const company = urlParams.get("company") || "";
+        const response = await fetch(`/technical-questions?company=${encodeURIComponent(company)}`);
         if (response.status === 401) {
             showToast("Session expired. Please login again.", "error");
             setTimeout(() => window.location = "/login", 2000);
