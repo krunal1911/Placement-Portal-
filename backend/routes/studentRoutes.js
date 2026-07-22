@@ -39,6 +39,7 @@ router.get("/profile", requireUser, studentController.showProfile);
 router.get("/resume", requireUser, studentController.showResume);
 router.get("/aptitude", requireUser, verifyExamLink, studentController.showAptitude);
 router.get("/technical", requireUser, verifyExamLink, studentController.showTechnical);
+router.get("/combined", requireUser, verifyExamLink, studentController.showCombined);
 router.get("/career-guide", requireUser, studentController.showCareerGuide);
 router.get("/leaderboard", requireUser, studentController.showLeaderboard);
 router.get("/placement-drives", requireUser, studentController.showPlacementDrives);

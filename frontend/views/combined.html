@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Combined Assessment | TCS iON Exam Console</title>
+    <link rel="stylesheet" href="/tcs-theme.css">
+    <link rel="stylesheet" href="/dashboard.css">
+    <link rel="stylesheet" href="/toast.css">
+    <script src="/toast.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/responsive.css?v=2.0">
+</head>
+<body class="tcs-exam-body">
+
+<!-- TCS iON Exam Header -->
+<header class="tcs-header">
+    <div class="tcs-header-title">Placement Portal - Combined Assessment</div>
+    <div class="tcs-header-timer">
+        Time Left: <span id="timer">40:00</span>
+    </div>
+</header>
+
+<!-- TCS Split Container -->
+<div class="tcs-container" id="testContainer">
+    <!-- Left Panel: Questions -->
+    <div class="tcs-left-panel">
+        <div class="tcs-section-bar">
+            Section: Combined Aptitude & Technical
+        </div>
+        
+        <div class="tcs-question-area">
+            <div style="font-size: 13px; color: #666; margin-bottom: 12px; font-weight: bold;">
+                Question No. <span id="currentQuestionNumber" style="color: #2563eb; font-size: 15px;">1</span>
+            </div>
+            
+            <div id="questionCard">
+                <h2 id="question" style="font-size: 16px; font-weight: bold; color: #2c3e50; line-height: 1.6; margin-bottom: 24px;">Loading question...</h2>
+                <div id="options"></div>
+            </div>
+        </div>
+        
+        <!-- Controls Bar -->
+        <div class="tcs-actions-bar">
+            <div>
+                <button id="clearBtn" class="tcs-btn" style="margin-right: 8px;">Clear Response</button>
+                <button id="markBtn" class="tcs-btn" style="background: #f39c12; color: white; border-color: #d35400;">Mark for Review & Next</button>
+            </div>
+            <div>
+                <button id="prevBtn" class="tcs-btn" style="margin-right: 8px;">← Back</button>
+                <button id="nextBtn" class="tcs-btn tcs-btn-primary">Save & Next →</button>
+                <button id="submitBtn" class="tcs-btn tcs-btn-success" style="display: none;">Submit Test</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Panel: Palette & Candidate info -->
+    <div class="tcs-right-panel">
+        <!-- Candidate profile -->
+        <div class="tcs-candidate-info">
+            <img id="candidateImg" class="tcs-candidate-img" src="/uploads/profiles/default.png" alt="Candidate">
+            <div class="tcs-candidate-details">
+                <h4 id="candidateName">Student Name</h4>
+                <p>Candidate ID: <span id="candidateId">NQT-58204</span></p>
+            </div>
+        </div>
+        
+        <!-- Question Grid -->
+        <div class="tcs-palette-area">
+            <div class="tcs-palette-title">Question Palette:</div>
+            <div class="tcs-palette-grid" id="questionNavigator"></div>
+        </div>
+        
+        <!-- Legend Details -->
+        <div class="tcs-legend-area">
+            <div style="font-weight: bold; margin-bottom: 8px;">Legend:</div>
+            <div class="tcs-legend-grid">
+                <div class="tcs-legend-item">
+                    <span class="tcs-legend-badge legend-nv"></span> Not Visited
+                </div>
+                <div class="tcs-legend-item">
+                    <span class="tcs-legend-badge legend-na"></span> Not Answered
+                </div>
+                <div class="tcs-legend-item">
+                    <span class="tcs-legend-badge legend-ans"></span> Answered
+                </div>
+                <div class="tcs-legend-item">
+                    <span class="tcs-legend-badge legend-mr"></span> Marked
+                </div>
+                <div class="tcs-legend-item" style="grid-column: span 2;">
+                    <span class="tcs-legend-badge legend-mra"></span> Answered & Marked
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Results Panel (Unified Center CSS Layout) -->
+<div class="test-container" id="resultsContainer" style="display: none; max-width: 900px; text-align: center; margin: 40px auto;">
+    <h1 style="font-size: 28px; color: #059669; font-weight: 700; margin-bottom: 8px;">🎉 Test Completed</h1>
+    <p style="color: #64748b; margin-bottom: 24px;">Your response has been saved and analyzed.</p>
+    
+    <div style="display: flex; justify-content: center; gap: 40px; margin-bottom: 30px;">
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px 30px; border-radius: 12px;">
+            <div style="font-size: 14px; color: #166534; font-weight: 500;">Final Score</div>
+            <div style="font-size: 36px; font-weight: 700; color: #15803d;" id="resultScore">0/40</div>
+        </div>
+        <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 20px 30px; border-radius: 12px;">
+            <div style="font-size: 14px; color: #1e40af; font-weight: 500;">Percentage</div>
+            <div style="font-size: 36px; font-weight: 700; color: #1d4ed8;" id="resultPercentage">0%</div>
+        </div>
+    </div>
+    
+    <h3 style="font-size: 20px; font-weight: 600; color: #1e3a8a; margin-bottom: 8px;" id="resultMessage">Good Job!</h3>
+    <p style="color: #64748b; margin-bottom: 32px;">Below is the review and explanation for each question.</p>
+    
+    <div id="reviewList" style="margin-bottom: 32px;"></div>
+    
+    <div style="display: flex; justify-content: center; gap: 16px;">
+        <button class="btn btn-primary" onclick="window.location='/dashboard'">🏠 Dashboard</button>
+        <button class="btn" style="background: #64748b; color: white;" id="retakeBtn">🔄 Retake Test</button>
+    </div>
+</div>
+
+<script>
+let questions = [];
+let currentQuestion = 0;
+let userAnswers = []; // Selected text values
+let questionStates = []; // "not-visited", "not-answered", "answered", "marked", "marked-answered"
+let timeLeft = 40 * 60; // 40 minutes default
+let isGuest = false;
+
+function getCorrectAnswerText(question) {
+    switch (question.answer) {
+        case "A": return question.options[0];
+        case "B": return question.options[1];
+        case "C": return question.options[2];
+        case "D": return question.options[3];
+        default: return question.answer;
+    }
+}
+
+async function loadQuestions() {
+    try {
+        const userRes = await fetch("/current-user");
+        if (!userRes.ok) {
+            document.body.innerHTML = '';
+            Swal.fire({
+                icon: "info",
+                title: "Login Required",
+                text: "Please login or register to take the combined test.",
+                showCancelButton: true,
+                confirmButtonText: "Login Now",
+                cancelButtonText: "Go Back",
+                confirmButtonColor: "#3b82f6"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "/login";
+                } else {
+                    window.location.href = "/";
+                }
+            });
+            return;
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const company = urlParams.get("company") || "";
+        
+        let testTitle = "Combined Aptitude & Technical Assessment";
+        if (company) {
+            testTitle = `${company} Combined Qualifier Assessment`;
+        }
+        document.querySelector(".tcs-header-title").innerText = testTitle;
+        
+        // Dynamic retake link configuration
+        document.getElementById("retakeBtn").onclick = () => {
+            window.location.href = window.location.pathname + window.location.search;
+        };
+
+        // Get summed time limit configuration
+        let totalDuration = 40;
+        try {
+            const apRes = await fetch("/exam-settings/aptitude");
+            const techRes = await fetch("/exam-settings/technical");
+            let apDur = 20;
+            let techDur = 20;
+            if (apRes.ok) {
+                const s = await apRes.json();
+                apDur = s.duration || 20;
+            }
+            if (techRes.ok) {
+                const s = await techRes.json();
+                techDur = s.duration || 20;
+            }
+            totalDuration = apDur + techDur;
+        } catch(err) {
+            console.error("Failed to load settings:", err);
+        }
+        timeLeft = totalDuration * 60;
+
+        // Fetch questions from both pools
+        const aptitudeResponse = await fetch(`/questions?company=${encodeURIComponent(company)}`);
+        const technicalResponse = await fetch(`/technical-questions?company=${encodeURIComponent(company)}`);
+        
+        if (aptitudeResponse.status === 401 || technicalResponse.status === 401) {
+            showToast("Session expired. Please login again.", "error");
+            setTimeout(() => window.location = "/login", 2000);
+            return;
+        }
+        
+        let aptitudeList = [];
+        let technicalList = [];
+        if (aptitudeResponse.ok) aptitudeList = await aptitudeResponse.json();
+        if (technicalResponse.ok) technicalList = await technicalResponse.json();
+        
+        // Tag subject categories
+        aptitudeList.forEach(q => q.subject = q.subject || "Quantitative Aptitude");
+        technicalList.forEach(q => q.subject = q.subject || "Technical Coding");
+        
+        questions = [...aptitudeList, ...technicalList];
+        
+        if (questions.length === 0) {
+            document.getElementById("testContainer").innerHTML = `
+                <div style="text-align:center; padding: 40px; width: 100%;">
+                    <h3>No combined questions available for this exam.</h3>
+                    <button class="btn btn-primary" style="margin-top:20px;" onclick="window.location='/dashboard'">Back to Dashboard</button>
+                </div>`;
+            return;
+        }
+
+        userAnswers = Array(questions.length).fill(null);
+        questionStates = Array(questions.length).fill("not-visited");
+        questionStates[0] = "not-answered";
+        
+        const user = await userRes.json();
+        document.getElementById("candidateName").innerText = user.name || "Student Name";
+        if (user.profileImage && user.profileImage !== "default.png") {
+            if (user.profileImage.startsWith("http") || user.profileImage.startsWith("/")) {
+                document.getElementById("candidateImg").src = user.profileImage;
+            } else {
+                document.getElementById("candidateImg").src = `/uploads/profiles/${user.profileImage}`;
+            }
+        }
+        
+        buildNavigator();
+        showQuestion();
+        
+        Swal.fire({
+            icon: "info",
+            title: "Security Proctoring System Active",
+            html: `
+                <div style="text-align: left; font-size: 14px; line-height: 1.6;">
+                    <p style="margin-bottom: 12px;">This combined exam requires a secure fullscreen environment. Please adhere to the guidelines:</p>
+                    <ul style="padding-left: 20px; margin-bottom: 16px;">
+                        <li>Do not exit fullscreen mode.</li>
+                        <li>Do not switch tabs or minimize the browser window.</li>
+                        <li>Copying, cutting, or right-clicking is disabled.</li>
+                        <li>Screen capturing/shortcuts are monitored.</li>
+                    </ul>
+                    <p style="color: #ef4444; font-weight: 600;">Any violations will generate warnings and will be logged directly for Admin review. Max warnings allowed: 3.</p>
+                </div>
+            `,
+            confirmButtonText: "I Agree, Enter Fullscreen & Start Exam",
+            confirmButtonColor: "#2563eb",
+            allowOutsideClick: false,
+            allowEscapeKey: false
+        }).then((result) => {
+            if (result.isConfirmed) {
+                enterFullscreenMode();
+                isExamActive = true;
+                setupProctoring();
+                startTimer();
+            }
+        });
+    } catch (e) {
+        console.error(e);
+        document.getElementById("question").innerHTML = `<span style="color:red;">⚠️ Error Loading Test: ${e.message}</span>`;
+        showToast("Error loading test questions.", "error");
+    }
+}
+
+function buildNavigator() {
+    const nav = document.getElementById("questionNavigator");
+    nav.innerHTML = "";
+    questions.forEach((_, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "tcs-palette-btn not-visited";
+        btn.innerText = idx + 1;
+        btn.id = `nav-btn-${idx}`;
+        btn.onclick = () => jumpToQuestion(idx);
+        nav.appendChild(btn);
+    });
+}
+
+function updateNavigator() {
+    questions.forEach((_, idx) => {
+        const btn = document.getElementById(`nav-btn-${idx}`);
+        if (!btn) return;
+        
+        btn.className = "tcs-palette-btn " + questionStates[idx];
+        if (idx === currentQuestion) {
+            btn.classList.add("current");
+        }
+    });
+}
+
+function showQuestion() {
+    const q = questions[currentQuestion];
+    document.getElementById("currentQuestionNumber").innerText = currentQuestion + 1;
+    
+    // Update Section bar based on question subject
+    document.querySelector(".tcs-section-bar").innerText = `Section: ${q.subject}`;
+    
+    document.getElementById("question").innerText = q.question;
+    
+    let html = "";
+    q.options.forEach((option) => {
+        const isChecked = userAnswers[currentQuestion] === option ? "checked" : "";
+        html += `
+            <label class="tcs-option-label">
+                <input type="radio" name="option" value="${option}" ${isChecked} onchange="selectOption('${option}')">
+                <span>${option}</span>
+            </label>
+        `;
+    });
+    
+    document.getElementById("options").innerHTML = html;
+    
+    // Toggle controls
+    document.getElementById("prevBtn").style.display = currentQuestion === 0 ? "none" : "inline-flex";
+    if (currentQuestion === questions.length - 1) {
+        document.getElementById("nextBtn").style.display = "none";
+        document.getElementById("submitBtn").style.display = "inline-flex";
+    } else {
+        document.getElementById("nextBtn").style.display = "inline-flex";
+        document.getElementById("submitBtn").style.display = "none";
+    }
+    
+    updateNavigator();
+}
+
+function selectOption(val) {
+    userAnswers[currentQuestion] = val;
+    questionStates[currentQuestion] = "answered";
+    updateNavigator();
+}
+
+function jumpToQuestion(idx) {
+    saveCurrentState();
+    currentQuestion = idx;
+    if (questionStates[currentQuestion] === "not-visited") {
+        questionStates[currentQuestion] = "not-answered";
+    }
+    showQuestion();
+}
+
+function saveCurrentState() {
+    const selected = document.querySelector('input[name="option"]:checked');
+    if (selected) {
+        userAnswers[currentQuestion] = selected.value;
+        if (questionStates[currentQuestion] !== "marked" && questionStates[currentQuestion] !== "marked-answered") {
+            questionStates[currentQuestion] = "answered";
+        } else {
+            questionStates[currentQuestion] = "marked-answered";
+        }
+    } else {
+        if (questionStates[currentQuestion] !== "marked" && questionStates[currentQuestion] !== "marked-answered") {
+            questionStates[currentQuestion] = "not-answered";
+        }
+    }
+}
+
+// Clear Response
+document.getElementById("clearBtn").onclick = () => {
+    const selected = document.querySelector('input[name="option"]:checked');
+    if (selected) selected.checked = false;
+    userAnswers[currentQuestion] = null;
+    questionStates[currentQuestion] = "not-answered";
+    updateNavigator();
+};
+
+// Mark for Review & Next
+document.getElementById("markBtn").onclick = () => {
+    const selected = document.querySelector('input[name="option"]:checked');
+    if (selected) {
+        userAnswers[currentQuestion] = selected.value;
+        questionStates[currentQuestion] = "marked-answered";
+    } else {
+        questionStates[currentQuestion] = "marked";
+    }
+    
+    updateNavigator();
+    
+    if (currentQuestion < questions.length - 1) {
+        currentQuestion++;
+        if (questionStates[currentQuestion] === "not-visited") {
+            questionStates[currentQuestion] = "not-answered";
+        }
+        showQuestion();
+    } else {
+        showToast("Last question reached. Please submit the test.", "info");
+    }
+};
+
+// Save & Next
+document.getElementById("nextBtn").onclick = () => {
+    saveCurrentState();
+    if (currentQuestion < questions.length - 1) {
+        currentQuestion++;
+        if (questionStates[currentQuestion] === "not-visited") {
+            questionStates[currentQuestion] = "not-answered";
+        }
+        showQuestion();
+    }
+};
+
+// Back
+document.getElementById("prevBtn").onclick = () => {
+    saveCurrentState();
+    if (currentQuestion > 0) {
+        currentQuestion--;
+        showQuestion();
+    }
+};
+
+function startTimer() {
+    const timerText = document.getElementById("timer");
+    const interval = setInterval(() => {
+        if (timeLeft <= 0) {
+            clearInterval(interval);
+            showToast("Time is up! Submitting assessment.", "info");
+            submitTest(true);
+            return;
+        }
+        timeLeft--;
+        const min = Math.floor(timeLeft / 60);
+        const sec = timeLeft % 60;
+        timerText.innerText = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+    }, 1000);
+}
+
+async function submitTest(force = false) {
+    saveCurrentState();
+    if (!force) {
+        const unanswered = questionStates.filter(s => s === "not-visited" || s === "not-answered" || s === "marked").length;
+        if (unanswered > 0) {
+            if (!confirm(`You have ${unanswered} unanswered/marked questions. Submit anyway?`)) {
+                return;
+            }
+        }
+    }
+    
+    let score = 0;
+    questions.forEach((q, idx) => {
+        if (userAnswers[idx] === getCorrectAnswerText(q)) {
+            score++;
+        }
+    });
+    
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const companyName = urlParams.get('company') || 'General';
+        const res = await fetch("/submit-test", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+                score, 
+                total: questions.length,
+                testType: "Combined",
+                companyName: companyName
+            })
+        });
+        
+        if (!res.ok) throw new Error("Result save failed");
+        
+        showResults(score);
+    } catch (e) {
+        console.error(e);
+        showToast("Error saving test result to server.", "error");
+    }
+}
+
+document.getElementById("submitBtn").onclick = () => submitTest(false);
+
+function showResults(score) {
+    isExamActive = false;
+    if (document.fullscreenElement) {
+        document.exitFullscreen().catch(err => console.log(err));
+    }
+    document.querySelector(".tcs-header").style.display = "none";
+    document.getElementById("testContainer").style.display = "none";
+    document.body.style.overflow = "auto";
+    
+    document.getElementById("resultsContainer").style.display = "block";
+    
+    const pct = Math.round((score / questions.length) * 100);
+    document.getElementById("resultScore").innerText = `${score} / ${questions.length}`;
+    document.getElementById("resultPercentage").innerText = `${pct}%`;
+    
+    let msg = "Keep Practicing 💪";
+    if (pct >= 80) msg = "Excellent! Outstanding preparation! 🎉";
+    else if (pct >= 60) msg = "Good Job! You are on the right track. 👍";
+    document.getElementById("resultMessage").innerText = msg;
+    
+    let reviewHtml = "";
+    questions.forEach((q, idx) => {
+        const userAns = userAnswers[idx] || "Unanswered";
+        const correctAns = getCorrectAnswerText(q);
+        const isCorrect = userAns === correctAns;
+        
+        reviewHtml += `
+            <div style="background: #f8fafc; border: 1px solid ${isCorrect ? '#bbf7d0' : '#fecaca'}; border-radius: 12px; padding: 20px; text-align: left; margin-bottom: 16px;">
+                <h4 style="font-size: 15px; font-weight: 600; color: #0f172a; margin-bottom: 10px;">
+                    <span style="font-size: 11px; background: #3b82f6; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-right: 8px;">${q.subject}</span>
+                    Q${idx + 1}. ${q.question}
+                </h4>
+                <p style="font-size: 13px; margin-bottom: 6px;">
+                    <b>Your Answer:</b> 
+                    <span style="color: ${isCorrect ? '#16a34a' : '#dc2626'}; font-weight: 600;">${userAns}</span> 
+                    ${isCorrect ? '✅' : '❌'}
+                </p>
+                <p style="font-size: 13px; margin-bottom: 12px; color: #16a34a;">
+                    <b>Correct Answer:</b> <span style="font-weight: 600;">${correctAns}</span>
+                </p>
+                ${q.explanation ? `
+                    <div style="font-size: 12px; background: white; padding: 12px; border-radius: 8px; border-left: 3px solid #3b82f6; color: #475569;">
+                        <b>Explanation:</b> ${q.explanation}
+                    </div>` : ''}
+            </div>
+        `;
+    });
+    
+    document.getElementById("reviewList").innerHTML = reviewHtml;
+}
+
+let isExamActive = false;
+let warningCount = 0;
+const MAX_WARNINGS = 3;
+const TEST_TYPE = "Combined";
+
+async function logCheatingIncident(incidentType, details) {
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const companyName = urlParams.get('company') || 'General';
+        await fetch("/log-cheating", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                testType: TEST_TYPE,
+                incidentType: incidentType,
+                details: details,
+                companyName: companyName
+            })
+        });
+    } catch (e) {
+        console.error("Error logging cheating incident:", e);
+    }
+}
+
+function triggerCheatingWarning(incidentType, details) {
+    if (!isExamActive) return;
+    
+    warningCount++;
+    logCheatingIncident(incidentType, `${details} (Warning ${warningCount}/${MAX_WARNINGS})`);
+    
+    if (warningCount >= MAX_WARNINGS) {
+        isExamActive = false;
+        Swal.fire({
+            icon: "error",
+            title: "Test Disqualified",
+            text: "You have exceeded the maximum of 3 proctoring warnings. Your test is being automatically submitted now.",
+            confirmButtonText: "Submit Test",
+            confirmButtonColor: "#ef4444",
+            allowOutsideClick: false,
+            allowEscapeKey: false
+        }).then(() => {
+            submitTest(true);
+        });
+    } else {
+        Swal.fire({
+            icon: "warning",
+            title: "Proctoring Alert",
+            html: `⚠️ <b>${incidentType}</b> detected!<br><br>Do not exit fullscreen, switch tabs, or copy text.<br><br><span style="color:#ef4444; font-weight:bold;">Warning ${warningCount} of ${MAX_WARNINGS}</span>`,
+            confirmButtonText: "Return to Exam",
+            confirmButtonColor: "#2563eb",
+            allowOutsideClick: false,
+            allowEscapeKey: false
+        }).then(() => {
+            if (incidentType === "Exit Fullscreen") {
+                enterFullscreenMode();
+            }
+        });
+    }
+}
+
+function enterFullscreenMode() {
+    const elem = document.documentElement;
+    if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+    } else if (elem.webkitRequestFullscreen) {
+        elem.webkitRequestFullscreen();
+    } else if (elem.msRequestFullscreen) {
+        elem.msRequestFullscreen();
+    }
+}
+
+function setupProctoring() {
+    document.addEventListener("fullscreenchange", () => {
+        if (isExamActive && !document.fullscreenElement) {
+            triggerCheatingWarning("Exit Fullscreen", "User exited fullscreen mode.");
+        }
+    });
+
+    document.addEventListener("visibilitychange", () => {
+        if (isExamActive && document.hidden) {
+            triggerCheatingWarning("Tab Switch", "User minimized window or switched browser tabs.");
+        }
+    });
+    
+    window.addEventListener("blur", () => {
+        if (isExamActive) {
+            triggerCheatingWarning("Tab Switch", "User clicked outside the exam window or switched applications.");
+        }
+    });
+
+    document.addEventListener("copy", (e) => {
+        if (isExamActive) {
+            e.preventDefault();
+            triggerCheatingWarning("Copy Action", "User attempted to copy question/options text.");
+        }
+    });
+    document.addEventListener("cut", (e) => {
+        if (isExamActive) {
+            e.preventDefault();
+            triggerCheatingWarning("Copy Action", "User attempted to cut text.");
+        }
+    });
+
+    document.addEventListener("contextmenu", (e) => {
+        if (isExamActive) {
+            e.preventDefault();
+            Swal.fire({
+                icon: "warning",
+                title: "Action Restricted",
+                text: "Right-click is disabled during the exam.",
+                confirmButtonColor: "#2563eb"
+            });
+        }
+    });
+
+    document.addEventListener("keydown", (e) => {
+        if (!isExamActive) return;
+
+        if (e.key === "PrintScreen" || e.keyCode === 44) {
+            e.preventDefault();
+            triggerCheatingWarning("Screenshot Attempt", "User pressed the PrintScreen key.");
+            return;
+        }
+
+        const isCtrl = e.ctrlKey || e.metaKey;
+        const key = e.key.toLowerCase();
+
+        if (isCtrl && (key === 'c' || key === 'v' || key === 'x' || key === 'a' || key === 'u' || key === 'p' || key === 's')) {
+            e.preventDefault();
+            triggerCheatingWarning("Copy Action", `User pressed keyboard shortcut: Ctrl+${key.toUpperCase()}`);
+            return;
+        }
+
+        if (e.key === "F12" || (isCtrl && e.shiftKey && key === 'i')) {
+            e.preventDefault();
+            triggerCheatingWarning("Developer Tools", "User attempted to open browser developer tools.");
+            return;
+        }
+    });
+}
+
+loadQuestions();
+</script>
+    <script src="/responsive.js?v=2.0"></script>
+</body>
+</html>

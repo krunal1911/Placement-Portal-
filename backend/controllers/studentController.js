@@ -37,6 +37,10 @@ exports.showTechnical = (req, res) => {
     res.sendFile(path.join(__dirname, "../../frontend/views", "technical.html"));
 };
 
+exports.showCombined = (req, res) => {
+    res.sendFile(path.join(__dirname, "../../frontend/views", "combined.html"));
+};
+
 exports.showCareerGuide = (req, res) => {
     res.sendFile(path.join(__dirname, "../../frontend/views", "career-guide.html"));
 };
