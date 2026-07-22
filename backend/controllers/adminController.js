@@ -1200,8 +1200,29 @@ exports.exportResultPDF = async (req, res) => {
 
 exports.getCompaniesList = async (req, res) => {
     try {
-        const companies = await Company.find({}, { companyName: 1, jobRole: 1 });
-        res.json(companies);
+        const companyDrives = await Company.find({}, { companyName: 1, jobRole: 1 });
+        const adminAccounts = await Admin.find({ role: "admin" }, { companyName: 1 });
+
+        const set = new Map();
+
+        // 1. Include registered placement drives
+        companyDrives.forEach(c => {
+            if (c.companyName && c.companyName.trim()) {
+                set.set(c.companyName.trim().toLowerCase(), { companyName: c.companyName.trim(), jobRole: c.jobRole || "Hiring Drive" });
+            }
+        });
+
+        // 2. Include registered company administrator accounts
+        adminAccounts.forEach(a => {
+            if (a.companyName && a.companyName.trim()) {
+                const key = a.companyName.trim().toLowerCase();
+                if (!set.has(key)) {
+                    set.set(key, { companyName: a.companyName.trim(), jobRole: "Company Account" });
+                }
+            }
+        });
+
+        res.json(Array.from(set.values()));
     } catch (err) {
         console.error("Error fetching companies:", err);
         res.status(500).json({ error: "Failed to load companies" });
