@@ -17,14 +17,14 @@ const excelStorage = multer.diskStorage({
     }
 });
 
-const excelUpload = multer({
+const fileUpload = multer({
     storage: excelStorage,
     fileFilter: function (req, file, cb) {
         const ext = path.extname(file.originalname).toLowerCase();
-        if (ext === ".xlsx" || ext === ".xls") {
+        if (ext === ".xlsx" || ext === ".xls" || ext === ".pdf") {
             cb(null, true);
         } else {
-            cb(new Error("Only Excel files are allowed."), false);
+            cb(new Error("Only Excel (.xlsx, .xls) and PDF (.pdf) files are allowed."), false);
         }
     }
 });
@@ -61,6 +61,9 @@ router.get("/results-data", requireAdmin, adminController.getResultsData);
 router.get("/recent-activity", requireAdmin, adminController.getRecentActivity);
 router.get("/export-result-pdf/:resultId", requireAdmin, adminController.exportResultPDF);
 router.get("/export-students", requireSuperAdmin, adminController.exportStudents);
+router.get("/companies-list", requireAdmin, adminController.getCompaniesList);
+
+router.get("/download-question-template", requireAdmin, adminController.downloadQuestionTemplate);
 
 // Admin Requests API (for approval flow)
 router.post("/admin-request", adminController.postAdminRequest);
@@ -79,7 +82,7 @@ router.post("/update-question/:id", requireAdmin, adminController.updateQuestion
 router.post("/update-technical/:id", requireAdmin, adminController.updateTechnicalQuestion);
 router.get("/delete-question/:id", requireAdmin, adminController.deleteQuestion);
 router.get("/delete-technical/:id", requireAdmin, adminController.deleteTechnicalQuestion);
-router.post("/import-questions", requireAdmin, excelUpload.single("excelFile"), adminController.importQuestions);
+router.post("/import-questions", requireAdmin, fileUpload.single("importFile"), adminController.importQuestions);
 router.post("/add-company", requireAdmin, adminController.addCompany);
 router.post("/update-status", requireAdmin, adminController.updateStatus);
 router.post("/generate-signed-link", requireAdmin, adminController.generateSignedLink);

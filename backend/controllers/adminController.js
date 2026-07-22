@@ -3,6 +3,7 @@ const fs = require("fs");
 const bcrypt = require("bcrypt");
 const XLSX = require("xlsx");
 const ExcelJS = require("exceljs");
+const pdfParse = require("pdf-parse");
 
 const Admin = require("../../database/models/Admin");
 const User = require("../../database/models/User");
@@ -606,26 +607,131 @@ exports.deleteTechnicalQuestion = async (req, res) => {
     }
 };
 
-// Batch import MCQ questions via uploaded excel spreadsheets
+async function parseQuestionsFromPDF(filePath) {
+    try {
+        const dataBuffer = fs.readFileSync(filePath);
+        const pdfData = await pdfParse(dataBuffer);
+        const text = pdfData.text || "";
+        const questions = [];
+
+        const blocks = text.split(/(?:Question\s*\d+[:.]?|\bQ\d+[:.]?|\b\d+[\.\)]\s+)/i);
+
+        for (let block of blocks) {
+            if (!block || block.trim().length < 10) continue;
+
+            const lines = block.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+            if (lines.length < 3) continue;
+
+            let qTextLines = [];
+            let optA = "", optB = "", optC = "", optD = "";
+            let ans = "";
+            let topic = "General";
+            let difficulty = "Medium";
+            let explanation = "";
+            let currentSection = "question";
+
+            for (let line of lines) {
+                if (/^(?:A[\)\.:]|Option\s*A[:\s])/i.test(line)) {
+                    optA = line.replace(/^(?:A[\)\.:]|Option\s*A[:\s])/i, "").trim();
+                    currentSection = "optA";
+                } else if (/^(?:B[\)\.:]|Option\s*B[:\s])/i.test(line)) {
+                    optB = line.replace(/^(?:B[\)\.:]|Option\s*B[:\s])/i, "").trim();
+                    currentSection = "optB";
+                } else if (/^(?:C[\)\.:]|Option\s*C[:\s])/i.test(line)) {
+                    optC = line.replace(/^(?:C[\)\.:]|Option\s*C[:\s])/i, "").trim();
+                    currentSection = "optC";
+                } else if (/^(?:D[\)\.:]|Option\s*D[:\s])/i.test(line)) {
+                    optD = line.replace(/^(?:D[\)\.:]|Option\s*D[:\s])/i, "").trim();
+                    currentSection = "optD";
+                } else if (/^(?:Ans(?:wer)?[:\s])/i.test(line)) {
+                    ans = line.replace(/^(?:Ans(?:wer)?[:\s])/i, "").trim();
+                    currentSection = "answer";
+                } else if (/^(?:Topic[:\s])/i.test(line)) {
+                    topic = line.replace(/^(?:Topic[:\s])/i, "").trim();
+                } else if (/^(?:Difficulty[:\s])/i.test(line)) {
+                    difficulty = line.replace(/^(?:Difficulty[:\s])/i, "").trim();
+                } else if (/^(?:Explanation[:\s])/i.test(line)) {
+                    explanation = line.replace(/^(?:Explanation[:\s])/i, "").trim();
+                } else if (currentSection === "question") {
+                    qTextLines.push(line);
+                }
+            }
+
+            const qText = qTextLines.join(" ").trim();
+            if (qText && optA && optB) {
+                if (/^[A-D]$/i.test(ans)) {
+                    const letter = ans.toUpperCase();
+                    if (letter === "A") ans = optA;
+                    else if (letter === "B") ans = optB;
+                    else if (letter === "C") ans = optC;
+                    else if (letter === "D") ans = optD;
+                }
+                questions.push({
+                    Question: qText,
+                    "Option A": optA,
+                    "Option B": optB,
+                    "Option C": optC || "N/A",
+                    "Option D": optD || "N/A",
+                    Answer: ans || optA,
+                    Explanation: explanation,
+                    Topic: topic,
+                    Difficulty: difficulty
+                });
+            }
+        }
+        return questions;
+    } catch (e) {
+        console.error("Error parsing PDF:", e);
+        return [];
+    }
+}
+
+// Batch import MCQ questions via uploaded Excel spreadsheets or PDF documents
 exports.importQuestions = async (req, res) => {
     try {
         if (!req.file) {
-            return res.send("Please select an Excel file.");
+            return res.status(400).send("Please select a file to import (.xlsx, .xls, or .pdf).");
         }
 
-        const adminCompany = req.session.admin.role === "admin" 
-            ? req.session.admin.companyName 
-            : "General";
+        let targetCompany = req.body.companyName;
+        if (req.session.admin.role === "admin") {
+            targetCompany = req.session.admin.companyName || "General";
+        } else if (!targetCompany) {
+            targetCompany = "General";
+        }
 
-        const workbook = XLSX.readFile(req.file.path);
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-        const data = XLSX.utils.sheet_to_json(sheet);
+        const ext = path.extname(req.file.originalname).toLowerCase();
+        let rows = [];
+
+        if (ext === ".pdf") {
+            rows = await parseQuestionsFromPDF(req.file.path);
+        } else {
+            const workbook = XLSX.readFile(req.file.path);
+            const sheetName = workbook.SheetNames[0];
+            const sheet = workbook.Sheets[sheetName];
+            const rawData = XLSX.utils.sheet_to_json(sheet);
+            rows = rawData.map(r => ({
+                Question: r.Question || r.question || r["Question Text"],
+                "Option A": r["Option A"] || r.optionA || r.A || r["Option 1"],
+                "Option B": r["Option B"] || r.optionB || r.B || r["Option 2"],
+                "Option C": r["Option C"] || r.optionC || r.C || r["Option 3"],
+                "Option D": r["Option D"] || r.optionD || r.D || r["Option 4"],
+                Answer: r.Answer || r.answer || r["Correct Answer"],
+                Explanation: r.Explanation || r.explanation || "",
+                Topic: r.Topic || r.topic || "General",
+                Difficulty: r.Difficulty || r.difficulty || "Easy"
+            }));
+        }
 
         let imported = 0;
         let skipped = 0;
 
-        for (const row of data) {
+        for (const row of rows) {
+            if (!row.Question || !row["Option A"] || !row["Option B"]) {
+                skipped++;
+                continue;
+            }
+
             const exists = await Question.findOne({
                 question: row.Question
             });
@@ -643,11 +749,11 @@ exports.importQuestions = async (req, res) => {
                     row["Option C"],
                     row["Option D"]
                 ],
-                answer: row.Answer,
+                answer: row.Answer || row["Option A"],
                 explanation: row.Explanation || "",
                 topic: row.Topic || "General",
                 difficulty: row.Difficulty || "Easy",
-                companyName: adminCompany
+                companyName: targetCompany
             });
             imported++;
         }
@@ -660,15 +766,80 @@ exports.importQuestions = async (req, res) => {
         }
 
         res.send(`
-            <h2>Import Completed ✅</h2>
-            <p>Imported: <b>${imported}</b></p>
-            <p>Skipped (Duplicate): <b>${skipped}</b></p>
-            <br>
-            <a href="/admin-dashboard">Back to Dashboard</a>
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Import Summary | Placement Portal</title>
+                <link rel="stylesheet" href="/dashboard.css?v=2.3">
+            </head>
+            <body style="background: var(--bg-main); font-family: 'Poppins', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0;">
+                <div style="background: var(--bg-card); padding: 40px; border-radius: 16px; border: 1px solid var(--border); box-shadow: var(--shadow-md); text-align: center; max-width: 480px; width: 90%;">
+                    <div style="font-size: 48px; margin-bottom: 12px;">✅</div>
+                    <h2 style="color: var(--text-main); margin-bottom: 16px;">Import Complete</h2>
+                    <div style="display: flex; justify-content: space-around; background: var(--bg-main); padding: 16px; border-radius: 12px; margin-bottom: 24px; border: 1px solid var(--border);">
+                        <div>
+                            <div style="font-size: 26px; font-weight: 700; color: var(--success);">${imported}</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">Imported</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 26px; font-weight: 700; color: var(--warning);">${skipped}</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">Skipped / Duplicates</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 12px;">
+                        <a href="/add-question" class="btn btn-primary" style="flex: 1; text-decoration: none; padding: 12px;">View Question Bank</a>
+                        <a href="/import-questions" class="btn btn-secondary" style="flex: 1; text-decoration: none; padding: 12px;">Import Another</a>
+                    </div>
+                </div>
+            </body>
+            </html>
         `);
     } catch (err) {
-        console.log(err);
-        res.status(500).send("Import Failed");
+        console.error("Import error:", err);
+        res.status(500).send("Import Failed: " + err.message);
+    }
+};
+
+// Download sample Excel template
+exports.downloadQuestionTemplate = (req, res) => {
+    try {
+        const sampleData = [
+            {
+                "Question": "What is the time complexity of searching in a balanced Binary Search Tree (BST)?",
+                "Option A": "O(1)",
+                "Option B": "O(log n)",
+                "Option C": "O(n)",
+                "Option D": "O(n log n)",
+                "Answer": "O(log n)",
+                "Explanation": "Balanced BST search takes O(log n) time.",
+                "Topic": "Data Structures",
+                "Difficulty": "Easy"
+            },
+            {
+                "Question": "Which SQL statement is used to extract data from a database?",
+                "Option A": "EXTRACT",
+                "Option B": "GET",
+                "Option C": "SELECT",
+                "Option D": "OPEN",
+                "Answer": "SELECT",
+                "Explanation": "The SELECT statement is used to query database records.",
+                "Topic": "Database",
+                "Difficulty": "Easy"
+            }
+        ];
+        const workbook = XLSX.utils.book_new();
+        const sheet = XLSX.utils.json_to_sheet(sampleData);
+        XLSX.utils.book_append_sheet(workbook, sheet, "Questions");
+        const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+
+        res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        res.setHeader("Content-Disposition", "attachment; filename=Question_Import_Template.xlsx");
+        res.send(buffer);
+    } catch (e) {
+        console.error("Template download error:", e);
+        res.status(500).send("Could not generate template");
     }
 };
 
@@ -1024,5 +1195,15 @@ exports.exportResultPDF = async (req, res) => {
     } catch (err) {
         console.error("PDF Export failed:", err);
         res.status(500).send("Failed to export PDF report");
+    }
+};
+
+exports.getCompaniesList = async (req, res) => {
+    try {
+        const companies = await Company.find({}, { companyName: 1, jobRole: 1 });
+        res.json(companies);
+    } catch (err) {
+        console.error("Error fetching companies:", err);
+        res.status(500).json({ error: "Failed to load companies" });
     }
 };

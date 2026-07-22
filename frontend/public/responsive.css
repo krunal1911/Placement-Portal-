@@ -154,9 +154,10 @@ textarea {
         top: 0 !important;
         z-index: 1050 !important;
         gap: 0 !important;
-        backdrop-filter: none !important;
-        -webkit-backdrop-filter: none !important;
-        background: #ffffff !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        background: var(--bg-nav, var(--bg-card, #ffffff)) !important;
+        border-bottom: 1px solid var(--border) !important;
     }
 
     /* Hide the normal nav list — override ALL per-page CSS */
@@ -168,8 +169,9 @@ textarea {
         bottom: 0 !important;
         width: min(280px, 82vw) !important;
         height: 100vh !important;
-        background: #ffffff !important;
-        box-shadow: -6px 0 32px rgba(0,0,0,0.18) !important;
+        background: var(--bg-card, #ffffff) !important;
+        box-shadow: -6px 0 32px rgba(0,0,0,0.25) !important;
+        border-left: 1px solid var(--border) !important;
         flex-direction: column !important;
         padding: 80px 20px 32px !important;
         gap: 4px !important;
@@ -200,7 +202,7 @@ textarea {
         font-size: 15px !important;
         font-weight: 500 !important;
         border-radius: 10px !important;
-        color: #0f172a !important;
+        color: var(--text-main, #0f172a) !important;
         width: 100% !important;
         text-align: left !important;
         text-decoration: none !important;
@@ -208,8 +210,8 @@ textarea {
     }
 
     nav ul li a:hover {
-        background: #eff6ff !important;
-        color: #2563eb !important;
+        background: var(--primary-light, #eff6ff) !important;
+        color: var(--primary, #2563eb) !important;
     }
 
     /* Notification bell inside mobile menu */
@@ -223,6 +225,7 @@ textarea {
         border-radius: 10px !important;
         padding: 13px 16px !important;
         font-size: 15px !important;
+        color: var(--text-main, #0f172a) !important;
     }
 }
 

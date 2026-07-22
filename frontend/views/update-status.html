@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Update Application Status | Admin Console</title>
-    <link rel="stylesheet" href="/dashboard.css?v=2.2">
-    <link rel="stylesheet" href="/admin-dashboard.css?v=2.2">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/responsive.css?v=2.0">
+    <link rel="stylesheet" href="/dashboard.css?v=2.3">
+    <link rel="stylesheet" href="/admin-dashboard.css?v=2.3">
+    <link rel="stylesheet" href="/responsive.css?v=2.3">
 </head>
 <body>
 
@@ -26,20 +26,18 @@
     </ul>
 </nav>
 
-<div class="container">
-    <div style="margin-bottom: 24px; display: flex; flex-direction: column; gap: 8px;">
-        <div>
-            <a href="/admin-dashboard" style="text-decoration: none; color: var(--text-muted); font-size: 14px; font-weight: 500;">← Back to Dashboard</a>
-            <h1 style="font-size: 28px; font-weight: 700; color: #1e3a8a; margin-top: 8px;">🔄 Update Application Status</h1>
-            <p style="color: var(--text-muted); font-size: 14px;">Select, shortlist, or update student applications for registered companies.</p>
-        </div>
+<div class="container" style="max-width: 1000px; margin: 40px auto; padding: 0 20px;">
+    <div style="margin-bottom: 24px;">
+        <a href="/admin-dashboard" style="text-decoration: none; color: var(--text-muted); font-size: 14px; font-weight: 500;">← Back to Dashboard</a>
+        <h1 style="font-size: 28px; font-weight: 700; color: var(--text-main); margin-top: 8px;">🔄 Update Application Status</h1>
+        <p style="color: var(--text-muted); font-size: 14px;">Select, shortlist, or update student applications for registered placement drives.</p>
     </div>
 
     <!-- Filters Control Bar -->
-    <div class="card" style="margin-bottom: 30px; text-align: left; display: flex; gap: 16px; align-items: center; padding: 20px;">
-        <div style="flex: 1;">
+    <div class="card" style="margin-bottom: 30px; text-align: left; display: flex; gap: 16px; align-items: center; padding: 20px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 220px;">
             <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Search Applications</label>
-            <input type="text" id="search" placeholder="🔍 Search by student name or company..." onkeyup="searchStatusList()" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;">
+            <input type="text" id="search" placeholder="🔍 Search student name or company..." onkeyup="searchStatusList()" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: var(--bg-card); color: var(--text-main);">
         </div>
         <div style="margin-top: 20px;">
             <button class="btn btn-secondary" onclick="resetSearch()" style="padding: 11px 20px; font-size: 13px;">Clear Filter</button>
@@ -47,8 +45,8 @@
     </div>
 
     <!-- Update Status Data Table -->
-    <div style="background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow-sm);">
-        <table style="margin: 0; border: none; box-shadow: none;">
+    <div style="background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border); overflow-x: auto; box-shadow: var(--shadow-sm); margin-bottom: 30px;">
+        <table style="margin: 0; border: none; box-shadow: none; width: 100%;">
             <thead>
                 <tr>
                     <th>Student Name</th>
@@ -60,7 +58,7 @@
             </thead>
             <tbody id="statusTable">
                 <tr>
-                    <td colspan="5" style="text-align: center; color: var(--text-muted);">Loading applications list...</td>
+                    <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">Loading applications list...</td>
                 </tr>
             </tbody>
         </table>
@@ -68,6 +66,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="/responsive.js?v=2.3"></script>
 <script>
 let applications = [];
 
@@ -79,14 +78,14 @@ async function loadApplications() {
         displayApplications(applications);
     } catch (e) {
         console.error(e);
-        document.getElementById("statusTable").innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Failed to load applications.</td></tr>';
+        document.getElementById("statusTable").innerHTML = '<tr><td colspan="5" style="text-align:center; color:red; padding: 24px;">Failed to load applications.</td></tr>';
     }
 }
 
 function displayApplications(data) {
     let html = "";
     if (data.length === 0) {
-        html = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No student applications found.</td></tr>`;
+        html = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding: 24px;">No student applications found.</td></tr>`;
     } else {
         data.forEach(app => {
             const userName = app.userId ? app.userId.name : "Unknown Student";
@@ -97,9 +96,9 @@ function displayApplications(data) {
                 <tr>
                     <td style="font-weight: 500;">${userName}</td>
                     <td>${userEmail}</td>
-                    <td style="font-weight: 500; color: #1e3a8a;">${companyName}</td>
+                    <td style="font-weight: 600; color: var(--primary);">${companyName}</td>
                     <td>
-                        <select id="${app._id}" style="padding: 6px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: white; width: 100%;">
+                        <select id="${app._id}" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: var(--bg-card); color: var(--text-main); width: 100%;">
                             <option value="Applied" ${app.status === "Applied" ? "selected" : ""}>Applied</option>
                             <option value="Shortlisted" ${app.status === "Shortlisted" ? "selected" : ""}>Shortlisted</option>
                             <option value="Interview Scheduled" ${app.status === "Interview Scheduled" ? "selected" : ""}>Interview Scheduled</option>
@@ -108,7 +107,7 @@ function displayApplications(data) {
                         </select>
                     </td>
                     <td style="text-align: center;">
-                        <button class="btn btn-primary" onclick="updateStatus('${app._id}')" style="padding: 6px 16px; font-size: 12px;">Save</button>
+                        <button class="btn btn-primary" style="padding: 6px 14px; font-size: 12px;" onclick="updateAppStatus('${app._id}')">Save Status</button>
                     </td>
                 </tr>
             `;
@@ -117,59 +116,12 @@ function displayApplications(data) {
     document.getElementById("statusTable").innerHTML = html;
 }
 
-async function updateStatus(id) {
-    const status = document.getElementById(id).value;
-    const saveBtn = document.querySelector(`button[onclick="updateStatus('${id}')"]`);
-    saveBtn.disabled = true;
-    saveBtn.innerText = "Saving...";
-
-    try {
-        const response = await fetch("/update-status", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ id, status })
-        });
-
-        const text = await response.text();
-
-        if (response.ok) {
-            Swal.fire({
-                icon: "success",
-                title: "Status Saved!",
-                text: "Application state successfully updated in candidate registry.",
-                confirmButtonColor: "#3b82f6"
-            });
-        } else {
-            Swal.fire({
-                icon: "error",
-                title: "Update Failed",
-                text: text || "Failed to update candidate status.",
-                confirmButtonColor: "#3b82f6"
-            });
-        }
-    } catch (e) {
-        console.error(e);
-        Swal.fire({
-            icon: "error",
-            title: "Network Error",
-            text: "Could not connect to the server.",
-            confirmButtonColor: "#3b82f6"
-        });
-    } finally {
-        saveBtn.disabled = false;
-        saveBtn.innerText = "Save";
-    }
-}
-
 function searchStatusList() {
-    const key = document.getElementById("search").value.toLowerCase();
+    const query = document.getElementById("search").value.toLowerCase();
     const filtered = applications.filter(app => {
-        const name = app.userId ? app.userId.name.toLowerCase() : "";
-        const email = app.userId ? app.userId.email.toLowerCase() : "";
-        const comp = app.companyId ? app.companyId.companyName.toLowerCase() : "";
-        return name.includes(key) || email.includes(key) || comp.includes(key);
+        const userName = (app.userId ? app.userId.name : "").toLowerCase();
+        const companyName = (app.companyId ? app.companyId.companyName : "").toLowerCase();
+        return userName.includes(query) || companyName.includes(query);
     });
     displayApplications(filtered);
 }
@@ -179,9 +131,31 @@ function resetSearch() {
     displayApplications(applications);
 }
 
+async function updateAppStatus(id) {
+    const newStatus = document.getElementById(id).value;
+    try {
+        const response = await fetch("/update-status", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ applicationId: id, status: newStatus })
+        });
+        const data = await response.json();
+        if (response.ok) {
+            Swal.fire({
+                title: "Status Updated!",
+                text: "Student application stage updated to " + newStatus,
+                icon: "success"
+            });
+            loadApplications();
+        } else {
+            Swal.fire("Error!", data.message || "Failed to update status", "error");
+        }
+    } catch (e) {
+        Swal.fire("Error!", "Connection error", "error");
+    }
+}
+
 loadApplications();
 </script>
-
-    <script src="/responsive.js?v=2.0"></script>
 </body>
 </html>

@@ -1,15 +1,16 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Administrators | Placement Portal</title>
-    <link rel="stylesheet" href="/dashboard.css?v=2.2">
-    <link rel="stylesheet" href="/admin-dashboard.css?v=2.2">
-    <link rel="stylesheet" href="/toast.css">
-    <script src="/toast.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/dashboard.css?v=2.3">
+    <link rel="stylesheet" href="/admin-dashboard.css?v=2.3">
+    <link rel="stylesheet" href="/toast.css">
+    <link rel="stylesheet" href="/responsive.css?v=2.3">
+    <script src="/toast.js"></script>
     <style>
         .container {
             width: 90%;
@@ -21,8 +22,14 @@
             grid-template-columns: 1fr 2fr;
             gap: 32px;
         }
+        @media (max-width: 900px) {
+            .admin-layout {
+                grid-template-columns: 1fr;
+            }
+        }
         .admin-card {
-            background: white;
+            background: var(--bg-card);
+            color: var(--text-main);
             padding: 30px;
             border-radius: 16px;
             border: 1px solid var(--border);
@@ -31,7 +38,7 @@
         .admin-card h2 {
             font-size: 18px;
             font-weight: 700;
-            color: #1e3a8a;
+            color: var(--text-main);
             margin-bottom: 20px;
             border-bottom: 1px solid var(--border);
             padding-bottom: 10px;
@@ -53,6 +60,7 @@
         }
         .admin-list-table td {
             font-size: 14px;
+            color: var(--text-main);
         }
         .role-badge {
             display: inline-block;
@@ -63,17 +71,17 @@
             text-transform: uppercase;
         }
         .badge-superadmin {
-            background: #eff6ff;
-            color: #1e40af;
-            border: 1px solid #bfdbfe;
+            background: var(--primary-light);
+            color: var(--primary);
+            border: 1px solid var(--border);
         }
         .badge-admin {
-            background: #f3f4f6;
-            color: #374151;
-            border: 1px solid #e5e7eb;
+            background: var(--bg-main);
+            color: var(--text-muted);
+            border: 1px solid var(--border);
         }
         .btn-delete {
-            background: #ef4444;
+            background: var(--error);
             color: white;
             padding: 6px 12px;
             font-size: 12px;
@@ -83,10 +91,9 @@
             transition: background 0.2s;
         }
         .btn-delete:hover {
-            background: #dc2626;
+            opacity: 0.9;
         }
     </style>
-    <link rel="stylesheet" href="/responsive.css?v=2.0">
 </head>
 <body>
 
@@ -107,7 +114,7 @@
 <div class="container">
     <div style="margin-bottom: 24px;">
         <a href="/admin-dashboard" style="text-decoration: none; color: var(--text-muted); font-size: 14px; font-weight: 500;">← Back to Dashboard</a>
-        <h1 style="font-size: 28px; font-weight: 700; color: #1e3a8a; margin-top: 8px;">👨‍💼 Administrator Accounts</h1>
+        <h1 style="font-size: 28px; font-weight: 700; color: var(--text-main); margin-top: 8px;">👨‍💼 Administrator Accounts</h1>
         <p style="color: var(--text-muted); font-size: 14px;">Create, view and manage portal administrator access controls.</p>
     </div>
 
@@ -130,7 +137,7 @@
                 </div>
                 <div class="form-group">
                     <label for="role">Access Role</label>
-                    <select id="role" onchange="toggleCompanyField()" required>
+                    <select id="role" onchange="toggleCompanyField()" required style="background: var(--bg-card); color: var(--text-main);">
                         <option value="admin">Other Admin (Restricted)</option>
                         <option value="superadmin">Super Admin (Full Access)</option>
                     </select>
@@ -144,44 +151,49 @@
         <!-- Administrators List -->
         <div class="admin-card">
             <h2>Active Administrators</h2>
-            <table class="admin-list-table">
-                <thead>
-                    <tr>
-                        <th>Username</th>
-                        <th>Company</th>
-                        <th>Role</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="adminsTableBody">
-                    <tr>
-                        <td colspan="4" style="text-align: center;">Loading administrators...</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div style="overflow-x: auto;">
+                <table class="admin-list-table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Company</th>
+                            <th>Role</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminsTableBody">
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: var(--text-muted);">Loading administrators...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
             <br><br>
             <h2>Pending Access Requests</h2>
-            <table class="admin-list-table">
-                <thead>
-                    <tr>
-                        <th>Username</th>
-                        <th>Company</th>
-                        <th>Reason</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="requestsTableBody">
-                    <tr>
-                        <td colspan="4" style="text-align: center;">Loading requests...</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div style="overflow-x: auto;">
+                <table class="admin-list-table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Company</th>
+                            <th>Reason</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="requestsTableBody">
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: var(--text-muted);">Loading requests...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="/responsive.js?v=2.3"></script>
 <script>
 function toggleCompanyField() {
     const role = document.getElementById("role").value;
@@ -193,7 +205,6 @@ function toggleCompanyField() {
     }
 }
 
-// Load all admin accounts
 async function loadAdmins() {
     try {
         const response = await fetch("/admins-data");
@@ -203,207 +214,158 @@ async function loadAdmins() {
                 setTimeout(() => window.location.href = "/admin-dashboard", 2000);
                 return;
             }
-            throw new Error("Failed to load");
+            throw new Error("Failed to fetch admins");
         }
+        
         const admins = await response.json();
-        
         let html = "";
-        admins.forEach(admin => {
-            const roleClass = admin.role === "superadmin" ? "badge-superadmin" : "badge-admin";
-            html += `
-                <tr>
-                    <td style="font-weight: 500;">${admin.username}</td>
-                    <td>${admin.companyName || "N/A"}</td>
-                    <td><span class="role-badge ${roleClass}">${admin.role}</span></td>
-                    <td>
-                        <button class="btn-delete" onclick="deleteAdmin('${admin._id}', '${admin.username}')">Delete</button>
-                    </td>
-                </tr>
-            `;
-        });
         
-        document.getElementById("adminsTableBody").innerHTML = html || '<tr><td colspan="4" style="text-align:center;">No administrators found.</td></tr>';
-    } catch (e) {
-        console.error(e);
-        document.getElementById("adminsTableBody").innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Failed to load accounts.</td></tr>';
-    }
-}
-
-// Load all pending admin access requests
-async function loadRequests() {
-    try {
-        const response = await fetch("/admin-requests-data");
-        if (!response.ok) throw new Error("Failed to load requests");
-        const requests = await response.json();
-        
-        let html = "";
-        requests.forEach(req => {
-            if (req.status === "pending") {
+        if (admins.length === 0) {
+            html = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No admin accounts found.</td></tr>`;
+        } else {
+            admins.forEach(admin => {
+                const badgeClass = admin.role === 'superadmin' ? 'badge-superadmin' : 'badge-admin';
+                const roleLabel = admin.role === 'superadmin' ? 'Super Admin' : 'Company Admin';
+                
                 html += `
                     <tr>
-                        <td style="font-weight: 500;">${req.username}</td>
-                        <td><b>${req.companyName}</b></td>
-                        <td>${req.reason}</td>
+                        <td style="font-weight: 600;">${admin.username}</td>
+                        <td>${admin.companyName || '-'}</td>
+                        <td><span class="role-badge ${badgeClass}">${roleLabel}</span></td>
                         <td>
-                            <div style="display: flex; gap: 8px;">
-                                <button class="btn btn-primary" style="padding: 4px 10px; font-size: 11px;" onclick="approveRequest('${req._id}', '${req.username}')">Approve</button>
-                                <button class="btn-delete" style="padding: 4px 10px; font-size: 11px;" onclick="rejectRequest('${req._id}')">Reject</button>
-                            </div>
+                            <button class="btn-delete" onclick="deleteAdmin('${admin._id}', '${admin.username}')">Delete</button>
                         </td>
                     </tr>
                 `;
-            }
-        });
+            });
+        }
         
-        document.getElementById("requestsTableBody").innerHTML = html || '<tr><td colspan="4" style="text-align:center;">No pending access requests.</td></tr>';
+        document.getElementById("adminsTableBody").innerHTML = html;
     } catch (e) {
         console.error(e);
-        document.getElementById("requestsTableBody").innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Failed to load requests.</td></tr>';
+        document.getElementById("adminsTableBody").innerHTML = `<tr><td colspan="4" style="text-align: center; color: red;">Error loading admin list</td></tr>`;
     }
 }
 
-// Add Admin Form Submission
-document.getElementById("addAdminForm").addEventListener("submit", async function(event) {
-    event.preventDefault();
+async function loadRequests() {
+    try {
+        const response = await fetch("/access-requests-data");
+        if (!response.ok) return;
+        const requests = await response.json();
+        let html = "";
+
+        if (requests.length === 0) {
+            html = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No pending requests.</td></tr>`;
+        } else {
+            requests.forEach(req => {
+                html += `
+                    <tr>
+                        <td style="font-weight: 600;">${req.username}</td>
+                        <td>${req.companyName || '-'}</td>
+                        <td style="font-size: 12px;">${req.reason || '-'}</td>
+                        <td>
+                            <button class="btn btn-success" style="padding: 4px 10px; font-size: 11px;" onclick="approveRequest('${req._id}')">Approve</button>
+                            <button class="btn-delete" style="padding: 4px 10px; font-size: 11px;" onclick="rejectRequest('${req._id}')">Reject</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        document.getElementById("requestsTableBody").innerHTML = html;
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+async function approveRequest(id) {
+    try {
+        const res = await fetch(`/approve-request/${id}`, { method: "POST" });
+        const data = await res.json();
+        if (res.ok) {
+            showToast("Access Request Approved!", "success");
+            loadAdmins();
+            loadRequests();
+        } else {
+            showToast(data.message || "Failed to approve request", "error");
+        }
+    } catch (e) {
+        showToast("Error processing approval", "error");
+    }
+}
+
+async function rejectRequest(id) {
+    try {
+        const res = await fetch(`/reject-request/${id}`, { method: "DELETE" });
+        const data = await res.json();
+        if (res.ok) {
+            showToast("Request Rejected.", "info");
+            loadRequests();
+        } else {
+            showToast(data.message || "Failed to reject request", "error");
+        }
+    } catch (e) {
+        showToast("Error rejecting request", "error");
+    }
+}
+
+document.getElementById("addAdminForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
     const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value.trim();
-    const role = document.getElementById("role").value;
     const companyName = document.getElementById("companyName").value.trim();
-
-    const submitBtn = event.target.querySelector("button[type='submit']");
-    submitBtn.disabled = true;
-    submitBtn.innerText = "Creating Account...";
+    const role = document.getElementById("role").value;
 
     try {
         const response = await fetch("/add-admin", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, password, role, companyName })
+            body: JSON.stringify({ username, password, companyName, role })
         });
-
-        const text = await response.text();
-
+        
+        const data = await response.json();
         if (response.ok) {
-            Swal.fire({
-                icon: "success",
-                title: "Account Created!",
-                text: `Admin user '${username}' created successfully.`,
-                confirmButtonColor: "#3b82f6"
-            });
+            showToast("Admin account created successfully!", "success");
             document.getElementById("addAdminForm").reset();
+            toggleCompanyField();
             loadAdmins();
         } else {
-            Swal.fire({
-                icon: "error",
-                title: "Failed to Add Admin",
-                text: text,
-                confirmButtonColor: "#3b82f6"
-            });
+            showToast(data.message || "Failed to create admin", "error");
         }
-    } catch (error) {
-        console.error(error);
-        showToast("Network error. Try again.", "error");
-    } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerText = "Create Account";
+    } catch (err) {
+        showToast("Connection error", "error");
     }
 });
 
-// Approve Request
-async function approveRequest(id, username) {
-    try {
-        const response = await fetch(`/admin-request/approve/${id}`, {
-            method: "POST"
-        });
-        const text = await response.text();
-        if (response.ok) {
-            Swal.fire({
-                icon: "success",
-                title: "Request Approved!",
-                text: `Account for '${username}' has been successfully created.`,
-                confirmButtonColor: "#3b82f6"
-            });
-            loadRequests();
-            loadAdmins();
-        } else {
-            Swal.fire({ icon: "error", title: "Error", text: text });
-        }
-    } catch (e) {
-        console.error(e);
-        showToast("Approve failed.", "error");
-    }
-}
-
-// Reject Request
-async function rejectRequest(id) {
-    try {
-        const response = await fetch(`/admin-request/reject/${id}`, {
-            method: "POST"
-        });
-        if (response.ok) {
-            Swal.fire({
-                icon: "info",
-                title: "Request Rejected",
-                text: "Access request has been declined.",
-                confirmButtonColor: "#3b82f6"
-            });
-            loadRequests();
-        } else {
-            Swal.fire({ icon: "error", title: "Error", text: "Failed to reject request." });
-        }
-    } catch (e) {
-        console.error(e);
-        showToast("Reject failed.", "error");
-    }
-}
-
-// Delete Admin Account
 async function deleteAdmin(id, username) {
-    Swal.fire({
+    const result = await Swal.fire({
         title: "Delete Administrator?",
-        text: `Are you sure you want to remove administrator '${username}'? This cannot be undone.`,
+        text: `Are you sure you want to delete "${username}"?`,
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#ef4444",
-        cancelButtonColor: "#3b82f6",
         confirmButtonText: "Yes, Delete"
-    }).then(async (result) => {
-        if (result.isConfirmed) {
-            try {
-                const response = await fetch(`/delete-admin/${id}`, {
-                    method: "DELETE"
-                });
-                const text = await response.text();
-                
-                if (response.ok) {
-                    Swal.fire({
-                        icon: "success",
-                        title: "Account Deleted",
-                        text: text,
-                        confirmButtonColor: "#3b82f6"
-                    });
-                    loadAdmins();
-                } else {
-                    Swal.fire({
-                        icon: "error",
-                        title: "Delete Failed",
-                        text: text,
-                        confirmButtonColor: "#3b82f6"
-                    });
-                }
-            } catch (err) {
-                console.error(err);
-                showToast("Network error. Try again.", "error");
-            }
-        }
     });
+
+    if (result.isConfirmed) {
+        try {
+            const response = await fetch(`/delete-admin/${id}`, { method: "DELETE" });
+            const data = await response.json();
+            
+            if (response.ok) {
+                showToast("Administrator deleted.", "success");
+                loadAdmins();
+            } else {
+                showToast(data.message || "Could not delete administrator", "error");
+            }
+        } catch (e) {
+            showToast("Error connecting to server", "error");
+        }
+    }
 }
 
 loadAdmins();
 loadRequests();
 </script>
-
-    <script src="/responsive.js?v=2.0"></script>
 </body>
 </html>
-

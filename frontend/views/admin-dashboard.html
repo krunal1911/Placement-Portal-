@@ -1,359 +1,268 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="/admin-dashboard.css?v=2.2">
-    <link rel="stylesheet" href="/responsive.css?v=2.0">
+    <title>Admin Dashboard | Placement Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/admin-dashboard.css?v=2.3">
+    <link rel="stylesheet" href="/responsive.css?v=2.3">
 </head>
-
 <body>
 
 <nav>
-
-<div class="logo">
-🚀 Placement Portal
-</div>
-
-<ul>
-
-<li><a href="/admin-dashboard">Dashboard</a></li>
-
-<li><a href="/students">Students</a></li>
-
-<li><a href="/applications">Applications</a></li>
+    <div class="logo">🚀 Placement Portal</div>
+    <ul>
+        <li><a href="/admin-dashboard">Dashboard</a></li>
+        <li><a href="/students">Students</a></li>
+        <li><a href="/applications">Applications</a></li>
         <li><a href="/proctoring">Proctoring</a></li>
-
-<li><a href="/logout">Logout</a></li>
-
-</ul>
-
+        <li><a href="/logout">Logout</a></li>
+    </ul>
 </nav>
 
 <section class="hero">
-
-<div>
-
-<h1>👨‍💼 Admin Dashboard</h1>
-
-<p>
-
-Monitor students, placement drives, applications and portal analytics from one place.
-
-</p>
-
-</div>
-
-<div>
-
-<a href="/add-company" class="heroBtn">
-
-+ Add Company
-
-</a>
-
-</div>
-
+    <div>
+        <h1>👨‍💼 Admin Dashboard</h1>
+        <p>Monitor students, placement drives, applications and portal analytics from one place.</p>
+    </div>
+    <div>
+        <a href="/add-company" class="heroBtn">+ Add Company</a>
+    </div>
 </section>
 
+<!-- KPI Metrics Grid -->
 <section class="stats">
-
-<div class="card">
-
-<div class="icon">👨‍🎓</div>
-
-<h2 id="totalStudents">0</h2>
-
-<p>Total Students</p>
-
-</div>
-
-<div class="card">
-
-<div class="icon">🏢</div>
-
-<h2 id="totalCompanies">0</h2>
-
-<p>Total Companies</p>
-
-</div>
-
-<div class="card">
-
-<div class="icon">📄</div>
-
-<h2 id="totalApplications">0</h2>
-
-<p>Total Applications</p>
-
-</div>
-
-<div class="card">
-
-<div class="icon">📝</div>
-
-<h2 id="totalTests">0</h2>
-
-<p>Total Tests</p>
-
-</div>
-
-<div class="card">
-
-<div class="icon">⭐</div>
-
-<h2 id="averageScore">0%</h2>
-
-<p>Average Score</p>
-
-</div>
-
+    <div class="card">
+        <div class="icon">👨‍🎓</div>
+        <h2 id="totalStudents">0</h2>
+        <p>Total Students</p>
+    </div>
+    <div class="card">
+        <div class="icon">🏢</div>
+        <h2 id="totalCompanies">0</h2>
+        <p>Total Companies</p>
+    </div>
+    <div class="card">
+        <div class="icon">📄</div>
+        <h2 id="totalApplications">0</h2>
+        <p>Total Applications</p>
+    </div>
+    <div class="card">
+        <div class="icon">📝</div>
+        <h2 id="totalTests">0</h2>
+        <p>Total Tests</p>
+    </div>
+    <div class="card">
+        <div class="icon">⭐</div>
+        <h2 id="averageScore">0%</h2>
+        <p>Average Score</p>
+    </div>
 </section>
 
+<!-- Quick Action Feature Cards -->
 <section class="features">
-
-<div class="feature-card">
-
-<h3>Students</h3>
-
-<p>View Registered Students</p>
-
-<a href="/students">Open</a>
-
-</div>
-
-<div class="feature-card">
-
-<h3>Add Questions</h3>
-
-<p>Add Aptitude & Technical Questions</p>
-
-<a href="/add-question">Open</a>
-
-</div>
-
-<div class="feature-card">
-
-<h3>Results</h3>
-
-<p>View Student Results</p>
-
-<a href="/results">Open</a>
-
-</div>
-
-<div class="feature-card">
-
-    <h3>Manage Questions</h3>
-
-    <p>View and Delete Questions</p>
-
-    <a href="/manage-questions">Open</a>
-
-</div>
-
     <div class="feature-card">
-    <h3>Import Questions</h3>
-    <p>Upload Excel file and import questions.</p>
-    <a href="/import-questions">Open</a>
+        <h3>Students</h3>
+        <p>View Registered Students</p>
+        <a href="/students">Open</a>
     </div>
-
-
-<div class="feature-card">
-
-    <h3>Add Placement Drive</h3>
-
-    <p>Create a new placement opportunity for students.</p>
-
-    <a href="/add-company">Add Drive</a>
-
-</div>
-
-<div class="feature-card">
-
-    <h3>Job Applications</h3>
-
-    <p>Review student submissions, download resumes, and update candidate statuses.</p>
-
-    <a href="/applications">Open</a>
-
-</div>
-
+    <div class="feature-card">
+        <h3>Add Questions</h3>
+        <p>Add Aptitude & Technical Questions</p>
+        <a href="/add-question">Open</a>
+    </div>
+    <div class="feature-card">
+        <h3>Results</h3>
+        <p>View Student Results</p>
+        <a href="/results">Open</a>
+    </div>
+    <div class="feature-card">
+        <h3>Manage Questions</h3>
+        <p>View and Delete Questions</p>
+        <a href="/manage-questions">Open</a>
+    </div>
+    <div class="feature-card">
+        <h3>Import Questions</h3>
+        <p>Bulk upload Excel (.xlsx) or PDF documents.</p>
+        <a href="/import-questions">Open</a>
+    </div>
+    <div class="feature-card">
+        <h3>Add Placement Drive</h3>
+        <p>Create a new placement opportunity for students.</p>
+        <a href="/add-company">Add Drive</a>
+    </div>
+    <div class="feature-card">
+        <h3>Job Applications</h3>
+        <p>Review student submissions, download resumes, and update candidate statuses.</p>
+        <a href="/applications">Open</a>
+    </div>
 </section>
 
-<section class="stats">
-
-    <div class="card" style="width:600px">
-
+<!-- Analytics Charts Grid -->
+<section class="charts-section">
+    <div class="chart-card">
         <h3>Portal Statistics</h3>
-
-        <canvas id="barChart"></canvas>
-
+        <div class="canvas-wrapper">
+            <canvas id="barChart"></canvas>
+        </div>
     </div>
-
-    <div class="card" style="width:450px">
-
+    <div class="chart-card">
         <h3>Distribution</h3>
-
-        <canvas id="pieChart"></canvas>
-
+        <div class="canvas-wrapper">
+            <canvas id="pieChart"></canvas>
+        </div>
     </div>
-
 </section>
 
-    <script src="/responsive.js?v=2.0"></script>
-</body>
-
-<section class="stats">
-
-    <div class="card" style="width:100%;">
-
+<!-- Recent Activity Table -->
+<section class="recent-activity-section">
+    <div class="table-card">
         <h2>Recent Activity</h2>
-
-        <table border="1" width="100%" cellpadding="10">
-
-            <thead>
-
-                <tr>
-
-                    <th>Student</th>
-                    <th>Company</th>
-                    <th>Status</th>
-                    <th>Date</th>
-
-                </tr>
-
-            </thead>
-
-            <tbody id="activityTable">
-
-            </tbody>
-
-        </table>
-
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Company</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="activityTable">
+                    <tr>
+                        <td colspan="4" style="text-align:center; color: var(--text-muted);">Loading recent activities...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
-
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+<script src="/responsive.js?v=2.3"></script>
 <script>
+let barChartInstance = null;
+let pieChartInstance = null;
 
 async function loadAnalytics() {
+    try {
+        const response = await fetch("/admin-analytics");
+        if (!response.ok) return;
+        const data = await response.json();
 
-    const response = await fetch("/admin-analytics");
-    const data = await response.json();
+        document.getElementById("totalStudents").innerText = data.totalStudents || 0;
+        document.getElementById("totalCompanies").innerText = data.totalCompanies || 0;
+        document.getElementById("totalApplications").innerText = data.totalApplications || 0;
+        document.getElementById("totalTests").innerText = data.totalTests || 0;
+        document.getElementById("averageScore").innerText = (data.averageScore || 0) + "%";
 
-    document.getElementById("totalStudents").innerHTML = data.totalStudents;
-    document.getElementById("totalCompanies").innerHTML = data.totalCompanies;
-    document.getElementById("totalApplications").innerHTML = data.totalApplications;
-    document.getElementById("totalTests").innerHTML = data.totalTests;
-    document.getElementById("averageScore").innerHTML = data.averageScore + "%";
+        // Chart styling colors dynamically based on active theme
+        const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+        const gridColor = isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.06)";
+        const textColor = isDark ? "#94a3b8" : "#64748b";
 
-    // ---------- Bar Chart ----------
+        // ---------- Bar Chart ----------
+        const barCtx = document.getElementById("barChart").getContext("2d");
+        if (barChartInstance) barChartInstance.destroy();
+        barChartInstance = new Chart(barCtx, {
+            type: "bar",
+            data: {
+                labels: ["Students", "Companies", "Applications", "Tests"],
+                datasets: [{
+                    label: "Count",
+                    data: [data.totalStudents, data.totalCompanies, data.totalApplications, data.totalTests],
+                    backgroundColor: [
+                        "rgba(79, 70, 229, 0.85)",
+                        "rgba(16, 185, 129, 0.85)",
+                        "rgba(244, 63, 94, 0.85)",
+                        "rgba(245, 158, 11, 0.85)"
+                    ],
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: textColor } },
+                    y: { grid: { color: gridColor }, ticks: { color: textColor } }
+                }
+            }
+        });
 
-    const bar = document.getElementById("barChart");
-
-    new Chart(bar, {
-
-        type: "bar",
-
-        data: {
-
-            labels: [
-                "Students",
-                "Companies",
-                "Applications",
-                "Tests"
-            ],
-
-            datasets: [{
-
-                label: "Portal Data",
-
-                data: [
-                    data.totalStudents,
-                    data.totalCompanies,
-                    data.totalApplications,
-                    data.totalTests
-                ]
-
-            }]
-
-        }
-
-    });
-
-    // ---------- Pie Chart ----------
-
-    const pie = document.getElementById("pieChart");
-
-    new Chart(pie, {
-
-        type: "pie",
-
-        data: {
-
-            labels: [
-                "Students",
-                "Companies",
-                "Applications"
-            ],
-
-            datasets: [{
-
-                data: [
-                    data.totalStudents,
-                    data.totalCompanies,
-                    data.totalApplications
-                ]
-
-            }]
-
-        }
-
-    });
-
+        // ---------- Pie Chart ----------
+        const pieCtx = document.getElementById("pieChart").getContext("2d");
+        if (pieChartInstance) pieChartInstance.destroy();
+        pieChartInstance = new Chart(pieCtx, {
+            type: "doughnut",
+            data: {
+                labels: ["Students", "Companies", "Applications"],
+                datasets: [{
+                    data: [data.totalStudents, data.totalCompanies, data.totalApplications],
+                    backgroundColor: [
+                        "rgba(79, 70, 229, 0.85)",
+                        "rgba(16, 185, 129, 0.85)",
+                        "rgba(244, 63, 94, 0.85)"
+                    ],
+                    borderWidth: 2,
+                    borderColor: isDark ? "#1e293b" : "#ffffff"
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: "bottom",
+                        labels: { color: textColor, font: { family: "Poppins", size: 12 } }
+                    }
+                }
+            }
+        });
+    } catch (e) {
+        console.error("Error loading analytics:", e);
+    }
 }
 
 async function loadRecentActivity() {
+    try {
+        const response = await fetch("/recent-activity");
+        if (!response.ok) return;
+        const activities = await response.json();
 
-    const response = await fetch("/recent-activity");
+        let html = "";
 
-    const activities = await response.json();
+        if (activities.length === 0) {
+            html = `<tr><td colspan="4" style="text-align:center; color: var(--text-muted); padding: 20px;">No Recent Activity</td></tr>`;
+        } else {
+            activities.forEach(activity => {
+                const statusClass = (activity.status || "").toLowerCase();
+                let badgeClass = "status-applied";
+                if (statusClass.includes("shortlist")) badgeClass = "status-shortlisted";
+                else if (statusClass.includes("interview")) badgeClass = "status-interview";
+                else if (statusClass.includes("select")) badgeClass = "status-selected";
+                else if (statusClass.includes("reject")) badgeClass = "status-rejected";
 
-    let html = "";
+                html += `
+                <tr>
+                    <td><strong>${activity.userId ? activity.userId.name : "-"}</strong></td>
+                    <td>${activity.companyId ? activity.companyId.companyName : "-"}</td>
+                    <td><span class="status-badge ${badgeClass}">${activity.status}</span></td>
+                    <td>${new Date(activity.appliedAt).toLocaleDateString()}</td>
+                </tr>
+                `;
+            });
+        }
 
-    if (activities.length === 0) {
-
-        html = `
-        <tr>
-            <td colspan="4" style="text-align:center;">
-                No Recent Activity
-            </td>
-        </tr>
-        `;
-
-    } else {
-
-        activities.forEach(activity => {
-
-            html += `
-            <tr>
-                <td>${activity.userId ? activity.userId.name : "-"}</td>
-                <td>${activity.companyId ? activity.companyId.companyName : "-"}</td>
-                <td>${activity.status}</td>
-                <td>${new Date(activity.appliedAt).toLocaleDateString()}</td>
-            </tr>
-            `;
-
-        });
-
+        document.getElementById("activityTable").innerHTML = html;
+    } catch (e) {
+        console.error("Error loading recent activity:", e);
     }
-
-    document.getElementById("activityTable").innerHTML = html;
-
 }
 
 async function checkAdminRole() {
@@ -365,15 +274,20 @@ async function checkAdminRole() {
         }
         const admin = await response.json();
         
-        // Render name/role
+        // Render name/role badge dynamically
         const heroText = document.querySelector(".hero h1");
         if (heroText) {
-            heroText.innerHTML = `👨‍💼 Admin Dashboard <span style="font-size: 14px; font-weight: normal; background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 8px; vertical-align: middle; margin-left: 10px;">${admin.role.toUpperCase()}</span>`;
+            heroText.innerHTML = `👨‍💼 Admin Dashboard <span class="role-pill">${admin.role.toUpperCase()}</span>`;
         }
 
         // Filter features and navigation based on admin role
         if (admin.role === "admin") {
-            // Hide /students nav item, keep /applications
+            // Display company name in hero title
+            if (heroText) {
+                heroText.innerHTML = `🏢 ${admin.companyName || 'Company'} Admin Dashboard <span class="role-pill">COMPANY ADMIN</span>`;
+            }
+
+            // Hide superadmin-only navigation links
             document.querySelectorAll("nav ul li").forEach(li => {
                 const a = li.querySelector("a");
                 if (a && a.getAttribute("href") === "/students") {
@@ -381,16 +295,15 @@ async function checkAdminRole() {
                 }
             });
             
-            // Hide the heroBtn (Add Company) for company admins
             const heroBtn = document.querySelector(".heroBtn");
             if (heroBtn) heroBtn.style.display = "none";
             
-            // Filter features cards to only show: Add Placement Drive, Job Applications
+            // Allow company admins to access question management, PDF/Excel import, applications, results, proctoring
             document.querySelectorAll(".features .feature-card").forEach(card => {
                 const h3 = card.querySelector("h3");
                 if (h3) {
                     const text = h3.innerText.toLowerCase();
-                    if (text.includes("add placement") || text.includes("job applications")) {
+                    if (text.includes("import") || text.includes("questions") || text.includes("applications") || text.includes("results")) {
                         card.style.display = "block";
                     } else {
                         card.style.display = "none";
@@ -398,9 +311,8 @@ async function checkAdminRole() {
                 }
             });
         } else if (admin.role === "superadmin") {
-            // Show Admin Management Card
             const featuresSec = document.querySelector(".features");
-            if (featuresSec) {
+            if (featuresSec && !document.getElementById("manageAdminsCard")) {
                 const manageCard = document.createElement("div");
                 manageCard.className = "feature-card";
                 manageCard.id = "manageAdminsCard";
@@ -420,6 +332,6 @@ async function checkAdminRole() {
 loadAnalytics();
 loadRecentActivity();
 checkAdminRole();
-
 </script>
+</body>
 </html>

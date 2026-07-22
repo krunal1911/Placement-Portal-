@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Results | Admin Console</title>
-    <link rel="stylesheet" href="/dashboard.css?v=2.2">
-    <link rel="stylesheet" href="/admin-dashboard.css?v=2.2">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/responsive.css?v=2.0">
+    <link rel="stylesheet" href="/dashboard.css?v=2.3">
+    <link rel="stylesheet" href="/admin-dashboard.css?v=2.3">
+    <link rel="stylesheet" href="/responsive.css?v=2.3">
 </head>
 <body>
 
@@ -26,20 +26,20 @@
     </ul>
 </nav>
 
-<div class="container">
+<div class="container" style="max-width: 1000px; margin: 40px auto; padding: 0 20px;">
     <div style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
         <div>
             <a href="/admin-dashboard" style="text-decoration: none; color: var(--text-muted); font-size: 14px; font-weight: 500;">← Back to Dashboard</a>
-            <h1 style="font-size: 28px; font-weight: 700; color: #1e3a8a; margin-top: 8px;">📊 Assessment Results</h1>
+            <h1 style="font-size: 28px; font-weight: 700; color: var(--text-main); margin-top: 8px;">📊 Assessment Results</h1>
             <p style="color: var(--text-muted); font-size: 14px;">Monitor student practice scores and test performance ratios.</p>
         </div>
     </div>
 
     <!-- Filters Control Bar -->
-    <div class="card" style="margin-bottom: 30px; text-align: left; display: flex; gap: 16px; align-items: center; padding: 20px;">
-        <div style="flex: 1;">
+    <div class="card" style="margin-bottom: 30px; text-align: left; display: flex; gap: 16px; align-items: center; padding: 20px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 220px;">
             <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Search Candidate</label>
-            <input type="text" id="search" placeholder="🔍 Search student name..." onkeyup="searchResults()" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;">
+            <input type="text" id="search" placeholder="🔍 Search student name..." onkeyup="searchResults()" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: var(--bg-card); color: var(--text-main);">
         </div>
         <div style="margin-top: 20px;">
             <button class="btn btn-secondary" onclick="resetSearch()" style="padding: 11px 20px; font-size: 13px;">Clear Search</button>
@@ -47,97 +47,90 @@
     </div>
 
     <!-- Results Data Table -->
-    <div style="background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow-sm);">
-        <table style="margin: 0; border: none; box-shadow: none;">
+    <div style="background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border); overflow-x: auto; box-shadow: var(--shadow-sm); margin-bottom: 30px;">
+        <table style="margin: 0; border: none; box-shadow: none; width: 100%;">
             <thead>
                 <tr>
                     <th>Student Name</th>
-                    <th>Email Address</th>
-                    <th style="text-align: center;">Score Obtained</th>
-                    <th style="text-align: center;">Total Questions</th>
-                    <th style="text-align: center;">Performance Ratio</th>
-                    <th style="text-align: center;">Actions</th>
+                    <th>Score</th>
+                    <th>Total Questions</th>
+                    <th>Percentage</th>
+                    <th>Date Taken</th>
+                    <th style="text-align: center;">PDF Action</th>
                 </tr>
             </thead>
-            <tbody id="resultTable">
+            <tbody id="resultsTable">
                 <tr>
-                    <td colspan="6" style="text-align: center; color: var(--text-muted);">Loading assessment scores...</td>
+                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">Loading student test results...</td>
                 </tr>
             </tbody>
         </table>
     </div>
 </div>
 
+<script src="/responsive.js?v=2.3"></script>
 <script>
-let results = [];
+let resultsData = [];
 
 async function loadResults() {
     try {
         const response = await fetch("/results-data");
         if (!response.ok) throw new Error("Unauthorized");
-        results = await response.json();
-        displayResults(results);
+        resultsData = await response.json();
+        displayResults(resultsData);
     } catch (e) {
         console.error(e);
-        document.getElementById("resultTable").innerHTML = '<tr><td colspan="6" style="text-align:center; color:red;">Failed to load results.</td></tr>';
+        document.getElementById("resultsTable").innerHTML = '<tr><td colspan="6" style="text-align:center; color:red; padding: 24px;">Failed to load student results.</td></tr>';
     }
 }
 
 function displayResults(data) {
     let html = "";
     if (data.length === 0) {
-        html = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No student results found.</td></tr>`;
+        html = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding: 24px;">No test results recorded yet.</td></tr>`;
     } else {
         data.forEach(result => {
-            const userName = result.userId ? result.userId.name : "Unknown Student";
-            const userEmail = result.userId ? result.userId.email : "N/A";
-            const percentage = result.percentage || Math.round((result.score / result.totalQuestions) * 100) || 0;
+            const studentName = result.userId ? result.userId.name : (result.studentName || "Anonymous Candidate");
+            const pct = result.percentage || Math.round((result.score / result.totalQuestions) * 100) || 0;
             
-            // Format percentage badge color
-            let badgeStyle = "background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca;";
-            if (percentage >= 75) {
-                badgeStyle = "background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0;";
-            } else if (percentage >= 50) {
-                badgeStyle = "background: #fffbeb; color: #d97706; border: 1px solid #fde68a;";
-            }
+            let pctColor = "var(--primary)";
+            if (pct >= 80) pctColor = "var(--success)";
+            else if (pct < 50) pctColor = "var(--error)";
+
+            const timestamp = new Date(result.createdAt || Date.now()).toLocaleDateString() + " " + new Date(result.createdAt || Date.now()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
             html += `
                 <tr>
-                    <td style="font-weight: 500;">${userName}</td>
-                    <td>${userEmail}</td>
-                    <td style="text-align: center; font-weight: 600;">${result.score}</td>
-                    <td style="text-align: center;">${result.totalQuestions}</td>
+                    <td style="font-weight: 500;">${studentName}</td>
+                    <td><strong>${result.score}</strong></td>
+                    <td>${result.totalQuestions}</td>
+                    <td><span style="font-weight: 700; color: ${pctColor};">${pct}%</span></td>
+                    <td style="font-size: 13px; color: var(--text-muted);">${timestamp}</td>
                     <td style="text-align: center;">
-                        <span class="status-badge" style="${badgeStyle}">${percentage}%</span>
-                    </td>
-                    <td style="text-align: center;">
-                        <a href="/export-result-pdf/${result._id}" class="btn" style="padding: 6px 12px; font-size: 12px; background: #dc2626; border-color: #dc2626; color: white; text-decoration: none; display: inline-block; border-radius: 6px;">PDF Report</a>
+                        <a href="/export-result-pdf/${result._id}" target="_blank" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; text-decoration: none;">📄 Export PDF</a>
                     </td>
                 </tr>
             `;
         });
     }
-    document.getElementById("resultTable").innerHTML = html;
+    document.getElementById("resultsTable").innerHTML = html;
 }
 
 function searchResults() {
-    const key = document.getElementById("search").value.toLowerCase();
-    const filtered = results.filter(r => {
-        const name = r.userId ? r.userId.name.toLowerCase() : "";
-        const email = r.userId ? r.userId.email.toLowerCase() : "";
-        return name.includes(key) || email.includes(key);
+    const query = document.getElementById("search").value.toLowerCase();
+    const filtered = resultsData.filter(res => {
+        const name = (res.userId ? res.userId.name : (res.studentName || "")).toLowerCase();
+        return name.includes(query);
     });
     displayResults(filtered);
 }
 
 function resetSearch() {
     document.getElementById("search").value = "";
-    displayResults(results);
+    displayResults(resultsData);
 }
 
 loadResults();
 </script>
-
-    <script src="/responsive.js?v=2.0"></script>
 </body>
 </html>

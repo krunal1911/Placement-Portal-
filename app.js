@@ -73,26 +73,6 @@ const initializeSettings = async () => {
                 role: "admin"
             });
             console.log('✅ Default admins created successfully!');
-        } else {
-            // Automatically upgrade weak default passwords to secure ones
-            const superadminAcc = await Admin.findOne({ username: "superadmin" });
-            if (superadminAcc) {
-                const isWeak = await bcrypt.compare("superadmin123", superadminAcc.password);
-                if (isWeak) {
-                    superadminAcc.password = await bcrypt.hash("placementSuperAdmin2026!", 10);
-                    await superadminAcc.save();
-                    console.log("🔒 Automatically upgraded superadmin password to secure 'placementSuperAdmin2026!'");
-                }
-            }
-            const adminAcc = await Admin.findOne({ username: "admin" });
-            if (adminAcc) {
-                const isWeak = await bcrypt.compare("admin123", adminAcc.password);
-                if (isWeak) {
-                    adminAcc.password = await bcrypt.hash("placementCompanyAdmin2026!", 10);
-                    await adminAcc.save();
-                    console.log("🔒 Automatically upgraded admin password to secure 'placementCompanyAdmin2026!'");
-                }
-            }
         }
     } catch (err) {
         console.error('Failed to initialize settings/admins:', err);

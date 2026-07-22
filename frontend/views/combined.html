@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Combined Assessment | TCS iON Exam Console</title>
     <link rel="stylesheet" href="/tcs-theme.css">
-    <link rel="stylesheet" href="/dashboard.css?v=2.2">
+    <link rel="stylesheet" href="/dashboard.css?v=2.3">
     <link rel="stylesheet" href="/toast.css">
     <script src="/toast.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/responsive.css?v=2.0">
+    <link rel="stylesheet" href="/responsive.css?v=2.3">
 </head>
 <body class="tcs-exam-body">
 
@@ -525,7 +525,7 @@ function showResults(score) {
                     <b>Correct Answer:</b> <span style="font-weight: 600;">${correctAns}</span>
                 </p>
                 ${q.explanation ? `
-                    <div style="font-size: 12px; background: white; padding: 12px; border-radius: 8px; border-left: 3px solid #3b82f6; color: #475569;">
+                    <div style="font-size: 12px; background: var(--bg-main); padding: 12px; border-radius: 8px; border-left: 3px solid var(--primary); color: var(--text-main);">
                         <b>Explanation:</b> ${q.explanation}
                     </div>` : ''}
             </div>
@@ -678,6 +678,6 @@ function setupProctoring() {
 
 loadQuestions();
 </script>
-    <script src="/responsive.js?v=2.0"></script>
+    <script src="/responsive.js?v=2.3"></script>
 </body>
 </html>

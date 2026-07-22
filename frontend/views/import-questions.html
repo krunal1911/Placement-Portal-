@@ -1,13 +1,14 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Import Questions | Admin Console</title>
-    <link rel="stylesheet" href="/dashboard.css?v=2.2">
-    <link rel="stylesheet" href="/admin-dashboard.css?v=2.2">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/dashboard.css?v=2.3">
+    <link rel="stylesheet" href="/admin-dashboard.css?v=2.3">
+    <link rel="stylesheet" href="/responsive.css?v=2.3">
     <style>
         .import-box {
             border: 2px dashed var(--border);
@@ -23,28 +24,28 @@
             border-color: var(--primary);
             background: var(--primary-light);
         }
-        .excel-info {
-            background: #eff6ff;
-            border: 1px solid #bfdbfe;
+        .info-card {
+            background: var(--primary-light);
+            border: 1px solid var(--border);
             border-radius: 12px;
             padding: 20px;
             margin-top: 24px;
             text-align: left;
         }
-        .excel-info h4 {
-            color: #1e40af;
-            font-size: 14px;
-            margin-bottom: 8px;
+        .info-card h4 {
+            color: var(--primary);
+            font-size: 15px;
+            margin-bottom: 10px;
             font-weight: 600;
         }
-        .excel-info ul {
+        .info-card ul {
             font-size: 13px;
-            color: #1e3a8a;
+            color: var(--text-main);
             padding-left: 20px;
             line-height: 1.6;
+            margin: 0;
         }
     </style>
-    <link rel="stylesheet" href="/responsive.css?v=2.0">
 </head>
 <body>
 
@@ -62,52 +63,104 @@
     </ul>
 </nav>
 
-<div class="container" style="max-width: 700px; margin: 40px auto; padding: 0 24px;">
+<div class="container" style="max-width: 760px; margin: 40px auto; padding: 0 24px;">
     <div style="margin-bottom: 24px; text-align: center;">
-        <h1 style="font-size: 28px; font-weight: 700; color: #1e3a8a;">📥 Import Questions via Excel</h1>
-        <p style="color: var(--text-muted); font-size: 14px;">Upload an Excel spreadsheet (.xlsx or .xls) to bulk import aptitude questions.</p>
+        <a href="/add-question" style="text-decoration: none; color: var(--text-muted); font-size: 14px; font-weight: 500;">← Back to Assessment Builder</a>
+        <h1 style="font-size: 28px; font-weight: 700; color: var(--text-main); margin-top: 8px;">📥 Import Questions via Excel or PDF</h1>
+        <p style="color: var(--text-muted); font-size: 14px;">Upload an Excel spreadsheet (.xlsx, .xls) or PDF document (.pdf) to bulk import questions into your company's question bank.</p>
     </div>
 
-    <div class="form-card" style="max-width: 100%;">
+    <div class="card" style="max-width: 100%; padding: 30px;">
         <form action="/import-questions" method="POST" enctype="multipart/form-data">
-            <div class="import-box" onclick="document.getElementById('excelFile').click()">
-                <div style="font-size: 40px; margin-bottom: 12px;">📊</div>
-                <div style="font-weight: 600; font-size: 15px; color: var(--text-main); margin-bottom: 4px;">Click to Select Spreadsheet</div>
-                <div style="font-size: 12px; color: var(--text-muted);">Supports .xlsx and .xls formats</div>
-                
-                <input type="file" id="excelFile" name="excelFile" accept=".xlsx,.xls" required style="display: none;" onchange="showFilename(this)">
-                <div id="selectedFilename" style="margin-top: 14px; font-size: 13px; font-weight: 600; color: var(--primary); display: none;"></div>
+            
+            <!-- Target Company Selection -->
+            <div style="margin-bottom: 24px; text-align: left;">
+                <label for="companySelect" style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Assign to Company / Placement Drive</label>
+                <select id="companySelect" name="companyName" required style="width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: var(--bg-card); color: var(--text-main);">
+                    <option value="General">General (Default Practice Bank)</option>
+                </select>
+                <span id="companyNote" style="font-size: 12px; color: var(--text-muted); display: block; margin-top: 4px;">Questions will be associated with this company profile for student recruitment tests.</span>
             </div>
 
-            <div style="display: flex; gap: 16px;">
-                <button type="submit" class="btn btn-primary" style="flex: 2;">Import Questions</button>
-                <a href="/admin-dashboard" class="btn btn-secondary" style="flex: 1; text-decoration: none; text-align: center;">Cancel</a>
+            <!-- Upload Drop Box -->
+            <div class="import-box" onclick="document.getElementById('importFile').click()">
+                <div style="font-size: 44px; margin-bottom: 12px;">📊 📄</div>
+                <div style="font-weight: 600; font-size: 16px; color: var(--text-main); margin-bottom: 4px;">Click to Select Question File</div>
+                <div style="font-size: 13px; color: var(--text-muted);">Supports Excel (.xlsx, .xls) and PDF (.pdf) documents</div>
+                
+                <input type="file" id="importFile" name="importFile" accept=".xlsx,.xls,.pdf" required style="display: none;" onchange="showFilename(this)">
+                <div id="selectedFilename" style="margin-top: 14px; font-size: 14px; font-weight: 600; color: var(--primary); display: none;"></div>
+            </div>
+
+            <div style="display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap;">
+                <button type="submit" class="btn btn-primary" style="flex: 2; min-width: 200px;">🚀 Import Questions Now</button>
+                <a href="/download-question-template" class="btn btn-secondary" style="flex: 1; text-decoration: none; text-align: center; min-width: 180px;">📥 Download Sample Excel Template</a>
             </div>
         </form>
 
-        <div class="excel-info">
-            <h4>Spreadsheet Format Guideline:</h4>
+        <div class="info-card">
+            <h4>📋 Formatting Instructions & Guidelines:</h4>
             <ul>
-                <li>The sheet must contain these column headers: <b>Question</b>, <b>Option A</b>, <b>Option B</b>, <b>Option C</b>, <b>Option D</b>, <b>Answer</b></li>
-                <li>The <b>Answer</b> column values must match the text of the correct option exactly.</li>
-                <li>Optional columns: <b>Explanation</b>, <b>Topic</b>, <b>Difficulty</b> (Easy, Medium, Hard).</li>
+                <li><b>Excel (.xlsx / .xls):</b> Required headers: <code>Question</code>, <code>Option A</code>, <code>Option B</code>, <code>Option C</code>, <code>Option D</code>, <code>Answer</code>. Optional headers: <code>Explanation</code>, <code>Topic</code>, <code>Difficulty</code>.</li>
+                <li><b>PDF (.pdf):</b> Ensure questions follow a standard exam paper layout (e.g., <code>Question text</code>, <code>A) ... B) ... C) ... D) ... Answer: A</code>).</li>
+                <li><b>Automatic Duplicate Guard:</b> Questions with matching text will be skipped automatically to prevent duplicate questions.</li>
             </ul>
         </div>
     </div>
 </div>
 
+<script src="/responsive.js?v=2.3"></script>
 <script>
 function showFilename(input) {
-    const filenameDiv = document.getElementById("selectedFilename");
-    if (input.files && input.files.length > 0) {
-        filenameDiv.innerText = "📁 Selected: " + input.files[0].name;
-        filenameDiv.style.display = "block";
+    const display = document.getElementById("selectedFilename");
+    if (input.files && input.files[0]) {
+        display.innerText = "📄 Selected: " + input.files[0].name + " (" + (input.files[0].size / 1024).toFixed(1) + " KB)";
+        display.style.display = "block";
     } else {
-        filenameDiv.style.display = "none";
+        display.innerText = "";
+        display.style.display = "none";
     }
 }
-</script>
 
-    <script src="/responsive.js?v=2.0"></script>
+async function loadCompanyOptions() {
+    try {
+        const adminRes = await fetch("/current-admin");
+        let currentAdmin = null;
+        if (adminRes.ok) {
+            currentAdmin = await adminRes.json();
+        }
+
+        const compRes = await fetch("/companies-list");
+        let companies = [];
+        if (compRes.ok) {
+            companies = await compRes.json();
+        }
+
+        const select = document.getElementById("companySelect");
+
+        if (currentAdmin && currentAdmin.role === "admin" && currentAdmin.companyName) {
+            // Company Admin - lock to their assigned company
+            select.innerHTML = `<option value="${currentAdmin.companyName}">${currentAdmin.companyName}</option>`;
+            select.disabled = true;
+            document.getElementById("companyNote").innerText = `Logged in as Company Admin for ${currentAdmin.companyName}. Questions will be tagged under ${currentAdmin.companyName}.`;
+        } else {
+            // Super Admin - allow selecting any company drive or General
+            let optionsHtml = `<option value="General">General (Default Practice Bank)</option>`;
+            const seen = new Set();
+            companies.forEach(c => {
+                if (c.companyName && !seen.has(c.companyName)) {
+                    seen.add(c.companyName);
+                    optionsHtml += `<option value="${c.companyName}">${c.companyName} (${c.jobRole || 'Drive'})</option>`;
+                }
+            });
+            select.innerHTML = optionsHtml;
+        }
+    } catch (e) {
+        console.error("Failed to load company list:", e);
+    }
+}
+
+loadCompanyOptions();
+</script>
 </body>
 </html>

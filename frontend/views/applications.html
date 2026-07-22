@@ -4,16 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Company Applications | Admin Console</title>
-    <link rel="stylesheet" href="/dashboard.css?v=2.2">
-    <link rel="stylesheet" href="/admin-dashboard.css?v=2.2">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/responsive.css?v=2.0">
+    <link rel="stylesheet" href="/dashboard.css?v=2.3">
+    <link rel="stylesheet" href="/admin-dashboard.css?v=2.3">
+    <link rel="stylesheet" href="/responsive.css?v=2.3">
     <style>
         /* Mobile responsive cards styling */
         .mobile-app-card {
             display: none;
-            background: white;
+            background: var(--bg-card);
+            color: var(--text-main);
             border-radius: 12px;
             border: 1px solid var(--border);
             padding: 16px;
@@ -81,7 +82,7 @@
 <div class="container" style="max-width: 1100px; margin: 40px auto; padding: 0 20px;">
     <div style="margin-bottom: 24px; text-align: left;">
         <a href="/admin-dashboard" style="text-decoration: none; color: var(--text-muted); font-size: 14px; font-weight: 500;">← Back to Dashboard</a>
-        <h1 style="font-size: 28px; font-weight: 700; color: #1e3a8a; margin-top: 8px;">🏢 Company Applications</h1>
+        <h1 style="font-size: 28px; font-weight: 700; color: var(--text-main); margin-top: 8px;">🏢 Company Applications</h1>
         <p style="color: var(--text-muted); font-size: 14px;">Review student job applications, shortlist candidates, download resumes, and update statuses.</p>
     </div>
 
@@ -89,7 +90,7 @@
     <div class="card filter-bar-card" style="margin-bottom: 30px; text-align: left; display: flex; gap: 16px; align-items: center; padding: 20px;">
         <div style="flex: 1;">
             <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Search Applications</label>
-            <input type="text" id="search" placeholder="🔍 Search by student name, company, or job role..." onkeyup="searchApplications()" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;">
+            <input type="text" id="search" placeholder="🔍 Search by student name, company, or job role..." onkeyup="searchApplications()" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: var(--bg-card); color: var(--text-main);">
         </div>
         <div style="margin-top: 20px;">
             <button class="btn btn-secondary" onclick="resetSearch()" style="padding: 11px 20px; font-size: 13px;">Clear Filter</button>
@@ -97,7 +98,7 @@
     </div>
 
     <!-- Desktop View: Data Table -->
-    <div class="table-container" style="background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow-sm); margin-bottom: 30px;">
+    <div class="table-container" style="background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border); overflow-x: auto; box-shadow: var(--shadow-sm); margin-bottom: 30px;">
         <table style="margin: 0; border: none; box-shadow: none; width: 100%;">
             <thead>
                 <tr>
@@ -125,6 +126,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="/responsive.js?v=2.3"></script>
 <script>
 let applications = [];
 
@@ -158,11 +160,11 @@ function displayApplications(data) {
             const status = app.status || "Applied";
             
             const resumeHtml = app.userId && app.userId.resume
-                ? `<a href="/view-resume/${app.userId._id}" target="_blank" class="btn" style="padding: 6px 12px; font-size:11px; background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; font-weight:600; text-decoration:none; border-radius:6px; display:inline-flex; align-items:center; gap:4px;">📄 View PDF</a>`
+                ? `<a href="/view-resume/${app.userId._id}" target="_blank" class="btn" style="padding: 6px 12px; font-size:11px; background:var(--primary-light); color:var(--primary); border:1px solid var(--border); font-weight:600; text-decoration:none; border-radius:6px; display:inline-flex; align-items:center; gap:4px;">📄 View PDF</a>`
                 : `<span style="color:var(--text-muted); font-size:12px;">No Resume</span>`;
 
             const statusOptions = `
-                <select id="status-${app._id}" style="padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: white; width: 100%; min-width: 140px;">
+                <select id="status-${app._id}" style="padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: var(--bg-card); color: var(--text-main); width: 100%; min-width: 140px;">
                     <option value="Applied" ${status === "Applied" ? "selected" : ""}>Applied</option>
                     <option value="Shortlisted" ${status === "Shortlisted" ? "selected" : ""}>Shortlisted</option>
                     <option value="Interview Scheduled" ${status === "Interview Scheduled" ? "selected" : ""}>Interview Scheduled</option>
@@ -176,7 +178,7 @@ function displayApplications(data) {
                 <tr>
                     <td style="font-weight: 500;">${userName}</td>
                     <td style="font-size: 13px; color: var(--text-muted);">${userEmail}</td>
-                    <td style="font-weight: 500; color: #1e3a8a;">${companyName}</td>
+                    <td style="font-weight: 500; color: var(--primary);">${companyName}</td>
                     <td>${jobRole}</td>
                     <td>${resumeHtml}</td>
                     <td>${statusOptions}</td>
@@ -191,7 +193,7 @@ function displayApplications(data) {
             mobileHtml += `
                 <div class="mobile-app-card">
                     <div class="mobile-card-row" style="border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:10px;">
-                        <span class="mobile-label" style="font-size:15px; color:#1e3a8a;">${userName}</span>
+                        <span class="mobile-label" style="font-size:15px; color:var(--primary);">${userName}</span>
                         <span>${resumeHtml}</span>
                     </div>
                     <div class="mobile-card-row">
@@ -206,7 +208,7 @@ function displayApplications(data) {
                         <span class="mobile-label">Job Role:</span>
                         <span class="mobile-val">${jobRole}</span>
                     </div>
-                    <div class="mobile-card-row" style="margin-top:12px; border-top:1px solid #f1f5f9; padding-top:12px; align-items:center;">
+                    <div class="mobile-card-row" style="margin-top:12px; border-top:1px solid var(--border); padding-top:12px; align-items:center;">
                         <div style="flex:1; margin-right:10px;">
                             ${statusOptionsMobile}
                         </div>
@@ -221,72 +223,14 @@ function displayApplications(data) {
     document.getElementById("mobileCardsContainer").innerHTML = mobileHtml;
 }
 
-async function updateStatus(id, isMobile = false) {
-    const elementId = isMobile ? `status-mob-${id}` : `status-${id}`;
-    const status = document.getElementById(elementId).value;
-    
-    // Find trigger button
-    const searchClass = isMobile ? `onclick="updateStatus('${id}', true)"` : `onclick="updateStatus('${id}')"`;
-    const saveBtn = document.querySelector(`button[${searchClass}]`);
-    if (saveBtn) {
-        saveBtn.disabled = true;
-        saveBtn.innerText = "Saving...";
-    }
-
-    try {
-        const response = await fetch("/update-status", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ id, status })
-        });
-
-        const text = await response.text();
-
-        if (response.ok) {
-            Swal.fire({
-                icon: "success",
-                title: "Status Saved!",
-                text: "Application state successfully updated in candidate registry.",
-                confirmButtonColor: "#3b82f6"
-            });
-            // Update the counterpart dropdown value to keep both sync
-            const otherElementId = isMobile ? `status-${id}` : `status-mob-${id}`;
-            const otherSelect = document.getElementById(otherElementId);
-            if (otherSelect) otherSelect.value = status;
-        } else {
-            Swal.fire({
-                icon: "error",
-                title: "Update Failed",
-                text: text || "Failed to update candidate status.",
-                confirmButtonColor: "#3b82f6"
-            });
-        }
-    } catch (e) {
-        console.error(e);
-        Swal.fire({
-            icon: "error",
-            title: "Network Error",
-            text: "Could not connect to the server.",
-            confirmButtonColor: "#3b82f6"
-        });
-    } finally {
-        if (saveBtn) {
-            saveBtn.disabled = false;
-            saveBtn.innerText = "Save";
-        }
-    }
-}
-
 function searchApplications() {
-    const key = document.getElementById("search").value.toLowerCase();
+    const val = document.getElementById("search").value.toLowerCase();
     const filtered = applications.filter(app => {
-        const name = app.userId ? app.userId.name.toLowerCase() : "";
-        const email = app.userId ? app.userId.email.toLowerCase() : "";
-        const comp = app.companyId ? app.companyId.companyName.toLowerCase() : "";
+        const studentName = app.userId ? app.userId.name.toLowerCase() : "";
+        const studentEmail = app.userId ? app.userId.email.toLowerCase() : "";
+        const company = app.companyId ? app.companyId.companyName.toLowerCase() : "";
         const role = app.companyId ? app.companyId.jobRole.toLowerCase() : "";
-        return name.includes(key) || email.includes(key) || comp.includes(key) || role.includes(key);
+        return studentName.includes(val) || studentEmail.includes(val) || company.includes(val) || role.includes(val);
     });
     displayApplications(filtered);
 }
@@ -296,9 +240,40 @@ function resetSearch() {
     displayApplications(applications);
 }
 
+async function updateStatus(appId, isMobile = false) {
+    const selectId = isMobile ? `status-mob-${appId}` : `status-${appId}`;
+    const selectElem = document.getElementById(selectId);
+    if (!selectElem) return;
+    
+    const newStatus = selectElem.value;
+
+    try {
+        const res = await fetch(`/update-application-status/${appId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: newStatus })
+        });
+        const result = await res.json();
+        
+        if (res.ok) {
+            Swal.fire({
+                icon: "success",
+                title: "Status Updated",
+                text: `Application status updated to "${newStatus}".`,
+                timer: 2000,
+                showConfirmButton: false
+            });
+            loadApplications();
+        } else {
+            Swal.fire("Error", result.message || "Failed to update status", "error");
+        }
+    } catch (e) {
+        console.error(e);
+        Swal.fire("Error", "Server connection error", "error");
+    }
+}
+
 loadApplications();
 </script>
-
-<script src="/responsive.js?v=2.0"></script>
 </body>
 </html>

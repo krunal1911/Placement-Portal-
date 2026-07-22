@@ -1,15 +1,17 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Applications | Placement Portal</title>
-    <link rel="stylesheet" href="/dashboard.css?v=2.2">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/dashboard.css?v=2.3">
+    <link rel="stylesheet" href="/responsive.css?v=2.3">
     <style>
         .application-card {
-            background: white;
+            background: var(--bg-card);
+            color: var(--text-main);
             border-radius: 16px;
             border: 1px solid var(--border);
             padding: 24px;
@@ -28,21 +30,25 @@
             margin-bottom: 24px;
             border-bottom: 1px solid var(--border);
             padding-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 16px;
         }
         .app-meta {
             display: flex;
             gap: 24px;
             color: var(--text-muted);
             font-size: 13px;
+            flex-wrap: wrap;
+            margin-top: 6px;
         }
         .badge {
             font-size: 12px;
             font-weight: 600;
             padding: 6px 12px;
             border-radius: 20px;
+            display: inline-block;
         }
     </style>
-    <link rel="stylesheet" href="/responsive.css?v=2.0">
 </head>
 <body>
 
@@ -66,13 +72,13 @@
     </div>
 
     <div id="applicationsContainer">
-        <!-- Rendered dynamically -->
         <div style="text-align: center; padding: 40px; color: var(--text-muted);">
             Loading applications...
         </div>
     </div>
 </div>
 
+<script src="/responsive.js?v=2.3"></script>
 <script>
 async function loadApplications() {
     try {
@@ -82,9 +88,9 @@ async function loadApplications() {
         const container = document.getElementById("applicationsContainer");
         if (applications.length === 0) {
             container.innerHTML = `
-                <div style="background: white; border: 1px solid var(--border); border-radius: 16px; padding: 48px; text-align: center;">
+                <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 48px; text-align: center;">
                     <div style="font-size: 48px; margin-bottom: 16px;">📁</div>
-                    <h3 style="font-size: 18px; font-weight: 600; color: #1e3a8a; margin-bottom: 8px;">No Applications Yet</h3>
+                    <h3 style="font-size: 18px; font-weight: 600; color: var(--text-main); margin-bottom: 8px;">No Applications Yet</h3>
                     <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">Browse and apply to our live placement drives to kickstart your tracking.</p>
                     <a href="/placement-drives" class="btn btn-primary">Browse Companies</a>
                 </div>
@@ -96,13 +102,12 @@ async function loadApplications() {
         
         applications.forEach(app => {
             const steps = ["Applied", "Shortlisted", "Interview Scheduled", "Selected"];
-            let currentStatus = app.status; // "Applied", "Shortlisted", "Interview Scheduled", "Selected", "Rejected"
+            let currentStatus = app.status;
             
             let isRejected = currentStatus === "Rejected";
             let activeIdx = steps.indexOf(currentStatus);
             if (isRejected) {
-                // If rejected, mark steps up to whatever point they got to, and show a final rejected stage
-                activeIdx = 2; // Arbitrary final visual indicator step
+                activeIdx = 2;
             }
             
             let badgeClass = "status-applied";
@@ -115,11 +120,11 @@ async function loadApplications() {
                 <div class="application-card">
                     <div class="app-header">
                         <div>
-                            <h2 style="font-size: 20px; font-weight: 700; color: #1e3a8a; margin-bottom: 4px;">${app.companyId.companyName}</h2>
+                            <h2 style="font-size: 20px; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">${app.companyId ? app.companyId.companyName : 'Company'}</h2>
                             <div class="app-meta">
-                                <span><b>Role:</b> ${app.companyId.jobRole}</span>
-                                <span><b>CTC:</b> ${app.companyId.package}</span>
-                                <span><b>Location:</b> ${app.companyId.location}</span>
+                                <span><b>Role:</b> ${app.companyId ? app.companyId.jobRole : '-'}</span>
+                                <span><b>CTC:</b> ${app.companyId ? app.companyId.package : '-'}</span>
+                                <span><b>Location:</b> ${app.companyId ? app.companyId.location : '-'}</span>
                                 <span><b>Applied On:</b> ${new Date(app.appliedAt).toLocaleDateString()}</span>
                             </div>
                         </div>
@@ -129,28 +134,24 @@ async function loadApplications() {
                     </div>
                     
                     <div class="pipeline-container">
-                        <!-- Step 1: Applied -->
                         <div class="pipeline-step ${activeIdx >= 0 && !isRejected ? 'completed' : (activeIdx >= 0 ? 'active' : '')}">
                             1
                             <span class="pipeline-label">Applied</span>
                         </div>
                         
-                        <!-- Step 2: Shortlisted -->
                         <div class="pipeline-step ${activeIdx >= 1 && !isRejected ? 'completed' : (activeIdx === 1 ? 'active' : '')}">
                             2
                             <span class="pipeline-label">Shortlisted</span>
                         </div>
                         
-                        <!-- Step 3: Interview -->
-                        <div class="pipeline-step ${activeIdx >= 2 && !isRejected ? 'completed' : (activeIdx === 2 && !isRejected ? 'active' : '')}">
+                        <div class="pipeline-step ${activeIdx >= 2 && !isRejected ? 'completed' : (activeIdx === 2 ? 'active' : '')}">
                             3
                             <span class="pipeline-label">Interview</span>
                         </div>
                         
-                        <!-- Step 4: Decision -->
-                        <div class="pipeline-step ${currentStatus === 'Selected' ? 'completed' : (isRejected ? 'rejected' : '')}">
-                            ${isRejected ? '✗' : '✓'}
-                            <span class="pipeline-label">${isRejected ? 'Rejected' : 'Decision'}</span>
+                        <div class="pipeline-step ${activeIdx >= 3 && !isRejected ? 'completed' : ''}">
+                            4
+                            <span class="pipeline-label">Offer / Decision</span>
                         </div>
                     </div>
                 </div>
@@ -158,19 +159,13 @@ async function loadApplications() {
         });
         
         container.innerHTML = html;
-        
     } catch (e) {
         console.error(e);
-        document.getElementById("applicationsContainer").innerHTML = `
-            <div style="text-align: center; padding: 40px; color: var(--error);">
-                Error loading application pipelines.
-            </div>
-        `;
+        document.getElementById("applicationsContainer").innerHTML = `<div style="text-align: center; color: red; padding: 40px;">Failed to load application history.</div>`;
     }
 }
 
 loadApplications();
 </script>
-    <script src="/responsive.js?v=2.0"></script>
 </body>
 </html>
