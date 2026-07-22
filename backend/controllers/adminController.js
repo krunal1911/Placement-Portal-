@@ -916,7 +916,7 @@ exports.exportResultPDF = async (req, res) => {
         doc.fillColor("#1e3a8a")
            .font("Helvetica-Bold")
            .fontSize(22)
-           .text("🚀 PLACEMENT PORTAL", { align: "left" });
+           .text("PLACEMENT PORTAL", { align: "left" });
         doc.fillColor("#64748b")
            .font("Helvetica")
            .fontSize(10)
