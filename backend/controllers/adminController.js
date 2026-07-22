@@ -883,3 +883,146 @@ exports.stopLink = async (req, res) => {
         res.status(500).send("Error stopping link");
     }
 };
+
+exports.exportResultPDF = async (req, res) => {
+    try {
+        const { resultId } = req.params;
+        const result = await Result.findById(resultId).populate("userId");
+        if (!result) {
+            return res.status(404).send("Result not found");
+        }
+        
+        if (req.session.admin.role !== "superadmin" && result.companyName !== req.session.admin.companyName) {
+            return res.status(403).send("Unauthorized to export this candidate's report");
+        }
+        
+        const cheatingLogs = await CheatingLog.find({
+            userId: result.userId?._id,
+            testType: result.testType,
+            companyName: result.companyName
+        }).sort({ createdAt: 1 });
+
+        const PDFDocument = require("pdfkit");
+        const doc = new PDFDocument({ margin: 50 });
+        
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader(
+            "Content-Disposition",
+            `attachment; filename="Candidate_Report_${result.userId ? result.userId.name.replace(/\s+/g, '_') : 'Student'}_${result.testType}.pdf"`
+        );
+        doc.pipe(res);
+        
+        // Header
+        doc.fillColor("#1e3a8a")
+           .font("Helvetica-Bold")
+           .fontSize(22)
+           .text("🚀 PLACEMENT PORTAL", { align: "left" });
+        doc.fillColor("#64748b")
+           .font("Helvetica")
+           .fontSize(10)
+           .text("AI Placement Preparation & Assessment Platform", { align: "left" });
+        
+        doc.moveDown(1.5);
+        
+        // Main Title
+        doc.fillColor("#0f172a")
+           .font("Helvetica-Bold")
+           .fontSize(16)
+           .text("CANDIDATE ASSESSMENT & PROCTORING REPORT", { align: "center", underline: true });
+        
+        doc.moveDown(2);
+        
+        // Table: Candidate Information
+        doc.fillColor("#1e3a8a")
+           .font("Helvetica-Bold")
+           .fontSize(12)
+           .text("1. CANDIDATE PROFILE DETAILS", { underline: true });
+        doc.moveDown(0.5);
+        
+        doc.fillColor("#334155").font("Helvetica").fontSize(10);
+        
+        const candidateInfo = [
+            ["Name:", result.userId ? result.userId.name : "Unknown"],
+            ["Email:", result.userId ? result.userId.email : "N/A"],
+            ["Branch:", result.userId ? result.userId.branch : "N/A"],
+            ["Semester:", result.userId ? result.userId.semester : "N/A"]
+        ];
+        
+        let startY = doc.y;
+        candidateInfo.forEach(([label, value]) => {
+            doc.font("Helvetica-Bold").text(label, 70, startY);
+            doc.font("Helvetica").text(value, 150, startY);
+            startY += 18;
+        });
+        
+        doc.y = startY + 10;
+        doc.moveDown(1);
+        
+        // Table: Assessment Overview
+        doc.fillColor("#1e3a8a")
+           .font("Helvetica-Bold")
+           .fontSize(12)
+           .text("2. ASSESSMENT PERFORMANCE OVERVIEW", { underline: true });
+        doc.moveDown(0.5);
+        
+        const percentage = result.percentage || Math.round((result.score / result.totalQuestions) * 100) || 0;
+        
+        const testInfo = [
+            ["Assessment Type:", `${result.testType} Exam`],
+            ["Target Company:", result.companyName || "General"],
+            ["Score Obtained:", `${result.score} / ${result.totalQuestions}`],
+            ["Percentage Score:", `${percentage}%`],
+            ["Date Completed:", new Date(result.createdAt).toLocaleString()]
+        ];
+        
+        startY = doc.y;
+        testInfo.forEach(([label, value]) => {
+            doc.font("Helvetica-Bold").text(label, 70, startY);
+            doc.font("Helvetica").text(value, 180, startY);
+            startY += 18;
+        });
+        
+        doc.y = startY + 10;
+        doc.moveDown(1);
+        
+        // Proctoring Audit Section
+        doc.fillColor("#1e3a8a")
+           .font("Helvetica-Bold")
+           .fontSize(12)
+           .text("3. PROCTORING & SECURITY AUDIT SUMMARY", { underline: true });
+        doc.moveDown(0.5);
+        
+        const warningCount = cheatingLogs.length;
+        doc.fillColor("#334155").font("Helvetica").fontSize(10);
+        doc.text(`Total Proctoring Flags Logged: `, { docX: 70, continued: true });
+        doc.font("Helvetica-Bold").fillColor(warningCount > 0 ? "#dc2626" : "#16a34a").text(`${warningCount} warnings triggered.`);
+        
+        doc.fillColor("#334155").font("Helvetica").moveDown(0.5);
+        
+        if (cheatingLogs.length === 0) {
+            doc.text("Clean record: No browser tabs switches, exit-fullscreen, or developer tools attempts were logged during this exam.", 70);
+        } else {
+            doc.moveDown(0.5);
+            cheatingLogs.forEach((log, index) => {
+                doc.font("Helvetica-Bold").fillColor("#0f172a").text(`Flag #${index + 1}: ${log.incidentType}`, 70);
+                doc.font("Helvetica-Oblique").fillColor("#475569").text(`Details: ${log.details}`, 85);
+                doc.font("Helvetica").fillColor("#dc2626").text(`AI Analysis: ${log.aiAnalysis || "Suspicious tab switch activity."}`, 85);
+                doc.font("Helvetica").fillColor("#64748b").text(`Logged At: ${new Date(log.createdAt).toLocaleTimeString()}`, 85);
+                doc.moveDown(0.5);
+            });
+        }
+        
+        doc.moveDown(2);
+        
+        // Footer
+        doc.fillColor("#94a3b8")
+           .font("Helvetica-Oblique")
+           .fontSize(8)
+           .text("This is a system-generated document compiled by the Placement Portal assessment proctoring module.", { align: "center" });
+        
+        doc.end();
+    } catch (err) {
+        console.error("PDF Export failed:", err);
+        res.status(500).send("Failed to export PDF report");
+    }
+};

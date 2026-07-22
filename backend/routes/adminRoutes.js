@@ -59,6 +59,7 @@ router.get("/applications-data", requireAdmin, adminController.getApplicationsDa
 router.get("/proctoring-data", requireAdmin, adminController.getProctoringData);
 router.get("/results-data", requireAdmin, adminController.getResultsData);
 router.get("/recent-activity", requireAdmin, adminController.getRecentActivity);
+router.get("/export-result-pdf/:resultId", requireAdmin, adminController.exportResultPDF);
 router.get("/export-students", requireSuperAdmin, adminController.exportStudents);
 
 // Admin Requests API (for approval flow)
