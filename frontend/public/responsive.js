@@ -20,9 +20,11 @@ document.addEventListener("DOMContentLoaded", () => {
                         path.startsWith("/students") || 
                         path.startsWith("/applications") || 
                         path.startsWith("/proctoring") || 
+                        path.startsWith("/results") || 
                         path.startsWith("/manage") || 
                         path.startsWith("/add-") || 
                         path.startsWith("/import-") || 
+                        path.startsWith("/export-") || 
                         path.startsWith("/update-");
 
     // Theme Switcher Item

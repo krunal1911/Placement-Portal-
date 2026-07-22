@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 
 <head>
@@ -49,7 +49,7 @@ Monitor students, placement drives, applications and portal analytics from one p
 
 <a href="/add-company" class="heroBtn">
 
-➕ Add Company
++ Add Company
 
 </a>
 
@@ -166,7 +166,7 @@ Monitor students, placement drives, applications and portal analytics from one p
 
     <p>Create a new placement opportunity for students.</p>
 
-    <a href="/add-company">Add Company</a>
+    <a href="/add-company">Add Drive</a>
 
 </div>
 
@@ -381,9 +381,9 @@ async function checkAdminRole() {
                 }
             });
             
-            // Keep the heroBtn (Add Company) visible
+            // Hide the heroBtn (Add Company) for company admins
             const heroBtn = document.querySelector(".heroBtn");
-            if (heroBtn) heroBtn.style.display = "block";
+            if (heroBtn) heroBtn.style.display = "none";
             
             // Filter features cards to only show: Add Placement Drive, Job Applications
             document.querySelectorAll(".features .feature-card").forEach(card => {
