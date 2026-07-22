@@ -105,6 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     navItems.push({ name: "Students", url: "/students" });
                 }
                 navItems.push({ name: "Applications", url: "/applications" });
+                navItems.push({ name: "Results", url: "/results" });
                 navItems.push({ name: "Questions", url: "/manage-questions" });
                 navItems.push({ name: "Proctoring", url: "/proctoring" });
                 renderMenu(navItems);
@@ -115,6 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 renderMenu([
                     { name: "Dashboard", url: "/admin-dashboard" },
                     { name: "Applications", url: "/applications" },
+                    { name: "Results", url: "/results" },
                     { name: "Proctoring", url: "/proctoring" }
                 ]);
             });

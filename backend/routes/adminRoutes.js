@@ -41,7 +41,7 @@ router.get("/add-question", requireAdmin, adminController.showAddQuestion);
 router.get("/import-questions", requireAdmin, adminController.showImportQuestions);
 router.get("/add-company", requireAdmin, adminController.showAddCompany);
 router.get("/manage-companies", requireAdmin, adminController.showManageCompanies);
-router.get("/results", requireSuperAdmin, adminController.showResults);
+router.get("/results", requireAdmin, adminController.showResults);
 router.get("/applications", requireAdmin, adminController.showApplications);
 router.get("/proctoring", requireAdmin, adminController.showProctoring);
 router.get("/update-status", requireAdmin, adminController.showUpdateStatus);
@@ -57,7 +57,7 @@ router.get("/questions-list/:type", requireAdmin, adminController.getQuestionsLi
 router.get("/admin-analytics", requireAdmin, adminController.getAdminAnalytics);
 router.get("/applications-data", requireAdmin, adminController.getApplicationsData);
 router.get("/proctoring-data", requireAdmin, adminController.getProctoringData);
-router.get("/results-data", requireSuperAdmin, adminController.getResultsData);
+router.get("/results-data", requireAdmin, adminController.getResultsData);
 router.get("/recent-activity", requireAdmin, adminController.getRecentActivity);
 router.get("/export-students", requireSuperAdmin, adminController.exportStudents);
 
