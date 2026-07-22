@@ -68,8 +68,12 @@ router.get("/download-question-template", requireAdmin, adminController.download
 // Admin Requests API (for approval flow)
 router.post("/admin-request", adminController.postAdminRequest);
 router.get("/admin-requests-data", requireSuperAdmin, adminController.getAdminRequests);
+router.get("/access-requests-data", requireSuperAdmin, adminController.getAdminRequests);
 router.post("/admin-request/approve/:id", requireSuperAdmin, adminController.approveAdminRequest);
+router.post("/approve-request/:id", requireSuperAdmin, adminController.approveAdminRequest);
 router.post("/admin-request/reject/:id", requireSuperAdmin, adminController.rejectAdminRequest);
+router.post("/reject-request/:id", requireSuperAdmin, adminController.rejectAdminRequest);
+router.delete("/reject-request/:id", requireSuperAdmin, adminController.rejectAdminRequest);
 
 // ==========================================
 // POST WRITE ACTIONS

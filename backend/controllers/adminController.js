@@ -420,7 +420,7 @@ exports.postAdminRequest = async (req, res) => {
 // Get list of all admin requests (superadmin only)
 exports.getAdminRequests = async (req, res) => {
     try {
-        const requests = await AdminRequest.find().sort({ createdAt: -1 });
+        const requests = await AdminRequest.find({ status: "pending" }).sort({ createdAt: -1 });
         res.json(requests);
     } catch (err) {
         console.error(err);
@@ -433,14 +433,14 @@ exports.approveAdminRequest = async (req, res) => {
     try {
         const request = await AdminRequest.findById(req.params.id);
         if (!request || request.status !== "pending") {
-            return res.status(400).send("Invalid or non-pending request");
+            return res.status(400).json({ success: false, message: "Invalid or non-pending request" });
         }
         
         const existingAdmin = await Admin.findOne({ username: request.username });
         if (existingAdmin) {
             request.status = "rejected";
             await request.save();
-            return res.status(400).send("Admin username already exists. Request rejected.");
+            return res.status(400).json({ success: false, message: "Admin username already exists. Request rejected." });
         }
 
         // Create the Admin account using the hashed password from the request
@@ -453,10 +453,10 @@ exports.approveAdminRequest = async (req, res) => {
 
         request.status = "approved";
         await request.save();
-        res.send("Request Approved Successfully");
+        res.json({ success: true, message: "Request Approved Successfully" });
     } catch (err) {
         console.error(err);
-        res.status(500).send("Error approving request");
+        res.status(500).json({ success: false, message: "Error approving request" });
     }
 };
 
@@ -465,14 +465,14 @@ exports.rejectAdminRequest = async (req, res) => {
     try {
         const request = await AdminRequest.findById(req.params.id);
         if (!request) {
-            return res.status(404).send("Request not found");
+            return res.status(404).json({ success: false, message: "Request not found" });
         }
         request.status = "rejected";
         await request.save();
-        res.send("Request Rejected Successfully");
+        res.json({ success: true, message: "Request Rejected Successfully" });
     } catch (err) {
         console.error(err);
-        res.status(500).send("Error rejecting request");
+        res.status(500).json({ success: false, message: "Error rejecting request" });
     }
 };
 
