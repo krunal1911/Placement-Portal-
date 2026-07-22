@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -97,6 +97,35 @@
                 <button type="submit" class="btn btn-primary" style="padding: 11px 24px; font-size: 13px;">Save Exam Settings</button>
             </div>
         </form>
+    </div>
+
+    <!-- 🔗 SHAREABLE ASSESSMENT LINK GENERATOR -->
+    <div class="card" style="margin-bottom: 30px; text-align: left; padding: 24px;">
+        <h3 style="font-size: 16px; font-weight: 600; color: #1e3a8a; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border);">🔗 Shareable Assessment Links</h3>
+        <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 16px;">Generate and copy links to share with candidates or employees for your exams.</p>
+        
+        <div style="display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 200px;">
+                <label for="linkExamType" style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Select Link Type</label>
+                <select id="linkExamType" onchange="generateExamLink()" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: white;">
+                    <option value="aptitude">Aptitude Test Link</option>
+                    <option value="technical">Technical Test Link</option>
+                </select>
+            </div>
+            
+            <div style="flex: 1; min-width: 200px;">
+                <label for="linkCompanyName" style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">For Company Name</label>
+                <input type="text" id="linkCompanyName" oninput="generateExamLink()" placeholder="e.g. TCS" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;">
+            </div>
+            
+            <div style="flex: 2; min-width: 300px;">
+                <label for="shareableLinkVal" style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Shareable URL</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="shareableLinkVal" readonly style="flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: #f1f5f9; cursor: text;" onclick="this.select()">
+                    <button onclick="copyShareableLink()" class="btn btn-primary" style="padding: 10px 20px; font-size: 13px; font-weight: 600;">Copy Link</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- 2. QUESTION EDITOR SECTION -->
@@ -639,8 +668,68 @@ async function deleteQuestion(id) {
     });
 }
 
+// ---------------- SHAREABLE LINK GENERATOR LOGIC ----------------
+let adminCompany = "General";
+let isAdminRole = "admin";
+
+async function loadAdminInfoForLinks() {
+    try {
+        const response = await fetch("/current-admin");
+        if (response.ok) {
+            const admin = await response.json();
+            isAdminRole = admin.role;
+            adminCompany = admin.companyName || "General";
+            
+            const compInput = document.getElementById("linkCompanyName");
+            if (admin.role !== "superadmin") {
+                compInput.value = adminCompany;
+                compInput.readOnly = true;
+                compInput.style.backgroundColor = "#f1f5f9";
+                compInput.style.color = "#64748b";
+                compInput.style.cursor = "not-allowed";
+            } else {
+                compInput.value = "General";
+            }
+            generateExamLink();
+        }
+    } catch (e) {
+        console.error("Error loading admin info for links:", e);
+    }
+}
+
+function generateExamLink() {
+    const type = document.getElementById("linkExamType").value;
+    const company = document.getElementById("linkCompanyName").value.trim() || "General";
+    const origin = window.location.origin;
+    const url = `${origin}/${type}?company=${encodeURIComponent(company)}`;
+    document.getElementById("shareableLinkVal").value = url;
+}
+
+function copyShareableLink() {
+    const copyText = document.getElementById("shareableLinkVal");
+    copyText.select();
+    copyText.setSelectionRange(0, 99999); // For mobile devices
+    
+    navigator.clipboard.writeText(copyText.value)
+        .then(() => {
+            Swal.fire({
+                icon: "success",
+                title: "Link Copied!",
+                text: "The exam assessment link has been copied to your clipboard.",
+                timer: 1500,
+                showConfirmButton: false
+            });
+        })
+        .catch(err => {
+            console.error("Failed to copy link:", err);
+            // Fallback
+            showToast("Failed to copy link. Please copy it manually.", "error");
+        });
+}
+
 // ---------------- INITIAL LAUNCH ----------------
 onExamTypeChange();
+loadAdminInfoForLinks();
 </script>
 
     <script src="/responsive.js?v=2.0"></script>
