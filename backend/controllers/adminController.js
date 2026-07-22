@@ -524,12 +524,18 @@ exports.updateExamSettings = async (req, res) => {
 exports.updateQuestion = async (req, res) => {
     try {
         const { question, options, answer, marks } = req.body;
-        await Question.findByIdAndUpdate(req.params.id, {
-            question,
-            options,
-            answer,
-            marks: Number(marks) || 1
-        });
+        const q = await Question.findById(req.params.id);
+        if (!q) return res.status(404).send("Question not found");
+        if (req.session.admin.role === "admin" && q.companyName !== req.session.admin.companyName) {
+            return res.status(403).send("Unauthorized to modify this question");
+        }
+
+        q.question = question;
+        q.options = options;
+        q.answer = answer;
+        q.marks = Number(marks) || 1;
+        await q.save();
+
         res.send("Question Updated Successfully");
     } catch (err) {
         console.error(err);
@@ -541,13 +547,19 @@ exports.updateQuestion = async (req, res) => {
 exports.updateTechnicalQuestion = async (req, res) => {
     try {
         const { subject, question, options, answer, marks } = req.body;
-        await TechnicalQuestion.findByIdAndUpdate(req.params.id, {
-            subject,
-            question,
-            options,
-            answer,
-            marks: Number(marks) || 1
-        });
+        const q = await TechnicalQuestion.findById(req.params.id);
+        if (!q) return res.status(404).send("Question not found");
+        if (req.session.admin.role === "admin" && q.companyName !== req.session.admin.companyName) {
+            return res.status(403).send("Unauthorized to modify this question");
+        }
+
+        q.subject = subject;
+        q.question = question;
+        q.options = options;
+        q.answer = answer;
+        q.marks = Number(marks) || 1;
+        await q.save();
+
         res.send("Question Updated Successfully");
     } catch (err) {
         console.error(err);
@@ -558,6 +570,11 @@ exports.updateTechnicalQuestion = async (req, res) => {
 // Delete existing aptitude MCQ
 exports.deleteQuestion = async (req, res) => {
     try {
+        const q = await Question.findById(req.params.id);
+        if (!q) return res.status(404).send("Question not found");
+        if (req.session.admin.role === "admin" && q.companyName !== req.session.admin.companyName) {
+            return res.status(403).send("Unauthorized to delete this question");
+        }
         await Question.findByIdAndDelete(req.params.id);
         res.redirect('/manage-questions');
     } catch (err) {
@@ -569,6 +586,11 @@ exports.deleteQuestion = async (req, res) => {
 // Delete existing Technical coding MCQ
 exports.deleteTechnicalQuestion = async (req, res) => {
     try {
+        const q = await TechnicalQuestion.findById(req.params.id);
+        if (!q) return res.status(404).send("Question not found");
+        if (req.session.admin.role === "admin" && q.companyName !== req.session.admin.companyName) {
+            return res.status(403).send("Unauthorized to delete this question");
+        }
         await TechnicalQuestion.findByIdAndDelete(req.params.id);
         res.redirect('/manage-questions');
     } catch (err) {

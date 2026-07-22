@@ -12,7 +12,6 @@ document.addEventListener("DOMContentLoaded", () => {
         ul = document.createElement("ul");
         nav.appendChild(ul);
     }
-    ul.innerHTML = ""; // Clear statically defined nav list
 
     const path = window.location.pathname;
     
@@ -25,32 +24,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         path.startsWith("/add-") || 
                         path.startsWith("/import-") || 
                         path.startsWith("/update-");
-
-    const navItems = [];
-    if (isAdminView) {
-        navItems.push({ name: "Dashboard", url: "/admin-dashboard" });
-        navItems.push({ name: "Students", url: "/students" });
-        navItems.push({ name: "Applications", url: "/applications" });
-        navItems.push({ name: "Proctoring", url: "/proctoring" });
-    } else {
-        navItems.push({ name: "Dashboard", url: "/dashboard" });
-        navItems.push({ name: "Profile", url: "/profile" });
-        navItems.push({ name: "Leaderboard", url: "/leaderboard" });
-    }
-
-    // Build the list items dynamically
-    navItems.forEach(item => {
-        const li = document.createElement("li");
-        const a = document.createElement("a");
-        a.href = item.url;
-        a.textContent = item.name;
-        // Dynamically compute the active state
-        if (path === item.url || (item.url !== "/" && path.startsWith(item.url))) {
-            a.className = "active";
-        }
-        li.appendChild(a);
-        ul.appendChild(li);
-    });
 
     // Theme Switcher Item
     const themeLi = document.createElement("li");
@@ -92,7 +65,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     themeLi.appendChild(themeBtn);
-    ul.appendChild(themeLi);
 
     // Logout Item
     const logoutLi = document.createElement("li");
@@ -100,7 +72,59 @@ document.addEventListener("DOMContentLoaded", () => {
     logoutA.href = "/logout";
     logoutA.textContent = "Logout";
     logoutLi.appendChild(logoutA);
-    ul.appendChild(logoutLi);
+
+    // Dynamic Render Helper
+    function renderMenu(navItems) {
+        ul.innerHTML = "";
+        navItems.forEach(item => {
+            const li = document.createElement("li");
+            const a = document.createElement("a");
+            a.href = item.url;
+            a.textContent = item.name;
+            if (path === item.url || (item.url !== "/" && path.startsWith(item.url))) {
+                a.className = "active";
+            }
+            li.appendChild(a);
+            ul.appendChild(li);
+        });
+        ul.appendChild(themeLi);
+        ul.appendChild(logoutLi);
+    }
+
+    if (isAdminView) {
+        fetch("/current-admin")
+            .then(res => {
+                if (res.ok) return res.json();
+                throw new Error("Unauthorized");
+            })
+            .then(admin => {
+                const navItems = [
+                    { name: "Dashboard", url: "/admin-dashboard" }
+                ];
+                if (admin.role === "superadmin") {
+                    navItems.push({ name: "Students", url: "/students" });
+                }
+                navItems.push({ name: "Applications", url: "/applications" });
+                navItems.push({ name: "Questions", url: "/manage-questions" });
+                navItems.push({ name: "Proctoring", url: "/proctoring" });
+                renderMenu(navItems);
+            })
+            .catch(err => {
+                console.error("Admin verification check failed:", err);
+                // Fallback to safe layout items
+                renderMenu([
+                    { name: "Dashboard", url: "/admin-dashboard" },
+                    { name: "Applications", url: "/applications" },
+                    { name: "Proctoring", url: "/proctoring" }
+                ]);
+            });
+    } else {
+        renderMenu([
+            { name: "Dashboard", url: "/dashboard" },
+            { name: "Profile", url: "/profile" },
+            { name: "Leaderboard", url: "/leaderboard" }
+        ]);
+    }
 
     // ─── Mobile Overlay & Hamburger Setup ─────────────────────────────────
     const overlay = document.createElement("div");
