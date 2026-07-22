@@ -36,7 +36,7 @@ exports.showStudents = (req, res) => {
 };
 
 exports.showManageQuestions = (req, res) => {
-    res.sendFile(path.join(__dirname, "../../frontend/views", "manage-questions.html"));
+    res.sendFile(path.join(__dirname, "../../frontend/views", "add-question.html"));
 };
 
 exports.showAddQuestion = (req, res) => {
