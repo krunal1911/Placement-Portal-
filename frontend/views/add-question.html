@@ -253,6 +253,31 @@
             </div>
         </div>
     </div>
+
+    <!-- 4. ACTIVE EXAM LINKS & SESSION CONTROLS -->
+    <div class="card" style="margin-top: 30px; text-align: left; padding: 24px;">
+        <h3 style="font-size: 16px; font-weight: 600; color: #1e3a8a; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border);">📋 Active Exam Links & Session Controls</h3>
+        <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 16px;">Monitor active exam session tokens, extend access time limits, or close tests immediately.</p>
+        
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin: 0; box-shadow: none;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--border); text-align: left; background: #f8fafc;">
+                        <th style="padding: 12px 16px;">Type</th>
+                        <th style="padding: 12px 16px;">Company</th>
+                        <th style="padding: 12px 16px;">Expires At</th>
+                        <th style="padding: 12px 16px; text-align: center;">Status</th>
+                        <th style="padding: 12px 16px; text-align: center;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="activeLinksTableBody">
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 20px; color: var(--text-muted);">Loading active exam links list...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -732,7 +757,7 @@ async function requestSignedLink() {
         if (response.ok) {
             const data = await response.json();
             const origin = window.location.origin;
-            const url = `${origin}/${examType}?company=${encodeURIComponent(companyName)}&expires=${data.expiresAt}&sig=${data.sig}`;
+            const url = `${origin}/${examType}?company=${encodeURIComponent(companyName)}&token=${data.token}`;
             document.getElementById("shareableLinkVal").value = url;
             
             Swal.fire({
@@ -741,6 +766,7 @@ async function requestSignedLink() {
                 text: `Valid for the next ${expiresMinutes} minutes.`,
                 confirmButtonColor: "#3b82f6"
             });
+            loadActiveLinks(); // refresh active links session table list
         } else {
             const msg = await response.text();
             Swal.fire({
@@ -791,9 +817,182 @@ function copyShareableLink() {
         });
 }
 
+async function loadActiveLinks() {
+    try {
+        const response = await fetch("/active-links");
+        if (response.ok) {
+            const links = await response.json();
+            const tableBody = document.getElementById("activeLinksTableBody");
+            
+            if (links.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 20px; color: var(--text-muted);">No active exam links found.</td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            let html = "";
+            links.forEach(link => {
+                const expiresTime = new Date(link.expiresAt).getTime();
+                const isExpired = !link.isActive || Date.now() > expiresTime;
+                
+                const statusBadge = isExpired
+                    ? `<span style="background: #fef2f2; color: #ef4444; border: 1px solid #fee2e2; padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 600;">Expired</span>`
+                    : `<span style="background: #ecfdf5; color: #10b981; border: 1px solid #d1fae5; padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 600;">Active</span>`;
+                
+                const expDateStr = new Date(link.expiresAt).toLocaleString();
+                const examUrl = `${window.location.origin}/${link.examType}?company=${encodeURIComponent(link.companyName)}&token=${link.token}`;
+                
+                const copyBtn = `<button onclick="copyToClipboard('${examUrl}')" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; font-weight: 500;">Copy Link</button>`;
+                const extendBtn = `<button onclick="promptExtendLink('${link._id}')" class="btn btn-primary" style="padding: 6px 12px; font-size: 12px; font-weight: 500; background: #2563eb; border-color: #2563eb;">Extend Time</button>`;
+                const stopBtn = isExpired 
+                    ? `<button class="btn btn-secondary" disabled style="padding: 6px 12px; font-size: 12px; font-weight: 500; cursor: not-allowed; opacity: 0.6;">Stopped</button>`
+                    : `<button onclick="confirmStopLink('${link._id}')" class="btn" style="padding: 6px 12px; font-size: 12px; font-weight: 500; background: #dc2626; border-color: #dc2626; color: white;">Stop Test</button>`;
+                
+                html += `
+                    <tr style="border-bottom: 1px solid var(--border);">
+                        <td style="padding: 12px 16px; font-weight: 500; text-transform: capitalize;">${link.examType} Exam</td>
+                        <td style="padding: 12px 16px;">${link.companyName}</td>
+                        <td style="padding: 12px 16px; color: var(--text-muted);">${expDateStr}</td>
+                        <td style="padding: 12px 16px; text-align: center;">${statusBadge}</td>
+                        <td style="padding: 12px 16px; text-align: center; display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap;">
+                            ${copyBtn}
+                            ${extendBtn}
+                            ${stopBtn}
+                        </td>
+                    </tr>
+                `;
+            });
+            tableBody.innerHTML = html;
+        }
+    } catch (err) {
+        console.error("Error loading active links:", err);
+    }
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text)
+        .then(() => {
+            Swal.fire({
+                icon: "success",
+                title: "Copied!",
+                text: "Exam URL copied to clipboard successfully.",
+                timer: 1200,
+                showConfirmButton: false
+            });
+        })
+        .catch(err => {
+            console.error(err);
+        });
+}
+
+function promptExtendLink(id) {
+    Swal.fire({
+        title: "Extend Test Access Time",
+        text: "Select how many additional minutes you want to add to this link's validity:",
+        input: "select",
+        inputOptions: {
+            "15": "15 Minutes",
+            "30": "30 Minutes",
+            "60": "1 Hour",
+            "120": "2 Hours",
+            "360": "6 Hours",
+            "1440": "24 Hours (1 Day)"
+        },
+        inputValue: "30",
+        showCancelButton: true,
+        confirmButtonText: "Extend Time",
+        cancelButtonText: "Cancel",
+        confirmButtonColor: "#2563eb",
+        inputValidator: (value) => {
+            if (!value) {
+                return "You need to select an option!";
+            }
+        }
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            const minutes = result.value;
+            try {
+                const response = await fetch(`/extend-link/${id}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ minutes })
+                });
+                
+                if (response.ok) {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Extended!",
+                        text: `The exam link has been extended by ${minutes} minutes.`,
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    loadActiveLinks();
+                } else {
+                    const txt = await response.text();
+                    Swal.fire({
+                        icon: "error",
+                        title: "Failed to Extend",
+                        text: txt || "An error occurred.",
+                        confirmButtonColor: "#3b82f6"
+                    });
+                }
+            } catch (err) {
+                console.error(err);
+                showToast("Network error trying to extend link.", "error");
+            }
+        }
+    });
+}
+
+function confirmStopLink(id) {
+    Swal.fire({
+        title: "Stop Candidate Test?",
+        text: "Are you sure you want to stop this test link? Candidates will immediately be blocked from starting this assessment.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#dc2626",
+        cancelButtonColor: "#3b82f6",
+        confirmButtonText: "Yes, Stop Test Now"
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            try {
+                const response = await fetch(`/stop-link/${id}`, {
+                    method: "POST"
+                });
+                
+                if (response.ok) {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Test Session Stopped!",
+                        text: "This exam link has been closed and marked as expired.",
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    loadActiveLinks();
+                } else {
+                    const txt = await response.text();
+                    Swal.fire({
+                        icon: "error",
+                        title: "Failed to Stop",
+                        text: txt || "An error occurred.",
+                        confirmButtonColor: "#3b82f6"
+                    });
+                }
+            } catch (err) {
+                console.error(err);
+                showToast("Network error trying to stop test link.", "error");
+            }
+        }
+    });
+}
+
 // ---------------- INITIAL LAUNCH ----------------
 onExamTypeChange();
 loadAdminInfoForLinks();
+loadActiveLinks();
 </script>
 
     <script src="/responsive.js?v=2.0"></script>

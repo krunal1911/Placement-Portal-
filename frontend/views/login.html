@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -91,9 +91,13 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
         const message = await response.text();
 
         if(response.ok){
-
-            window.location.href="/dashboard";
-
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirectUrl = urlParams.get("redirect");
+            if (redirectUrl) {
+                window.location.href = redirectUrl;
+            } else {
+                window.location.href = "/dashboard";
+            }
         }
         else{
 

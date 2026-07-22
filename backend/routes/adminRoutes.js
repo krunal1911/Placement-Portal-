@@ -82,6 +82,9 @@ router.post("/import-questions", requireAdmin, excelUpload.single("excelFile"), 
 router.post("/add-company", requireAdmin, adminController.addCompany);
 router.post("/update-status", requireAdmin, adminController.updateStatus);
 router.post("/generate-signed-link", requireAdmin, adminController.generateSignedLink);
+router.get("/active-links", requireAdmin, adminController.getActiveLinks);
+router.post("/extend-link/:id", requireAdmin, adminController.extendLink);
+router.post("/stop-link/:id", requireAdmin, adminController.stopLink);
 router.delete("/delete-admin/:id", requireSuperAdmin, adminController.deleteAdmin);
 
 module.exports = router;

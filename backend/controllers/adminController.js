@@ -15,6 +15,7 @@ const Application = require("../../database/models/Application");
 const ExamSettings = require("../../database/models/ExamSettings");
 const AdminRequest = require("../../database/models/AdminRequest");
 const CheatingLog = require("../../database/models/CheatingLog");
+const ActiveExamLink = require("../../database/models/ActiveExamLink");
 
 // ==========================================
 // VIEW PAGES
@@ -781,7 +782,7 @@ exports.getProctoringData = async (req, res) => {
     }
 };
 
-exports.generateSignedLink = (req, res) => {
+exports.generateSignedLink = async (req, res) => {
     try {
         const { examType, companyName, expiresMinutes } = req.body;
         if (!examType || !companyName || !expiresMinutes) {
@@ -791,18 +792,94 @@ exports.generateSignedLink = (req, res) => {
             return res.status(403).send("Unauthorized to generate link for this company");
         }
         
-        const expiresAt = Date.now() + Number(expiresMinutes) * 60 * 1000;
-        const secret = process.env.SESSION_SECRET || "secure-session-secret-key-2026";
         const crypto = require("crypto");
-        const dataToSign = `${examType}:${companyName}:${expiresAt}`;
-        const sig = crypto.createHmac("sha256", secret).update(dataToSign).digest("hex");
+        const token = crypto.randomBytes(16).toString("hex");
+        const expiresAt = new Date(Date.now() + Number(expiresMinutes) * 60 * 1000);
+        
+        const newLink = new ActiveExamLink({
+            examType,
+            companyName,
+            expiresAt,
+            token,
+            isActive: true,
+            createdById: req.session.admin._id
+        });
+        await newLink.save();
         
         res.json({
-            expiresAt,
-            sig
+            expiresAt: expiresAt.getTime(),
+            token
         });
     } catch (err) {
         console.error(err);
         res.status(500).send("Error generating signed link");
+    }
+};
+
+exports.getActiveLinks = async (req, res) => {
+    try {
+        let query = {};
+        if (req.session.admin.role !== "superadmin") {
+            query = { companyName: req.session.admin.companyName };
+        }
+        const links = await ActiveExamLink.find(query)
+            .sort({ createdAt: -1 })
+            .limit(50);
+        res.json(links);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error fetching active links");
+    }
+};
+
+exports.extendLink = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { minutes } = req.body;
+        if (!minutes || isNaN(minutes)) {
+            return res.status(400).send("Invalid extension minutes");
+        }
+        
+        const link = await ActiveExamLink.findById(id);
+        if (!link) {
+            return res.status(404).send("Link not found");
+        }
+        if (req.session.admin.role !== "superadmin" && link.companyName !== req.session.admin.companyName) {
+            return res.status(403).send("Unauthorized");
+        }
+        
+        // Extend time (if it's already expired, extend relative to now; otherwise relative to the current expiresAt)
+        const currentExpiration = link.expiresAt.getTime();
+        const baseTime = currentExpiration > Date.now() ? currentExpiration : Date.now();
+        link.expiresAt = new Date(baseTime + Number(minutes) * 60 * 1000);
+        link.isActive = true; // reactivate if it was inactive
+        await link.save();
+        
+        res.json({ message: "Time extended successfully", expiresAt: link.expiresAt.getTime() });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error extending link");
+    }
+};
+
+exports.stopLink = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const link = await ActiveExamLink.findById(id);
+        if (!link) {
+            return res.status(404).send("Link not found");
+        }
+        if (req.session.admin.role !== "superadmin" && link.companyName !== req.session.admin.companyName) {
+            return res.status(403).send("Unauthorized");
+        }
+        
+        link.isActive = false;
+        link.expiresAt = new Date(); // expire immediately
+        await link.save();
+        
+        res.json({ message: "Exam link revoked/stopped successfully" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error stopping link");
     }
 };
