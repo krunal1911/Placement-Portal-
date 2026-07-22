@@ -780,3 +780,29 @@ exports.getProctoringData = async (req, res) => {
         res.status(500).json({ error: "Failed to load proctoring data" });
     }
 };
+
+exports.generateSignedLink = (req, res) => {
+    try {
+        const { examType, companyName, expiresMinutes } = req.body;
+        if (!examType || !companyName || !expiresMinutes) {
+            return res.status(400).send("Missing parameters");
+        }
+        if (req.session.admin.role === "admin" && companyName !== req.session.admin.companyName) {
+            return res.status(403).send("Unauthorized to generate link for this company");
+        }
+        
+        const expiresAt = Date.now() + Number(expiresMinutes) * 60 * 1000;
+        const secret = process.env.SESSION_SECRET || "secure-session-secret-key-2026";
+        const crypto = require("crypto");
+        const dataToSign = `${examType}:${companyName}:${expiresAt}`;
+        const sig = crypto.createHmac("sha256", secret).update(dataToSign).digest("hex");
+        
+        res.json({
+            expiresAt,
+            sig
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error generating signed link");
+    }
+};

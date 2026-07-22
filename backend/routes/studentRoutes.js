@@ -2,7 +2,7 @@ const express = require("express");
 const multer  = require("multer");
 
 const studentController = require("../controllers/studentController");
-const { requireUser, requireAdmin } = require("../middleware/auth");
+const { requireUser, requireAdmin, verifyExamLink } = require("../middleware/auth");
 
 const router = express.Router();
 
@@ -37,8 +37,8 @@ const profileUpload = multer({
 router.get("/dashboard", requireUser, studentController.showDashboard);
 router.get("/profile", requireUser, studentController.showProfile);
 router.get("/resume", requireUser, studentController.showResume);
-router.get("/aptitude", requireUser, studentController.showAptitude);
-router.get("/technical", requireUser, studentController.showTechnical);
+router.get("/aptitude", requireUser, verifyExamLink, studentController.showAptitude);
+router.get("/technical", requireUser, verifyExamLink, studentController.showTechnical);
 router.get("/career-guide", requireUser, studentController.showCareerGuide);
 router.get("/leaderboard", requireUser, studentController.showLeaderboard);
 router.get("/placement-drives", requireUser, studentController.showPlacementDrives);

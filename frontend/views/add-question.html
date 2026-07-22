@@ -101,29 +101,45 @@
 
     <!-- 🔗 SHAREABLE ASSESSMENT LINK GENERATOR -->
     <div class="card" style="margin-bottom: 30px; text-align: left; padding: 24px;">
-        <h3 style="font-size: 16px; font-weight: 600; color: #1e3a8a; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border);">🔗 Shareable Assessment Links</h3>
-        <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 16px;">Generate and copy links to share with candidates or employees for your exams.</p>
+        <h3 style="font-size: 16px; font-weight: 600; color: #1e3a8a; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border);">🔗 Secure Shareable Exam Link Generator</h3>
+        <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 16px;">Generate a secure, signed URL for candidates. Specify how long the link remains active (valid to join the test) before it expires.</p>
         
-        <div style="display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap;">
-            <div style="flex: 1; min-width: 200px;">
-                <label for="linkExamType" style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Select Link Type</label>
-                <select id="linkExamType" onchange="generateExamLink()" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: white;">
-                    <option value="aptitude">Aptitude Test Link</option>
-                    <option value="technical">Technical Test Link</option>
+        <div style="display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 20px;">
+            <div style="flex: 1; min-width: 180px;">
+                <label for="linkExamType" style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Link Exam Type</label>
+                <select id="linkExamType" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: white;">
+                    <option value="aptitude">Aptitude Exam</option>
+                    <option value="technical">Technical Exam</option>
                 </select>
             </div>
             
-            <div style="flex: 1; min-width: 200px;">
+            <div style="flex: 1; min-width: 180px;">
                 <label for="linkCompanyName" style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">For Company Name</label>
-                <input type="text" id="linkCompanyName" oninput="generateExamLink()" placeholder="e.g. TCS" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;">
+                <input type="text" id="linkCompanyName" placeholder="e.g. TCS" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;">
+            </div>
+
+            <div style="flex: 1; min-width: 180px;">
+                <label for="linkDuration" style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Link Expiration (Timeout)</label>
+                <select id="linkDuration" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: white;">
+                    <option value="15">15 Minutes</option>
+                    <option value="30" selected>30 Minutes</option>
+                    <option value="60">1 Hour</option>
+                    <option value="120">2 Hours</option>
+                    <option value="360">6 Hours</option>
+                    <option value="1440">24 Hours (1 Day)</option>
+                </select>
             </div>
             
-            <div style="flex: 2; min-width: 300px;">
-                <label for="shareableLinkVal" style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Shareable URL</label>
-                <div style="display: flex; gap: 8px;">
-                    <input type="text" id="shareableLinkVal" readonly style="flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: #f1f5f9; cursor: text;" onclick="this.select()">
-                    <button onclick="copyShareableLink()" class="btn btn-primary" style="padding: 10px 20px; font-size: 13px; font-weight: 600;">Copy Link</button>
-                </div>
+            <div>
+                <button onclick="requestSignedLink()" class="btn btn-primary" style="padding: 11px 24px; font-size: 13px; font-weight: 600; background: #059669; border-color: #059669;">Generate Secured Link</button>
+            </div>
+        </div>
+
+        <div style="border-top: 1px dashed var(--border); padding-top: 20px;">
+            <label for="shareableLinkVal" style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Generated Secure Shareable URL</label>
+            <div style="display: flex; gap: 8px;">
+                <input type="text" id="shareableLinkVal" readonly placeholder="Click 'Generate Secured Link' to construct URL..." style="flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: #f1f5f9; cursor: text;" onclick="this.select()">
+                <button onclick="copyShareableLink()" class="btn btn-primary" style="padding: 10px 20px; font-size: 13px; font-weight: 600;">Copy Link</button>
             </div>
         </div>
     </div>
@@ -690,23 +706,71 @@ async function loadAdminInfoForLinks() {
             } else {
                 compInput.value = "General";
             }
-            generateExamLink();
         }
     } catch (e) {
         console.error("Error loading admin info for links:", e);
     }
 }
 
-function generateExamLink() {
-    const type = document.getElementById("linkExamType").value;
-    const company = document.getElementById("linkCompanyName").value.trim() || "General";
-    const origin = window.location.origin;
-    const url = `${origin}/${type}?company=${encodeURIComponent(company)}`;
-    document.getElementById("shareableLinkVal").value = url;
+async function requestSignedLink() {
+    const examType = document.getElementById("linkExamType").value;
+    const companyName = document.getElementById("linkCompanyName").value.trim() || "General";
+    const expiresMinutes = document.getElementById("linkDuration").value;
+    
+    try {
+        const response = await fetch("/generate-signed-link", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                examType,
+                companyName,
+                expiresMinutes
+            })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            const origin = window.location.origin;
+            const url = `${origin}/${examType}?company=${encodeURIComponent(companyName)}&expires=${data.expiresAt}&sig=${data.sig}`;
+            document.getElementById("shareableLinkVal").value = url;
+            
+            Swal.fire({
+                icon: "success",
+                title: "Secure Link Generated!",
+                text: `Valid for the next ${expiresMinutes} minutes.`,
+                confirmButtonColor: "#3b82f6"
+            });
+        } else {
+            const msg = await response.text();
+            Swal.fire({
+                icon: "error",
+                title: "Generation Failed",
+                text: msg || "Failed to generate signed assessment link.",
+                confirmButtonColor: "#3b82f6"
+            });
+        }
+    } catch (err) {
+        console.error("Link request failed:", err);
+        Swal.fire({
+            icon: "error",
+            title: "Network Error",
+            text: "Could not reach the server to sign the link.",
+            confirmButtonColor: "#3b82f6"
+        });
+    }
 }
 
 function copyShareableLink() {
     const copyText = document.getElementById("shareableLinkVal");
+    if (!copyText.value) {
+        Swal.fire({
+            icon: "warning",
+            title: "Empty URL",
+            text: "Please click 'Generate Secured Link' first.",
+            confirmButtonColor: "#3b82f6"
+        });
+        return;
+    }
     copyText.select();
     copyText.setSelectionRange(0, 99999); // For mobile devices
     
@@ -722,7 +786,6 @@ function copyShareableLink() {
         })
         .catch(err => {
             console.error("Failed to copy link:", err);
-            // Fallback
             showToast("Failed to copy link. Please copy it manually.", "error");
         });
 }
