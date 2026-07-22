@@ -22,6 +22,10 @@ const cheatingLogSchema = new mongoose.Schema({
         type: String,
         default: ""
     },
+    companyName: {
+        type: String,
+        default: "General"
+    },
     createdAt: {
         type: Date,
         default: Date.now

@@ -781,14 +781,16 @@ exports.submitTest = async (req, res) => {
         if (!req.session.user) {
             return res.status(401).send("Login First");
         }
-        const { score, total } = req.body;
+        const { score, total, testType, companyName } = req.body;
         const percentage = Math.round((score / total) * 100);
 
         const result = new Result({
             userId: req.session.user._id,
             score,
             totalQuestions: total,
-            percentage
+            percentage,
+            testType: testType || "Aptitude",
+            companyName: companyName || "General"
         });
 
         await result.save();
@@ -997,7 +999,7 @@ exports.viewStudentResume = async (req, res) => {
 
 exports.logCheating = async (req, res) => {
     try {
-        const { testType, incidentType, details } = req.body;
+        const { testType, incidentType, details, companyName } = req.body;
         const userId = req.session.user._id;
 
         let aiAnalysis = "";
@@ -1018,7 +1020,8 @@ exports.logCheating = async (req, res) => {
             testType,
             incidentType,
             details,
-            aiAnalysis
+            aiAnalysis,
+            companyName: companyName || "General"
         });
 
         res.json({ success: true, log });

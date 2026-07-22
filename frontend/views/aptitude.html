@@ -454,10 +454,17 @@ async function submitTest(force = false) {
     });
     
     try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const companyName = urlParams.get('company') || 'General';
         const res = await fetch("/submit-test", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ score, total: questions.length })
+            body: JSON.stringify({ 
+                score, 
+                total: questions.length,
+                testType: "Aptitude",
+                companyName: companyName
+            })
         });
         
         if (!res.ok) throw new Error("Result save failed");
@@ -528,13 +535,16 @@ const TEST_TYPE = "Aptitude";
 
 async function logCheatingIncident(incidentType, details) {
     try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const companyName = urlParams.get('company') || 'General';
         await fetch("/log-cheating", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 testType: TEST_TYPE,
                 incidentType: incidentType,
-                details: details
+                details: details,
+                companyName: companyName
             })
         });
     } catch (e) {

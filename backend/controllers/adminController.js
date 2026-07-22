@@ -186,13 +186,13 @@ exports.getAdminAnalytics = async (req, res) => {
             const appliedUserIds = await Application.distinct('userId', { companyId: { $in: myCompanyIds } });
             totalStudents = appliedUserIds.length;
 
-            const users = await User.find({ _id: { $in: appliedUserIds } });
+            const results = await Result.find({ companyName });
+            totalTests = results.length;
             let totalScore = 0;
-            users.forEach(user => {
-                totalTests += user.testsTaken || 0;
-                totalScore += user.averageScore || 0;
+            results.forEach(r => {
+                totalScore += r.percentage || 0;
             });
-            averageScore = users.length > 0 ? Math.round(totalScore / users.length) : 0;
+            averageScore = results.length > 0 ? Math.round(totalScore / results.length) : 0;
         }
 
         res.json({
@@ -231,7 +231,13 @@ exports.getApplicationsData = async (req, res) => {
 // Get all student results list
 exports.getResultsData = async (req, res) => {
     try {
-        const results = await Result.find().populate("userId");
+        let query = {};
+        if (req.session.admin && req.session.admin.role !== "superadmin") {
+            query = { companyName: req.session.admin.companyName };
+        }
+        const results = await Result.find(query)
+            .populate("userId")
+            .sort({ createdAt: -1 });
         res.json(results);
     } catch (err) {
         console.log(err);
@@ -761,7 +767,11 @@ exports.showProctoring = (req, res) => {
 
 exports.getProctoringData = async (req, res) => {
     try {
-        const logs = await CheatingLog.find()
+        let query = {};
+        if (req.session.admin && req.session.admin.role !== "superadmin") {
+            query = { companyName: req.session.admin.companyName };
+        }
+        const logs = await CheatingLog.find(query)
             .populate("userId", "name email branch semester")
             .sort({ createdAt: -1 });
         res.json(logs);

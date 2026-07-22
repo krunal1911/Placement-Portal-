@@ -11,7 +11,17 @@ const resultSchema = new mongoose.Schema({
 
     totalQuestions: Number,
 
-    percentage: Number
+    percentage: Number,
+
+    testType: {
+        type: String,
+        default: "Aptitude"
+    },
+
+    companyName: {
+        type: String,
+        default: "General"
+    }
 
 }, {
 
