@@ -511,12 +511,12 @@ function showResults(score) {
         const isCorrect = userAns === correctAns;
         
         reviewHtml += `
-            <div style="background: #f8fafc; border: 1px solid ${isCorrect ? '#bbf7d0' : '#fecaca'}; border-radius: 12px; padding: 20px; text-align: left; margin-bottom: 16px;">
-                <h4 style="font-size: 15px; font-weight: 600; color: #0f172a; margin-bottom: 10px;">
+            <div class="review-item-card" style="background: var(--bg-card); border: 1px solid ${isCorrect ? '#bbf7d0' : '#fecaca'}; border-radius: 12px; padding: 20px; text-align: left; margin-bottom: 16px;">
+                <h4 style="font-size: 15px; font-weight: 600; color: var(--text-main); margin-bottom: 10px;">
                     <span style="font-size: 11px; background: #3b82f6; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-right: 8px;">${q.subject}</span>
                     Q${idx + 1}. ${q.question}
                 </h4>
-                <p style="font-size: 13px; margin-bottom: 6px;">
+                <p style="font-size: 13px; margin-bottom: 6px; color: var(--text-main);">
                     <b>Your Answer:</b> 
                     <span style="color: ${isCorrect ? '#16a34a' : '#dc2626'}; font-weight: 600;">${userAns}</span> 
                     ${isCorrect ? '✅' : '❌'}

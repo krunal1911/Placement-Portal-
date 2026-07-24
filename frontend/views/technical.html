@@ -513,13 +513,13 @@ function showResults(score) {
         const isCorrect = userAns === correctAns;
         
         reviewHtml += `
-            <div style="background: #f8fafc; border: 1px solid ${isCorrect ? '#bbf7d0' : '#fecaca'}; border-radius: 12px; padding: 20px; text-align: left; margin-bottom: 16px;">
-                <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-bottom: 8px;">${q.subject || 'General'}</div>
-                <h4 style="font-size: 15px; font-weight: 600; color: #0f172a; margin-bottom: 10px;">Q${idx + 1}. ${q.question}</h4>
-                <p style="font-size: 13px; margin-bottom: 6px;">
+            <div class="review-item-card" style="background: var(--bg-card); border: 1px solid ${isCorrect ? '#bbf7d0' : '#fecaca'}; border-radius: 12px; padding: 20px; text-align: left; margin-bottom: 16px;">
+                <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; background: var(--primary-light); color: var(--primary); padding: 2px 6px; border-radius: 4px; display: inline-block; margin-bottom: 8px;">${q.subject || 'General'}</div>
+                <h4 style="font-size: 15px; font-weight: 600; color: var(--text-main); margin-bottom: 10px;">Q${idx + 1}. ${q.question}</h4>
+                <p style="font-size: 13px; margin-bottom: 6px; color: var(--text-main);">
                     <b>Your Answer:</b> 
                     <span style="color: ${isCorrect ? '#16a34a' : '#dc2626'}; font-weight: 600;">${userAns}</span> 
-                    ${isCorrect ? 'KEEP UP!' : '❌'}
+                    ${isCorrect ? '✅' : '❌'}
                 </p>
                 <p style="font-size: 13px; margin-bottom: 12px; color: #16a34a;">
                     <b>Correct Answer:</b> <span style="font-weight: 600;">${correctAns}</span>

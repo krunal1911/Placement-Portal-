@@ -914,6 +914,89 @@ exports.getUserCompletionData = async (req, res) => {
     }
 };
 
+// Dynamically build professional PDF resume using student profile details
+exports.buildResume = async (req, res) => {
+    try {
+        if (!req.session.user) {
+            return res.status(401).send("Login First");
+        }
+
+        const user = await User.findById(req.session.user._id);
+        if (!user) {
+            return res.status(404).send("User not found");
+        }
+
+        const PDFDocument = require("pdfkit");
+        const doc = new PDFDocument({ margin: 40, size: "A4" });
+        const buffers = [];
+
+        doc.on("data", (chunk) => buffers.push(chunk));
+        doc.on("end", async () => {
+            try {
+                const pdfBuffer = Buffer.concat(buffers);
+                user.resumeBuffer = pdfBuffer;
+                user.resume = `/view-resume/${user._id}`;
+                await user.save();
+
+                await Notification.create({
+                    userId: user._id,
+                    title: "Resume Generated",
+                    message: "Your AI-formatted PDF resume has been built and saved successfully!"
+                });
+
+                req.session.user.resume = user.resume;
+                res.send("Resume Built Successfully ✅");
+            } catch (saveErr) {
+                console.error("Error saving built resume PDF:", saveErr);
+                res.status(500).send("Failed to save generated resume PDF.");
+            }
+        });
+
+        // ─── RESUME PDF LAYOUT DESIGN ──────────────────────────────────────────
+        // Header Name & Contact Info
+        doc.fillColor("#1e3a8a").fontSize(22).text((user.name || "Student").toUpperCase(), { align: "center" });
+        doc.fontSize(10).fillColor("#475569").text(`${user.email} | Phone: ${user.phone || "N/A"} | ${user.branch || "Engineering"} (Semester ${user.semester || "N/A"})`, { align: "center" });
+        if (user.linkedin || user.github) {
+            doc.fontSize(9).fillColor("#2563eb").text(`LinkedIn: ${user.linkedin || "N/A"} | GitHub: ${user.github || "N/A"}`, { align: "center" });
+        }
+        doc.moveDown();
+        doc.strokeColor("#cbd5e1").lineWidth(1).moveTo(40, doc.y).lineTo(555, doc.y).stroke();
+        doc.moveDown();
+
+        // Academic Profile
+        doc.fillColor("#1e293b").fontSize(14).text("ACADEMIC PROFILE", { underline: true });
+        doc.moveDown(0.5);
+        doc.fontSize(10).fillColor("#334155");
+        doc.text(`Degree & Branch: Bachelor of Technology - ${user.branch || "Engineering"}`);
+        doc.text(`Current Academic Semester: Semester ${user.semester || "N/A"}`);
+        doc.text(`Cumulative CGPA: ${user.cgpa || "N/A"} / 10.0`);
+        doc.moveDown();
+
+        // Technical Skills
+        doc.fillColor("#1e293b").fontSize(14).text("TECHNICAL SKILLS & COMPETENCIES", { underline: true });
+        doc.moveDown(0.5);
+        const skillsList = user.skills ? user.skills.split(",").map(s => s.trim()).join(" • ") : "Programming, Problem Solving, Data Structures, Web Technology";
+        doc.fontSize(10).fillColor("#334155").text(skillsList);
+        doc.moveDown();
+
+        // Projects & Certifications
+        doc.fillColor("#1e293b").fontSize(14).text("PROJECTS & PRACTICAL ASSESSMENTS", { underline: true });
+        doc.moveDown(0.5);
+        doc.fontSize(10).fillColor("#334155");
+        doc.text("• AI Placement Preparation Portal — Full-stack candidate assessment and proctoring suite.");
+        doc.text("• Technical & Aptitude Competency Assessments — Solved quantitative, logical, and core CS evaluations.");
+        doc.moveDown();
+
+        // Footer Note
+        doc.fillColor("#94a3b8").fontSize(8).text("Dynamically generated via Placement Preparation Portal", { align: "center" });
+
+        doc.end();
+    } catch (err) {
+        console.error("buildResume Error:", err);
+        res.status(500).send("Error building PDF resume.");
+    }
+};
+
 // Remove student's resume
 exports.deleteResume = async (req, res) => {
     try {

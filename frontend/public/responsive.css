@@ -96,6 +96,11 @@ html, body {
 [data-theme="dark"] .winner,
 [data-theme="dark"] .table-card,
 [data-theme="dark"] .podium-card,
+[data-theme="dark"] .review-item-card,
+[data-theme="dark"] #reviewList > div,
+[data-theme="dark"] .tcs-left-panel,
+[data-theme="dark"] .tcs-question-area,
+[data-theme="dark"] .tcs-option-label,
 [data-theme="dark"] .swal2-popup {
     background-color: #1e293b !important;
     background: #1e293b !important;
