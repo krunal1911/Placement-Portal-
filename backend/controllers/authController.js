@@ -4,7 +4,7 @@ const bcrypt = require("bcrypt");
 const User = require("../../database/models/User");
 
 exports.showRegister = (req, res) => {
-    res.sendFile(path.join(__dirname, "..", "..", "frontend", "views", "register.html"));
+    res.sendFile(path.join(process.cwd(), "frontend", "views", "register.html"));
 };
 
 exports.register = async (req, res) => {
@@ -68,7 +68,7 @@ exports.register = async (req, res) => {
 };
 
 exports.showLogin = (req, res) => {
-    res.sendFile(path.join(__dirname, "..", "..", "frontend", "views", "login.html"));
+    res.sendFile(path.join(process.cwd(), "frontend", "views", "login.html"));
 };
 
 exports.login = async (req, res) => {

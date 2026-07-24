@@ -18,47 +18,47 @@ const CheatingLog = require("../../database/models/CheatingLog");
 // VIEW PAGES
 // ==========================================
 exports.showDashboard = (req, res) => {
-    res.sendFile(path.join(__dirname, "../../frontend/views", "dashboard.html"));
+    res.sendFile(path.join(process.cwd(), "frontend", "views", "dashboard.html"));
 };
 
 exports.showProfile = (req, res) => {
-    res.sendFile(path.join(__dirname, "../../frontend/views", "profile.html"));
+    res.sendFile(path.join(process.cwd(), "frontend", "views", "profile.html"));
 };
 
 exports.showResume = (req, res) => {
-    res.sendFile(path.join(__dirname, "../../frontend/views", "resume.html"));
+    res.sendFile(path.join(process.cwd(), "frontend", "views", "resume.html"));
 };
 
 exports.showAptitude = (req, res) => {
-    res.sendFile(path.join(__dirname, "../../frontend/views", "aptitude.html"));
+    res.sendFile(path.join(process.cwd(), "frontend", "views", "aptitude.html"));
 };
 
 exports.showTechnical = (req, res) => {
-    res.sendFile(path.join(__dirname, "../../frontend/views", "technical.html"));
+    res.sendFile(path.join(process.cwd(), "frontend", "views", "technical.html"));
 };
 
 exports.showCombined = (req, res) => {
-    res.sendFile(path.join(__dirname, "../../frontend/views", "combined.html"));
+    res.sendFile(path.join(process.cwd(), "frontend", "views", "combined.html"));
 };
 
 exports.showCareerGuide = (req, res) => {
-    res.sendFile(path.join(__dirname, "../../frontend/views", "career-guide.html"));
+    res.sendFile(path.join(process.cwd(), "frontend", "views", "career-guide.html"));
 };
 
 exports.showLeaderboard = (req, res) => {
-    res.sendFile(path.join(__dirname, "../../frontend/views", "leaderboard.html"));
+    res.sendFile(path.join(process.cwd(), "frontend", "views", "leaderboard.html"));
 };
 
 exports.showPlacementDrives = (req, res) => {
-    res.sendFile(path.join(__dirname, "../../frontend/views", "placement-drives.html"));
+    res.sendFile(path.join(process.cwd(), "frontend", "views", "placement-drives.html"));
 };
 
 exports.showHistory = (req, res) => {
-    res.sendFile(path.join(__dirname, "../../frontend/views", "history.html"));
+    res.sendFile(path.join(process.cwd(), "frontend", "views", "history.html"));
 };
 
 exports.showMyApplications = (req, res) => {
-    res.sendFile(path.join(__dirname, "../../frontend/views", "my-applications.html"));
+    res.sendFile(path.join(process.cwd(), "frontend", "views", "my-applications.html"));
 };
 
 // ==========================================

@@ -169,21 +169,21 @@ app.use(session({
     cookie: {
         maxAge: 24 * 60 * 60 * 1000,   // 24 hours
         httpOnly: true,                  // Prevents client-side JS from reading cookie
-        secure: process.env.NODE_ENV === 'production', // Secure cookies in production
+        secure: false,                   // Compatible across Vercel, Render and local proxies
         sameSite: 'lax'
     }
 }));
 
 // ─── Static File Serving ──────────────────────────────────────────────────────
-app.use(express.static(path.join(__dirname, 'frontend/public')));
-app.use('/uploads', express.static(path.join(__dirname, 'frontend/public/uploads')));
+app.use(express.static(path.join(process.cwd(), 'frontend/public')));
+app.use('/uploads', express.static(path.join(process.cwd(), 'frontend/public/uploads')));
 
 // Set custom views folder for templates
-app.set('views', path.join(__dirname, 'frontend/views'));
+app.set('views', path.join(process.cwd(), 'frontend/views'));
 
 // ─── Home Route ───────────────────────────────────────────────────────────────
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend', 'views', 'index.html'));
+    res.sendFile(path.join(process.cwd(), 'frontend', 'views', 'index.html'));
 });
 
 // ─── Routers ──────────────────────────────────────────────────────────────────

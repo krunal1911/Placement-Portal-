@@ -22,51 +22,51 @@ const ActiveExamLink = require("../../database/models/ActiveExamLink");
 // VIEW PAGES
 // ==========================================
 exports.showAdminLogin = (req, res) => {
-    res.sendFile(path.join(__dirname, "../../frontend/views", "admin-login.html"));
+    res.sendFile(path.join(process.cwd(), "frontend", "views", "admin-login.html"));
 };
 
 exports.showAdminDashboard = (req, res) => {
-    res.sendFile(path.join(__dirname, "../../frontend/views", "admin-dashboard.html"));
+    res.sendFile(path.join(process.cwd(), "frontend", "views", "admin-dashboard.html"));
 };
 
 exports.showManageAdmins = (req, res) => {
-    res.sendFile(path.join(__dirname, "../../frontend/views", "manage-admins.html"));
+    res.sendFile(path.join(process.cwd(), "frontend", "views", "manage-admins.html"));
 };
 
 exports.showStudents = (req, res) => {
-    res.sendFile(path.join(__dirname, "../../frontend/views", "students.html"));
+    res.sendFile(path.join(process.cwd(), "frontend", "views", "students.html"));
 };
 
 exports.showManageQuestions = (req, res) => {
-    res.sendFile(path.join(__dirname, "../../frontend/views", "add-question.html"));
+    res.sendFile(path.join(process.cwd(), "frontend", "views", "add-question.html"));
 };
 
 exports.showAddQuestion = (req, res) => {
-    res.sendFile(path.join(__dirname, "../../frontend/views", "add-question.html"));
+    res.sendFile(path.join(process.cwd(), "frontend", "views", "add-question.html"));
 };
 
 exports.showImportQuestions = (req, res) => {
-    res.sendFile(path.join(__dirname, "../../frontend/views", "import-questions.html"));
+    res.sendFile(path.join(process.cwd(), "frontend", "views", "import-questions.html"));
 };
 
 exports.showAddCompany = (req, res) => {
-    res.sendFile(path.join(__dirname, "../../frontend/views", "add-company.html"));
+    res.sendFile(path.join(process.cwd(), "frontend", "views", "add-company.html"));
 };
 
 exports.showManageCompanies = (req, res) => {
-    res.sendFile(path.join(__dirname, "../../frontend/views", "manage-companies.html"));
+    res.sendFile(path.join(process.cwd(), "frontend", "views", "manage-companies.html"));
 };
 
 exports.showResults = (req, res) => {
-    res.sendFile(path.join(__dirname, "../../frontend/views", "results.html"));
+    res.sendFile(path.join(process.cwd(), "frontend", "views", "results.html"));
 };
 
 exports.showApplications = (req, res) => {
-    res.sendFile(path.join(__dirname, "../../frontend/views", "applications.html"));
+    res.sendFile(path.join(process.cwd(), "frontend", "views", "applications.html"));
 };
 
 exports.showUpdateStatus = (req, res) => {
-    res.sendFile(path.join(__dirname, "../../frontend/views", "update-status.html"));
+    res.sendFile(path.join(process.cwd(), "frontend", "views", "update-status.html"));
 };
 
 // ==========================================
@@ -934,7 +934,7 @@ exports.deleteAdmin = async (req, res) => {
 };
 
 exports.showProctoring = (req, res) => {
-    res.sendFile(path.join(__dirname, "../../frontend/views", "proctoring.html"));
+    res.sendFile(path.join(process.cwd(), "frontend", "views", "proctoring.html"));
 };
 
 exports.getProctoringData = async (req, res) => {
