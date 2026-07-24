@@ -233,19 +233,40 @@ async function loadAnalytics() {
             }
         });
 
-        // ---------- Placed vs Unplaced Doughnut Chart ----------
+        // ---------- Application Status Distribution Doughnut Chart ----------
         const pieCtx = document.getElementById("pieChart").getContext("2d");
         if (pieChartInstance) pieChartInstance.destroy();
+
+        const statusLabels = ["Applied", "Shortlisted", "Interview", "Selected", "Rejected"];
+        const statusData = [
+            data.statusMap ? (data.statusMap["Applied"] || 0) : 0,
+            data.statusMap ? (data.statusMap["Shortlisted"] || 0) : 0,
+            data.statusMap ? (data.statusMap["Interview Scheduled"] || 0) : 0,
+            data.statusMap ? (data.statusMap["Selected"] || 0) : 0,
+            data.statusMap ? (data.statusMap["Rejected"] || 0) : 0
+        ];
+
+        const hasApps = statusData.some(v => v > 0);
+        const pieLabels = hasApps ? statusLabels : [`Placed (${data.placedCount || 0})`, `Unplaced (${data.unplacedCount || 0})`];
+        const pieDatasetData = hasApps ? statusData : [data.placedCount || 0, data.unplacedCount || 1];
+        const pieColors = hasApps ? [
+            "rgba(59, 130, 246, 0.85)",   // Applied - Blue
+            "rgba(245, 158, 11, 0.85)",   // Shortlisted - Amber
+            "rgba(139, 92, 246, 0.85)",   // Interview - Purple
+            "rgba(16, 185, 129, 0.85)",   // Selected - Green
+            "rgba(239, 68, 68, 0.85)"    // Rejected - Red
+        ] : [
+            "rgba(16, 185, 129, 0.85)",
+            "rgba(239, 68, 68, 0.85)"
+        ];
+
         pieChartInstance = new Chart(pieCtx, {
             type: "doughnut",
             data: {
-                labels: [`Placed (${data.placedCount || 0})`, `Unplaced (${data.unplacedCount || 0})`],
+                labels: pieLabels,
                 datasets: [{
-                    data: [data.placedCount || 0, data.unplacedCount || 0],
-                    backgroundColor: [
-                        "rgba(16, 185, 129, 0.85)",
-                        "rgba(239, 68, 68, 0.85)"
-                    ],
+                    data: pieDatasetData,
+                    backgroundColor: pieColors,
                     borderWidth: 2,
                     borderColor: isDark ? "#1e293b" : "#ffffff"
                 }]
@@ -256,7 +277,7 @@ async function loadAnalytics() {
                 plugins: {
                     legend: {
                         position: "bottom",
-                        labels: { color: textColor, font: { family: "Poppins", size: 12 } }
+                        labels: { color: textColor, font: { family: "Poppins", size: 11 } }
                     }
                 }
             }

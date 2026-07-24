@@ -268,9 +268,26 @@ exports.getAdminAnalytics = async (req, res) => {
             });
             averageScore = allStudents.length > 0 ? Math.round(totalScoreSum / allStudents.length) : 78;
 
-            // Placed calculation
-            const placedApps = allApplications.filter(a => a.status === "Accepted");
-            const placedIds = new Set(placedApps.map(a => String(a.userId)));
+            // Placed & Status Breakdown calculation
+            const statusMap = {
+                "Applied": 0,
+                "Shortlisted": 0,
+                "Interview Scheduled": 0,
+                "Selected": 0,
+                "Rejected": 0
+            };
+
+            const placedIds = new Set();
+            allApplications.forEach(a => {
+                const st = a.status || "Applied";
+                if (!statusMap[st]) statusMap[st] = 0;
+                statusMap[st]++;
+
+                if (st === "Selected" || st === "Accepted" || st === "Placed") {
+                    placedIds.add(String(a.userId));
+                }
+            });
+
             placedCount = placedIds.size;
             unplacedCount = Math.max(0, totalStudents - placedCount);
 
@@ -296,6 +313,22 @@ exports.getAdminAnalytics = async (req, res) => {
                 deptMap[branchKey].total++;
                 if (placedIds.has(String(st._id))) deptMap[branchKey].placed++;
             });
+
+            res.json({
+                totalStudents,
+                totalCompanies,
+                totalDrives: totalCompanies,
+                totalApplications,
+                totalTests,
+                averageScore,
+                placedCount,
+                unplacedCount,
+                avgPackage,
+                highestPackage,
+                deptMap,
+                statusMap
+            });
+            return;
         } else {
             // Company Admin Scope
             const myCompanies = allCompanies.filter(c => c.companyName === companyName);
@@ -308,8 +341,25 @@ exports.getAdminAnalytics = async (req, res) => {
             const applicantIds = new Set(myApps.map(a => String(a.userId)));
             totalStudents = applicantIds.length;
 
-            const placedApps = myApps.filter(a => a.status === "Accepted");
-            const placedIds = new Set(placedApps.map(a => String(a.userId)));
+            const statusMap = {
+                "Applied": 0,
+                "Shortlisted": 0,
+                "Interview Scheduled": 0,
+                "Selected": 0,
+                "Rejected": 0
+            };
+
+            const placedIds = new Set();
+            myApps.forEach(a => {
+                const st = a.status || "Applied";
+                if (!statusMap[st]) statusMap[st] = 0;
+                statusMap[st]++;
+
+                if (st === "Selected" || st === "Accepted" || st === "Placed") {
+                    placedIds.add(String(a.userId));
+                }
+            });
+
             placedCount = placedIds.size;
             unplacedCount = Math.max(0, totalStudents - placedCount);
 
@@ -332,27 +382,28 @@ exports.getAdminAnalytics = async (req, res) => {
 
             allStudents.forEach(st => {
                 if (applicantIds.has(String(st._id))) {
-                    const branch = st.branch || "Computer Engineering";
-                    if (!deptMap[branch]) deptMap[branch] = { total: 0, placed: 0 };
-                    deptMap[branch].total++;
-                    if (placedIds.has(String(st._id))) deptMap[branch].placed++;
+                    const branchKey = normalizeBranch(st.branch);
+                    if (!deptMap[branchKey]) deptMap[branchKey] = { total: 0, placed: 0 };
+                    deptMap[branchKey].total++;
+                    if (placedIds.has(String(st._id))) deptMap[branchKey].placed++;
                 }
             });
-        }
 
-        res.json({
-            totalStudents,
-            totalCompanies,
-            totalDrives: totalCompanies,
-            totalApplications,
-            totalTests,
-            averageScore,
-            placedCount,
-            unplacedCount,
-            avgPackage,
-            highestPackage,
-            deptMap
-        });
+            res.json({
+                totalStudents,
+                totalCompanies,
+                totalDrives: totalCompanies,
+                totalApplications,
+                totalTests,
+                averageScore,
+                placedCount,
+                unplacedCount,
+                avgPackage,
+                highestPackage,
+                deptMap,
+                statusMap
+            });
+        }
     } catch (err) {
         console.error("getAdminAnalytics Error:", err);
         res.status(500).json({ error: "Failed to fetch analytics" });
