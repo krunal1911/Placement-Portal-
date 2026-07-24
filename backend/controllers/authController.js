@@ -79,17 +79,18 @@ exports.login = async (req, res) => {
     try {
         let { email, password } = req.body;
 
-        email = email?.trim().toLowerCase();
+        email = email?.trim();
         password = password?.trim();
 
         if (!email || !password) {
             return res.status(400).send("Please fill all fields.");
         }
 
-        const user = await User.findOne({ email });
+        const safeEmailRegex = new RegExp("^" + email.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&") + "$", "i");
+        const user = await User.findOne({ email: safeEmailRegex });
 
         if (!user) {
-            return res.status(400).send("Invalid Email or Password.");
+            return res.status(400).send("Invalid Email or Password. Account not found.");
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
@@ -115,7 +116,7 @@ exports.login = async (req, res) => {
             res.send("Login Successful");
         });
     } catch (err) {
-        console.error(err);
+        console.error("Login Error:", err);
         res.status(500).send("Something went wrong. Please try again.");
     }
 };
