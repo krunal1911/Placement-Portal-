@@ -97,6 +97,42 @@ exports.getAdminsData = async (req, res) => {
 };
 
 // Get list of all student registrations
+exports.getCurrentAdmin = (req, res) => {
+    if (!req.session.admin) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+    res.json(req.session.admin);
+};
+
+exports.getRecentActivity = async (req, res) => {
+    try {
+        if (!req.session.admin) {
+            return res.status(401).json({ error: "Unauthorized" });
+        }
+
+        const isSuper = req.session.admin.role === "superadmin";
+        const companyName = req.session.admin.companyName;
+
+        let query = {};
+        if (!isSuper) {
+            const myCompanies = await Company.find({ companyName });
+            const myCompanyIds = myCompanies.map(c => c._id);
+            query = { companyId: { $in: myCompanyIds } };
+        }
+
+        const applications = await Application.find(query)
+            .sort({ appliedAt: -1, createdAt: -1 })
+            .limit(10)
+            .populate("userId", "name email branch")
+            .populate("companyId", "companyName jobRole package");
+
+        res.json(applications);
+    } catch (err) {
+        console.error("getRecentActivity Error:", err);
+        res.status(500).json({ error: "Failed to fetch recent activities" });
+    }
+};
+
 exports.getStudentsData = async (req, res) => {
     try {
         const students = await User.find();
