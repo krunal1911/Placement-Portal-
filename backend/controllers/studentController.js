@@ -4,7 +4,14 @@ const fs   = require("fs");
 const { uploadFile } = require("../../database/config/cloudinary");
 
 const User = require("../../database/models/User");
-const Result = require("../../database/models/result");
+let Result;
+try {
+    Result = require("../../database/models/Result");
+} catch (e) {
+    try {
+        Result = require("../../database/models/result");
+    } catch (e2) {}
+}
 const Company = require("../../database/models/Company");
 const Application = require("../../database/models/Application");
 const Notification = require("../../database/models/Notification");
@@ -898,25 +905,35 @@ exports.getUserCompletionData = async (req, res) => {
         if (user.github && user.github.trim() !== "") completed++;
         if (user.cgpa && Number(user.cgpa) > 0) completed++;
 
-        // Calculate actual test count and average score dynamically from Result model
-        const results = await Result.find({ userId: user._id });
-        const testsTaken = results.length;
-        let totalScoreSum = 0;
-        results.forEach(r => {
-            totalScoreSum += (r.percentage !== undefined && r.percentage !== null) 
-                ? r.percentage 
-                : (r.totalQuestions > 0 ? Math.round((r.score / r.totalQuestions) * 100) : 0);
-        });
-        const averageScore = testsTaken > 0 ? Math.round(totalScoreSum / testsTaken) : (user.averageScore || 0);
+        const profileCompletion = Math.round((completed / total) * 100);
 
-        if (user.testsTaken !== testsTaken || user.averageScore !== averageScore) {
-            user.testsTaken = testsTaken;
-            user.averageScore = averageScore;
-            await user.save();
+        let testsTaken = user.testsTaken || 0;
+        let averageScore = user.averageScore || 0;
+        let companiesAppliedCount = 0;
+
+        try {
+            if (Result) {
+                const results = await Result.find({ userId: user._id });
+                if (results.length > 0) {
+                    testsTaken = results.length;
+                    let totalScoreSum = 0;
+                    results.forEach(r => {
+                        totalScoreSum += (r.percentage !== undefined && r.percentage !== null) 
+                            ? r.percentage 
+                            : (r.totalQuestions > 0 ? Math.round((r.score / r.totalQuestions) * 100) : 0);
+                    });
+                    averageScore = Math.round(totalScoreSum / testsTaken);
+                }
+            }
+        } catch (rErr) {
+            console.warn("getUserCompletionData Result query warning:", rErr.message);
         }
 
-        // Fetch actual companies applied count from the Application model
-        const companiesAppliedCount = await Application.countDocuments({ userId: user._id });
+        try {
+            companiesAppliedCount = await Application.countDocuments({ userId: user._id });
+        } catch (aErr) {
+            console.warn("getUserCompletionData Application query warning:", aErr.message);
+        }
 
         res.json({
             ...user.toObject(),
@@ -926,8 +943,8 @@ exports.getUserCompletionData = async (req, res) => {
             companiesApplied: companiesAppliedCount
         });
     } catch (err) {
-        console.log(err);
-        res.status(500).send("Error");
+        console.error("getUserCompletionData Error:", err);
+        res.status(500).send("Error fetching user completion data");
     }
 };
 
