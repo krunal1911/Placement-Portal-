@@ -898,13 +898,30 @@ exports.getUserCompletionData = async (req, res) => {
         if (user.github && user.github.trim() !== "") completed++;
         if (user.cgpa && Number(user.cgpa) > 0) completed++;
 
-        const profileCompletion = Math.round((completed / total) * 100);
+        // Calculate actual test count and average score dynamically from Result model
+        const results = await Result.find({ userId: user._id });
+        const testsTaken = results.length;
+        let totalScoreSum = 0;
+        results.forEach(r => {
+            totalScoreSum += (r.percentage !== undefined && r.percentage !== null) 
+                ? r.percentage 
+                : (r.totalQuestions > 0 ? Math.round((r.score / r.totalQuestions) * 100) : 0);
+        });
+        const averageScore = testsTaken > 0 ? Math.round(totalScoreSum / testsTaken) : (user.averageScore || 0);
+
+        if (user.testsTaken !== testsTaken || user.averageScore !== averageScore) {
+            user.testsTaken = testsTaken;
+            user.averageScore = averageScore;
+            await user.save();
+        }
 
         // Fetch actual companies applied count from the Application model
         const companiesAppliedCount = await Application.countDocuments({ userId: user._id });
 
         res.json({
             ...user.toObject(),
+            testsTaken,
+            averageScore,
             profileCompletion,
             companiesApplied: companiesAppliedCount
         });
