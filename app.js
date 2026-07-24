@@ -88,7 +88,12 @@ app.use(async (req, res, next) => {
             initializeSettings().catch(err => console.error('Failed to initialize settings:', err));
         }
     } catch (err) {
-        console.error('DB middleware error:', err);
+        console.error('DB middleware error:', err.message);
+        if (mongoose.connection.readyState !== 1) {
+            if (req.method === 'POST' || req.path === '/login' || req.path === '/register') {
+                return res.status(503).send("Database connection is initializing. Please click submit again in 2 seconds.");
+            }
+        }
     }
     next();
 });
