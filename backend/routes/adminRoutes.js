@@ -93,6 +93,13 @@ router.get("/delete-technical/:id", requireAdmin, adminController.deleteTechnica
 router.post("/import-questions", requireAdmin, fileUpload.single("importFile"), adminController.importQuestions);
 router.post("/add-company", requireAdmin, adminController.addCompany);
 router.post("/update-status", requireAdmin, adminController.updateStatus);
+router.put("/update-status", requireAdmin, adminController.updateStatus);
+router.post("/update-status/:id", requireAdmin, adminController.updateStatus);
+router.put("/update-status/:id", requireAdmin, adminController.updateStatus);
+router.post("/update-application-status", requireAdmin, adminController.updateStatus);
+router.put("/update-application-status", requireAdmin, adminController.updateStatus);
+router.post("/update-application-status/:id", requireAdmin, adminController.updateStatus);
+router.put("/update-application-status/:id", requireAdmin, adminController.updateStatus);
 router.post("/generate-signed-link", requireAdmin, adminController.generateSignedLink);
 router.get("/active-links", requireAdmin, adminController.getActiveLinks);
 router.post("/extend-link/:id", requireAdmin, adminController.extendLink);

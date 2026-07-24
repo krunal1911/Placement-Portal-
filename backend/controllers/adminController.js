@@ -881,19 +881,25 @@ exports.addCompany = async (req, res) => {
     }
 };
 
-// Update drive application status logs and trigger student logs notifications
+// Update drive application status logs and trigger student notifications
 exports.updateStatus = async (req, res) => {
     try {
-        const { id, status } = req.body;
-        const app = await Application.findById(id).populate('companyId');
-        if (!app) {
-            return res.status(404).send("Application not found");
+        const appId = req.body.id || req.params.id || req.body.appId;
+        const status = req.body.status;
+
+        if (!appId || !status) {
+            return res.status(400).json({ message: "Missing application ID or status parameter" });
         }
 
-        // Verify ownership if not superadmin
+        const app = await Application.findById(appId).populate('companyId');
+        if (!app) {
+            return res.status(404).json({ message: "Application not found" });
+        }
+
+        // Verify ownership if company admin (not superadmin)
         if (req.session.admin && req.session.admin.role !== "superadmin") {
             if (!app.companyId || app.companyId.companyName !== req.session.admin.companyName) {
-                return res.status(403).send("Forbidden: You cannot modify this application.");
+                return res.status(403).json({ message: "Forbidden: You cannot modify this application." });
             }
         }
 
@@ -903,13 +909,13 @@ exports.updateStatus = async (req, res) => {
         await Notification.create({
             userId: app.userId,
             title: "Application Status Updated",
-            message: `Your application status has been changed to "${status}".`
+            message: `Your application status for ${app.companyId ? app.companyId.companyName : "company"} has been changed to "${status}".`
         });
 
-        res.send("Status Updated Successfully ✅");
+        res.json({ message: "Status Updated Successfully ✅", status });
     } catch (err) {
-        console.log(err);
-        res.status(500).send("Error Updating Status");
+        console.error("Error Updating Status:", err);
+        res.status(500).json({ message: "Error Updating Status: " + err.message });
     }
 };
 
