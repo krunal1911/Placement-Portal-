@@ -181,9 +181,11 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'frontend/public/upl
 // Set custom views folder for templates
 app.set('views', path.join(process.cwd(), 'frontend/views'));
 
+const renderView = require('./backend/utils/renderView');
+
 // ─── Home Route ───────────────────────────────────────────────────────────────
 app.get('/', (req, res) => {
-    res.sendFile(path.join(process.cwd(), 'frontend', 'views', 'index.html'));
+    renderView(res, 'index.html');
 });
 
 // ─── Routers ──────────────────────────────────────────────────────────────────
@@ -193,13 +195,15 @@ app.use('/', adminRoutes);
 
 // ─── 404 Handler ─────────────────────────────────────────────────────────────
 app.use((req, res) => {
-    res.status(404).sendFile(path.join(__dirname, 'frontend', 'views', '404.html'));
+    res.status(404);
+    renderView(res, '404.html');
 });
 
 // ─── Global Error Handler ─────────────────────────────────────────────────────
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(500).sendFile(path.join(__dirname, 'frontend', 'views', '500.html'));
+    res.status(500);
+    renderView(res, '500.html');
 });
 
 // ─── Export & Start Server ───────────────────────────────────────────────────

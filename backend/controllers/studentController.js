@@ -14,51 +14,53 @@ const Question = require("../../database/models/Question");
 const TechnicalQuestion = require("../../database/models/TechnicalQuestion");
 const CheatingLog = require("../../database/models/CheatingLog");
 
+const renderView = require("../utils/renderView");
+
 // ==========================================
 // VIEW PAGES
 // ==========================================
 exports.showDashboard = (req, res) => {
-    res.sendFile(path.join(process.cwd(), "frontend", "views", "dashboard.html"));
+    renderView(res, "dashboard.html");
 };
 
 exports.showProfile = (req, res) => {
-    res.sendFile(path.join(process.cwd(), "frontend", "views", "profile.html"));
+    renderView(res, "profile.html");
 };
 
 exports.showResume = (req, res) => {
-    res.sendFile(path.join(process.cwd(), "frontend", "views", "resume.html"));
+    renderView(res, "resume.html");
 };
 
 exports.showAptitude = (req, res) => {
-    res.sendFile(path.join(process.cwd(), "frontend", "views", "aptitude.html"));
+    renderView(res, "aptitude.html");
 };
 
 exports.showTechnical = (req, res) => {
-    res.sendFile(path.join(process.cwd(), "frontend", "views", "technical.html"));
+    renderView(res, "technical.html");
 };
 
 exports.showCombined = (req, res) => {
-    res.sendFile(path.join(process.cwd(), "frontend", "views", "combined.html"));
+    renderView(res, "combined.html");
 };
 
 exports.showCareerGuide = (req, res) => {
-    res.sendFile(path.join(process.cwd(), "frontend", "views", "career-guide.html"));
+    renderView(res, "career-guide.html");
 };
 
 exports.showLeaderboard = (req, res) => {
-    res.sendFile(path.join(process.cwd(), "frontend", "views", "leaderboard.html"));
+    renderView(res, "leaderboard.html");
 };
 
 exports.showPlacementDrives = (req, res) => {
-    res.sendFile(path.join(process.cwd(), "frontend", "views", "placement-drives.html"));
+    renderView(res, "placement-drives.html");
 };
 
 exports.showHistory = (req, res) => {
-    res.sendFile(path.join(process.cwd(), "frontend", "views", "history.html"));
+    renderView(res, "history.html");
 };
 
 exports.showMyApplications = (req, res) => {
-    res.sendFile(path.join(process.cwd(), "frontend", "views", "my-applications.html"));
+    renderView(res, "my-applications.html");
 };
 
 // ==========================================

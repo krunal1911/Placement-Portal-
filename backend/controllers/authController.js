@@ -2,9 +2,10 @@ const path = require("path");
 const bcrypt = require("bcrypt");
 
 const User = require("../../database/models/User");
+const renderView = require("../utils/renderView");
 
 exports.showRegister = (req, res) => {
-    res.sendFile(path.join(process.cwd(), "frontend", "views", "register.html"));
+    renderView(res, "register.html");
 };
 
 exports.register = async (req, res) => {
@@ -68,7 +69,7 @@ exports.register = async (req, res) => {
 };
 
 exports.showLogin = (req, res) => {
-    res.sendFile(path.join(process.cwd(), "frontend", "views", "login.html"));
+    renderView(res, "login.html");
 };
 
 exports.login = async (req, res) => {
@@ -79,40 +80,30 @@ exports.login = async (req, res) => {
         password = password?.trim();
 
         if (!email || !password) {
-            return res.status(400).send("Please enter both email and password.");
-        }
-
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-        if (!emailRegex.test(email)) {
-            return res.status(400).send("Please enter a valid email address.");
+            return res.status(400).send("Please fill all fields.");
         }
 
         const user = await User.findOne({ email });
 
         if (!user) {
-            return res.status(401).send("Invalid email or password.");
+            return res.status(400).send("Invalid Email or Password.");
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
-            return res.status(401).send("Invalid email or password.");
+            return res.status(400).send("Invalid Email or Password.");
         }
 
         req.session.user = {
-            _id: user._id,
+            id: user._id,
             name: user.name,
-            email: user.email
+            email: user.email,
+            branch: user.branch,
+            semester: user.semester
         };
 
-        req.session.save((err) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).send("Session save failed. Please try again.");
-            }
-            res.status(200).send("Success");
-        });
+        res.send("Login Successful");
     } catch (err) {
         console.error(err);
         res.status(500).send("Something went wrong. Please try again.");
@@ -120,7 +111,13 @@ exports.login = async (req, res) => {
 };
 
 exports.logout = (req, res) => {
-    req.session.destroy(() => {
+    req.session.destroy(err => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send("Logout Failed.");
+        }
+
+        res.clearCookie("connect.sid");
         res.redirect("/login");
     });
 };

@@ -18,55 +18,57 @@ const AdminRequest = require("../../database/models/AdminRequest");
 const CheatingLog = require("../../database/models/CheatingLog");
 const ActiveExamLink = require("../../database/models/ActiveExamLink");
 
+const renderView = require("../utils/renderView");
+
 // ==========================================
 // VIEW PAGES
 // ==========================================
 exports.showAdminLogin = (req, res) => {
-    res.sendFile(path.join(process.cwd(), "frontend", "views", "admin-login.html"));
+    renderView(res, "admin-login.html");
 };
 
 exports.showAdminDashboard = (req, res) => {
-    res.sendFile(path.join(process.cwd(), "frontend", "views", "admin-dashboard.html"));
+    renderView(res, "admin-dashboard.html");
 };
 
 exports.showManageAdmins = (req, res) => {
-    res.sendFile(path.join(process.cwd(), "frontend", "views", "manage-admins.html"));
+    renderView(res, "manage-admins.html");
 };
 
 exports.showStudents = (req, res) => {
-    res.sendFile(path.join(process.cwd(), "frontend", "views", "students.html"));
+    renderView(res, "students.html");
 };
 
 exports.showManageQuestions = (req, res) => {
-    res.sendFile(path.join(process.cwd(), "frontend", "views", "add-question.html"));
+    renderView(res, "add-question.html");
 };
 
 exports.showAddQuestion = (req, res) => {
-    res.sendFile(path.join(process.cwd(), "frontend", "views", "add-question.html"));
+    renderView(res, "add-question.html");
 };
 
 exports.showImportQuestions = (req, res) => {
-    res.sendFile(path.join(process.cwd(), "frontend", "views", "import-questions.html"));
+    renderView(res, "import-questions.html");
 };
 
 exports.showAddCompany = (req, res) => {
-    res.sendFile(path.join(process.cwd(), "frontend", "views", "add-company.html"));
+    renderView(res, "add-company.html");
 };
 
 exports.showManageCompanies = (req, res) => {
-    res.sendFile(path.join(process.cwd(), "frontend", "views", "manage-companies.html"));
+    renderView(res, "manage-companies.html");
 };
 
 exports.showResults = (req, res) => {
-    res.sendFile(path.join(process.cwd(), "frontend", "views", "results.html"));
+    renderView(res, "results.html");
 };
 
 exports.showApplications = (req, res) => {
-    res.sendFile(path.join(process.cwd(), "frontend", "views", "applications.html"));
+    renderView(res, "applications.html");
 };
 
 exports.showUpdateStatus = (req, res) => {
-    res.sendFile(path.join(process.cwd(), "frontend", "views", "update-status.html"));
+    renderView(res, "update-status.html");
 };
 
 // ==========================================
@@ -934,7 +936,7 @@ exports.deleteAdmin = async (req, res) => {
 };
 
 exports.showProctoring = (req, res) => {
-    res.sendFile(path.join(process.cwd(), "frontend", "views", "proctoring.html"));
+    renderView(res, "proctoring.html");
 };
 
 exports.getProctoringData = async (req, res) => {
