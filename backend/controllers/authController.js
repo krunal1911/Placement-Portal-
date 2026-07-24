@@ -100,13 +100,20 @@ exports.login = async (req, res) => {
 
         req.session.user = {
             id: user._id,
+            _id: user._id,
             name: user.name,
             email: user.email,
             branch: user.branch,
             semester: user.semester
         };
 
-        res.send("Login Successful");
+        req.session.save((err) => {
+            if (err) {
+                console.error("Session save error:", err);
+                return res.status(500).send("Session save failed. Please try again.");
+            }
+            res.send("Login Successful");
+        });
     } catch (err) {
         console.error(err);
         res.status(500).send("Something went wrong. Please try again.");

@@ -67,6 +67,7 @@
     color: #60a5fa !important;
 }
 
+/* All Cards, Boxes, Containers, Widgets & SweetAlert Modals in Dark Mode */
 [data-theme="dark"] .card,
 [data-theme="dark"] .feature-card,
 [data-theme="dark"] .admin-card,
@@ -78,11 +79,47 @@
 [data-theme="dark"] .auth-box,
 [data-theme="dark"] .login-box,
 [data-theme="dark"] .register-box,
-[data-theme="dark"] .container .card {
+[data-theme="dark"] .container .card,
+[data-theme="dark"] .chart-card,
+[data-theme="dark"] .activity-card,
+[data-theme="dark"] .action-card,
+[data-theme="dark"] .profile-widget,
+[data-theme="dark"] .recent-activity,
+[data-theme="dark"] .dashboard-card,
+[data-theme="dark"] .swal2-popup {
     background-color: #1e293b !important;
     color: #f8fafc !important;
     border-color: #334155 !important;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* SweetAlert Dark Mode Fix */
+[data-theme="dark"] .swal2-popup {
+    background: #1e293b !important;
+    color: #f8fafc !important;
+    border: 1px solid #334155 !important;
+}
+
+[data-theme="dark"] .swal2-title,
+[data-theme="dark"] .swal2-html-container,
+[data-theme="dark"] .swal2-content {
+    color: #f8fafc !important;
+}
+
+/* Motivation banner in Dark Mode */
+[data-theme="dark"] .motivation {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
+}
+
+[data-theme="dark"] .motivation h2,
+[data-theme="dark"] .motivation h3 {
+    color: #60a5fa !important;
+}
+
+[data-theme="dark"] .motivation p {
+    color: #cbd5e1 !important;
 }
 
 [data-theme="dark"] h1,
@@ -92,20 +129,24 @@
 [data-theme="dark"] h5,
 [data-theme="dark"] h6,
 [data-theme="dark"] strong,
-[data-theme="dark"] label {
+[data-theme="dark"] label,
+[data-theme="dark"] .card-header h2,
+[data-theme="dark"] .action-card h3 {
     color: #f8fafc !important;
 }
 
 [data-theme="dark"] p,
 [data-theme="dark"] span,
 [data-theme="dark"] li,
-[data-theme="dark"] td {
+[data-theme="dark"] td,
+[data-theme="dark"] .activity-item p {
     color: #cbd5e1 !important;
 }
 
 [data-theme="dark"] .text-muted,
 [data-theme="dark"] small,
-[data-theme="dark"] .sub-title {
+[data-theme="dark"] .sub-title,
+[data-theme="dark"] .card-header p {
     color: #94a3b8 !important;
 }
 
