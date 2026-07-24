@@ -22,10 +22,10 @@ exports.register = async (req, res) => {
             return res.status(400).send("Please fill all required fields.");
         }
 
-        const nameRegex = /^[A-Za-z ]{3,50}$/;
+        const nameRegex = /^[A-Za-z\s\.\-']{2,50}$/;
 
         if (!nameRegex.test(name)) {
-            return res.status(400).send("Name should contain only letters and be at least 3 characters long.");
+            return res.status(400).send("Name should contain letters and be at least 2 characters long.");
         }
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -63,8 +63,11 @@ exports.register = async (req, res) => {
 
         res.send("Registration Successful");
     } catch (err) {
-        console.error(err);
-        res.status(500).send("Something went wrong. Please try again.");
+        console.error("Registration Error:", err);
+        if (err.code === 11000) {
+            return res.status(400).send("Email address is already registered.");
+        }
+        res.status(500).send(err.message || "Registration failed. Please check inputs and try again.");
     }
 };
 
