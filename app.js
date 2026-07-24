@@ -89,10 +89,11 @@ app.use(async (req, res, next) => {
         }
     } catch (err) {
         console.error('DB middleware error:', err.message);
-        if (mongoose.connection.readyState !== 1) {
-            if (req.method === 'POST' || req.path === '/login' || req.path === '/register') {
-                return res.status(503).send("Database connection is initializing. Please click submit again in 2 seconds.");
-            }
+    }
+
+    if (mongoose.connection.readyState !== 1) {
+        if (req.method === 'POST' || req.path === '/login' || req.path === '/register') {
+            return res.status(503).send("Database is reconnecting. Please click submit again.");
         }
     }
     next();
