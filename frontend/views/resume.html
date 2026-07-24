@@ -129,12 +129,12 @@
                 <p style="color: var(--text-muted); font-size: 14px;">Upload your designed PDF resume (Max 5MB) to attach to job applications and calculate your ATS Score.</p>
             </div>
         </div>
-        <form action="/upload-resume" method="POST" enctype="multipart/form-data" style="width: 100%; max-width: 600px;">
+        <form id="uploadResumeForm" style="width: 100%; max-width: 600px;">
             <div class="file-input-wrapper" style="margin-bottom: 16px;">
                 <span class="file-input-btn" id="fileLabel">Choose PDF File</span>
-                <input type="file" name="resume" accept=".pdf" required onchange="updateFileLabel(this)">
+                <input type="file" id="resumeFileInput" name="resume" accept=".pdf" required onchange="updateFileLabel(this)">
             </div>
-            <button type="submit" class="btn btn-primary" style="padding: 12px 28px; font-weight: 600;">📤 Upload & Scan Resume</button>
+            <button type="submit" class="btn btn-primary" style="padding: 12px 28px; font-weight: 600;">📤 Upload & Scan ATS Score</button>
         </form>
     </div>
 
@@ -201,6 +201,51 @@ function updateFileLabel(input) {
     const filename = input.files[0] ? input.files[0].name : "Choose PDF File";
     document.getElementById("fileLabel").innerText = filename;
 }
+
+document.getElementById("uploadResumeForm")?.addEventListener("submit", async function(e) {
+    e.preventDefault();
+    const fileInput = document.getElementById("resumeFileInput");
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        Swal.fire("Error", "Please select a PDF file to upload.", "error");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("resume", fileInput.files[0]);
+
+    Swal.fire({
+        title: "Uploading & Scanning Resume...",
+        text: "Please wait while we attach your PDF resume and calculate your ATS Readability Score.",
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+    });
+
+    try {
+        const res = await fetch("/upload-resume", {
+            method: "POST",
+            headers: { "Accept": "application/json" },
+            body: formData
+        });
+
+        if (res.ok) {
+            Swal.fire({
+                icon: "success",
+                title: "Resume Uploaded!",
+                text: "Your PDF resume has been attached and scanned successfully.",
+                timer: 1800,
+                showConfirmButton: false
+            });
+            await loadResume();
+            runATSCheck();
+        } else {
+            const errText = await res.text();
+            Swal.fire("Upload Failed", errText || "Failed to upload resume.", "error");
+        }
+    } catch (err) {
+        console.error(err);
+        Swal.fire("Error", "Server connection error during upload.", "error");
+    }
+});
 
 async function loadResume() {
     try {

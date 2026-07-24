@@ -434,9 +434,15 @@ exports.uploadResume = async (req, res) => {
         });
 
         req.session.user.resume = user.resume;
+        if (req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'))) {
+            return res.json({ success: true, message: "Resume Uploaded & Attached Successfully!" });
+        }
         res.redirect('/resume');
     } catch (err) {
         console.error("Resume upload error:", err);
+        if (req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'))) {
+            return res.status(500).json({ error: "Resume Upload Failed: " + err.message });
+        }
         res.status(500).send("Resume Upload Failed: " + err.message);
     }
 };
