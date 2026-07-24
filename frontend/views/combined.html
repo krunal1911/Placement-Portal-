@@ -540,10 +540,27 @@ let warningCount = 0;
 const MAX_WARNINGS = 3;
 const TEST_TYPE = "Combined";
 
+function captureViolationSnapshot() {
+    try {
+        const video = document.querySelector("video");
+        if (video && video.srcObject) {
+            const canvas = document.createElement("canvas");
+            canvas.width = 320;
+            canvas.height = 240;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(video, 0, 0, 320, 240);
+            return canvas.toDataURL("image/jpeg", 0.6);
+        }
+    } catch (e) {}
+    return "";
+}
+
 async function logCheatingIncident(incidentType, details) {
     try {
         const urlParams = new URLSearchParams(window.location.search);
         const companyName = urlParams.get('company') || 'General';
+        const snapshotImage = captureViolationSnapshot();
+
         await fetch("/log-cheating", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -551,7 +568,8 @@ async function logCheatingIncident(incidentType, details) {
                 testType: TEST_TYPE,
                 incidentType: incidentType,
                 details: details,
-                companyName: companyName
+                companyName: companyName,
+                snapshotImage: snapshotImage
             })
         });
     } catch (e) {

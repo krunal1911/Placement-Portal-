@@ -1087,7 +1087,7 @@ exports.viewStudentResume = async (req, res) => {
 
 exports.logCheating = async (req, res) => {
     try {
-        const { testType, incidentType, details, companyName } = req.body;
+        const { testType, incidentType, details, companyName, snapshotImage } = req.body;
         const userId = req.session.user._id;
 
         let aiAnalysis = "";
@@ -1109,7 +1109,8 @@ exports.logCheating = async (req, res) => {
             incidentType,
             details,
             aiAnalysis,
-            companyName: companyName || "General"
+            companyName: companyName || "General",
+            snapshotImage: snapshotImage || ""
         });
 
         res.json({ success: true, log });

@@ -26,6 +26,10 @@ const cheatingLogSchema = new mongoose.Schema({
         type: String,
         default: "General"
     },
+    snapshotImage: {
+        type: String,
+        default: ""
+    },
     createdAt: {
         type: Date,
         default: Date.now

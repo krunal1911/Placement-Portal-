@@ -226,6 +226,8 @@
 
                 const timestamp = new Date(log.createdAt || log.timestamp || Date.now()).toLocaleString();
 
+                const snapshotBtn = log.snapshotImage ? `<button onclick="viewViolationSnapshot('${log.snapshotImage}', '${studentName}')" class="btn" style="padding: 6px 12px; font-size:11px; background:#fee2e2; color:#dc2626; border:1px solid #fecaca; font-weight:600; cursor:pointer; border-radius:6px; margin-right:6px; display:inline-flex; align-items:center; gap:4px;">📸 View Snapshot</button>` : '';
+
                 desktopHtml += `
                     <tr>
                         <td style="font-weight: 500;">${studentName}</td>
@@ -233,6 +235,7 @@
                         <td><span class="severity-badge ${badgeClass}">${sev.toUpperCase()}</span></td>
                         <td style="font-size: 13px; color: var(--text-muted);">${timestamp}</td>
                         <td style="text-align: center;">
+                            ${snapshotBtn}
                             <a href="/export-cheating-report/${log._id}" target="_blank" class="btn" style="padding: 6px 12px; font-size:11px; background:var(--primary-light); color:var(--primary); border:1px solid var(--border); font-weight:600; text-decoration:none; border-radius:6px; display:inline-flex; align-items:center; gap:4px;">📄 PDF Report</a>
                         </td>
                     </tr>
@@ -248,6 +251,16 @@
                             <span class="mobile-label">Event:</span>
                             <span class="mobile-val">${eventText}</span>
                         </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-label">Logged:</span>
+                            <span class="mobile-val" style="font-size:12px;">${timestamp}</span>
+                        </div>
+                        <div style="margin-top: 12px; text-align: right;">
+                            ${snapshotBtn}
+                            <a href="/export-cheating-report/${log._id}" target="_blank" class="btn" style="padding: 6px 12px; font-size:11px; background:var(--primary-light); color:var(--primary); border:1px solid var(--border); font-weight:600; text-decoration:none; border-radius:6px;">📄 PDF Report</a>
+                        </div>
+                    </div>
+                `;
                         <div class="mobile-card-row">
                             <span class="mobile-label">Timestamp:</span>
                             <span class="mobile-val" style="font-size:12px;">${timestamp}</span>
@@ -288,7 +301,22 @@
         displayLogs(proctorLogs);
     }
 
+    function viewViolationSnapshot(imgSrc, studentName) {
+        if (!imgSrc || imgSrc.trim() === "") {
+            Swal.fire("No Snapshot", "No webcam snapshot thumbnail was captured for this event.", "info");
+            return;
+        }
+
+        Swal.fire({
+            title: `📸 Violation Snapshot: ${studentName}`,
+            html: `<img src="${imgSrc}" style="width: 100%; max-width: 440px; border-radius: 12px; border: 2px solid #ef4444; box-shadow: 0 4px 12px rgba(0,0,0,0.3); margin-top: 10px;">`,
+            confirmButtonText: "Close Viewer",
+            confirmButtonColor: "#3b82f6"
+        });
+    }
+
     loadProctoringLogs();
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 </html>
