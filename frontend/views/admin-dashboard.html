@@ -235,30 +235,10 @@ async function loadAnalytics() {
             data: {
                 labels: [`Placed (${data.placedCount || 0})`, `Unplaced (${data.unplacedCount || 0})`],
                 datasets: [{
-                    data: [data.placedCount || 1, data.unplacedCount || 1],
+                    data: [data.placedCount || 0, data.unplacedCount || 0],
                     backgroundColor: [
                         "rgba(16, 185, 129, 0.85)",
                         "rgba(239, 68, 68, 0.85)"
-                    ],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: "bottom",
-                        labels: { color: textColor, boxWidth: 12 }
-                    }
-                }
-            }
-        });
-                    data: [data.totalStudents, data.totalCompanies, data.totalApplications],
-                    backgroundColor: [
-                        "rgba(79, 70, 229, 0.85)",
-                        "rgba(16, 185, 129, 0.85)",
-                        "rgba(244, 63, 94, 0.85)"
                     ],
                     borderWidth: 2,
                     borderColor: isDark ? "#1e293b" : "#ffffff"
@@ -288,23 +268,29 @@ async function loadRecentActivity() {
 
         let html = "";
 
-        if (activities.length === 0) {
+        if (!Array.isArray(activities) || activities.length === 0) {
             html = `<tr><td colspan="4" style="text-align:center; color: var(--text-muted); padding: 20px;">No Recent Activity</td></tr>`;
         } else {
             activities.forEach(activity => {
-                const statusClass = (activity.status || "").toLowerCase();
+                const studentName = (activity.userId && typeof activity.userId === 'object' && activity.userId.name) ? activity.userId.name : (activity.studentName || "Candidate");
+                const companyName = (activity.companyId && typeof activity.companyId === 'object' && activity.companyId.companyName) ? activity.companyId.companyName : (activity.companyName || "Drive");
+                const status = activity.status || "Applied";
+
+                const statusClass = status.toLowerCase();
                 let badgeClass = "status-applied";
                 if (statusClass.includes("shortlist")) badgeClass = "status-shortlisted";
                 else if (statusClass.includes("interview")) badgeClass = "status-interview";
-                else if (statusClass.includes("select")) badgeClass = "status-selected";
+                else if (statusClass.includes("select") || statusClass.includes("accept")) badgeClass = "status-selected";
                 else if (statusClass.includes("reject")) badgeClass = "status-rejected";
+
+                const dateStr = (activity.appliedAt || activity.createdAt) ? new Date(activity.appliedAt || activity.createdAt).toLocaleDateString() : new Date().toLocaleDateString();
 
                 html += `
                 <tr>
-                    <td><strong>${activity.userId ? activity.userId.name : "-"}</strong></td>
-                    <td>${activity.companyId ? activity.companyId.companyName : "-"}</td>
-                    <td><span class="status-badge ${badgeClass}">${activity.status}</span></td>
-                    <td>${new Date(activity.appliedAt).toLocaleDateString()}</td>
+                    <td><strong>${studentName}</strong></td>
+                    <td>${companyName}</td>
+                    <td><span class="status-badge ${badgeClass}">${status}</span></td>
+                    <td>${dateStr}</td>
                 </tr>
                 `;
             });
