@@ -935,8 +935,12 @@ exports.getUserCompletionData = async (req, res) => {
             console.warn("getUserCompletionData Application query warning:", aErr.message);
         }
 
+        const userObj = user.toObject();
+        delete userObj.password;
+        delete userObj.resumeBuffer;
+
         res.json({
-            ...user.toObject(),
+            ...userObj,
             testsTaken,
             averageScore,
             profileCompletion,
