@@ -1,8 +1,150 @@
 /* ============================================================
-   PLACEMENT PORTAL — COMPREHENSIVE GLOBAL RESPONSIVE CSS
-   Overrides ALL per-page CSS for consistent mobile behaviour
-   Breakpoints: 1200px, 1024px, 768px, 600px, 480px, 360px
+   PLACEMENT PORTAL — GLOBAL THEME ENGINE & RESPONSIVE CSS
    ============================================================ */
+
+:root {
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --primary-light: #eff6ff;
+    --secondary: #6366f1;
+    --success: #10b981;
+    --success-light: #ecfdf5;
+    --warning: #f59e0b;
+    --warning-light: #fef3c7;
+    --error: #ef4444;
+    --error-light: #fef2f2;
+    --bg-main: #f8fafc;
+    --bg-card: #ffffff;
+    --bg-nav: rgba(255, 255, 255, 0.95);
+    --border: #e2e8f0;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] {
+    --primary: #3b82f6;
+    --primary-hover: #60a5fa;
+    --primary-light: #1e293b;
+    --secondary: #818cf8;
+    --success: #10b981;
+    --success-light: #064e3b;
+    --warning: #f59e0b;
+    --warning-light: #78350f;
+    --error: #f87171;
+    --error-light: #7f1d1d;
+    --bg-main: #0f172a;
+    --bg-card: #1e293b;
+    --bg-nav: rgba(15, 23, 42, 0.95);
+    --border: #334155;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+}
+
+/* ─── GLOBAL DARK NIGHT MODE HIGH-CONTRAST OVERRIDES ─── */
+[data-theme="dark"] body {
+    background-color: #0f172a !important;
+    color: #f8fafc !important;
+}
+
+[data-theme="dark"] nav {
+    background: rgba(15, 23, 42, 0.95) !important;
+    border-color: #334155 !important;
+}
+
+[data-theme="dark"] nav ul a,
+[data-theme="dark"] nav a {
+    color: #f8fafc !important;
+}
+
+[data-theme="dark"] nav ul a:hover,
+[data-theme="dark"] nav ul a.active {
+    color: #60a5fa !important;
+}
+
+[data-theme="dark"] .card,
+[data-theme="dark"] .feature-card,
+[data-theme="dark"] .admin-card,
+[data-theme="dark"] .hero-right,
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .question-card,
+[data-theme="dark"] .profile-card,
+[data-theme="dark"] .modal-content,
+[data-theme="dark"] .auth-box,
+[data-theme="dark"] .login-box,
+[data-theme="dark"] .register-box,
+[data-theme="dark"] .container .card {
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+    border-color: #334155 !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5,
+[data-theme="dark"] h6,
+[data-theme="dark"] strong,
+[data-theme="dark"] label {
+    color: #f8fafc !important;
+}
+
+[data-theme="dark"] p,
+[data-theme="dark"] span,
+[data-theme="dark"] li,
+[data-theme="dark"] td {
+    color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .text-muted,
+[data-theme="dark"] small,
+[data-theme="dark"] .sub-title {
+    color: #94a3b8 !important;
+}
+
+[data-theme="dark"] input[type="text"],
+[data-theme="dark"] input[type="email"],
+[data-theme="dark"] input[type="password"],
+[data-theme="dark"] input[type="number"],
+[data-theme="dark"] input[type="file"],
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+    background-color: #0f172a !important;
+    color: #f8fafc !important;
+    border-color: #334155 !important;
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+    color: #64748b !important;
+}
+
+[data-theme="dark"] table {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+}
+
+[data-theme="dark"] table th {
+    background-color: #0f172a !important;
+    color: #f8fafc !important;
+    border-color: #334155 !important;
+}
+
+[data-theme="dark"] table td {
+    border-color: #334155 !important;
+    color: #e2e8f0 !important;
+}
+
+[data-theme="dark"] table tr:hover {
+    background-color: #334155 !important;
+}
 
 /* ──────────────────────────────────────────
    GLOBAL BASE FIXES
