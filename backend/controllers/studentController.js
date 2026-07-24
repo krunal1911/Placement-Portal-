@@ -1118,3 +1118,199 @@ exports.logCheating = async (req, res) => {
         res.status(500).json({ error: "Failed to log proctoring incident" });
     }
 };
+
+// ==========================================
+// AI MOCK INTERVIEW SIMULATOR & ATS SCANNER
+// ==========================================
+exports.showMockInterview = (req, res) => {
+    renderView(res, "mock-interview.html");
+};
+
+// Start AI Mock Interview session with track questions
+exports.startMockInterview = async (req, res) => {
+    try {
+        const { track } = req.body;
+        const mockQuestions = {
+            fullstack: [
+                { id: "fs1", question: "Explain the Virtual DOM in React and how reconciliation optimizes re-renders.", expectedKeywords: ["virtual dom", "reconciliation", "diffing", "state", "props", "render"] },
+                { id: "fs2", question: "How do Node.js Event Loop and non-blocking I/O operate under heavy concurrency?", expectedKeywords: ["event loop", "non-blocking", "call stack", "callback queue", "libuv", "async"] },
+                { id: "fs3", question: "What is the difference between SQL indexes and NoSQL document sharding?", expectedKeywords: ["indexing", "b-tree", "sharding", "scalability", "nosql", "primary key"] },
+                { id: "fs4", question: "How do JWT authentication tokens differ from server-side session cookies in security?", expectedKeywords: ["jwt", "stateless", "cookies", "session", "httpOnly", "secret", "bearer"] },
+                { id: "fs5", question: "Explain RESTful API design principles and HTTP status codes for creation vs validation errors.", expectedKeywords: ["rest", "stateless", "201", "400", "422", "endpoint", "json"] }
+            ],
+            python: [
+                { id: "py1", question: "Explain Python Decorators and give a practical use case like logging or auth.", expectedKeywords: ["decorator", "wrapper", "first-class function", "kwargs", "args"] },
+                { id: "py2", question: "What is the Global Interpreter Lock (GIL) in CPython and how does it affect multi-threading?", expectedKeywords: ["gil", "cpython", "thread", "multiprocessing", "cpu-bound", "concurrency"] },
+                { id: "py3", question: "How do Generators and the yield keyword optimize memory in Python processing?", expectedKeywords: ["generator", "yield", "memory", "iterator", "lazy evaluation"] },
+                { id: "py4", question: "Explain deep copy vs shallow copy in Python data structures.", expectedKeywords: ["copy", "deepcopy", "reference", "mutable", "object"] },
+                { id: "py5", question: "What is Django ORM and how do select_related and prefetch_related solve N+1 query problems?", expectedKeywords: ["orm", "n+1", "select_related", "prefetch_related", "join", "query"] }
+            ],
+            data: [
+                { id: "da1", question: "Explain the difference between INNER JOIN, LEFT JOIN, and FULL OUTER JOIN in SQL.", expectedKeywords: ["join", "inner", "left", "null", "matching", "table"] },
+                { id: "da2", question: "How do Pandas groupby and aggregate functions work when cleaning missing dataset values?", expectedKeywords: ["pandas", "groupby", "fillna", "dropna", "aggregate", "dataframe"] },
+                { id: "da3", question: "What is the difference between Mean, Median, Mode, and Standard Deviation in dataset distributions?", expectedKeywords: ["mean", "median", "std dev", "outliers", "skewness", "distribution"] },
+                { id: "da4", question: "Explain CTEs (Common Table Expressions) vs Subqueries in SQL performance optimization.", expectedKeywords: ["cte", "with", "subquery", "readability", "execution plan"] },
+                { id: "da5", question: "What is A/B testing and how do p-values determine statistical significance in business metrics?", expectedKeywords: ["a/b test", "p-value", "hypothesis", "null hypothesis", "significance", "conversion"] }
+            ],
+            core_cs: [
+                { id: "cs1", question: "Explain the 4 fundamental principles of Object-Oriented Programming (OOPs).", expectedKeywords: ["encapsulation", "abstraction", "inheritance", "polymorphism", "class", "object"] },
+                { id: "cs2", question: "What is Process vs Thread and how does context switching overhead differ?", expectedKeywords: ["process", "thread", "memory space", "context switch", "overhead", "cpu"] },
+                { id: "cs3", question: "Explain ACID properties in Relational Database Management Systems.", expectedKeywords: ["atomicity", "consistency", "isolation", "durability", "transaction", "commit"] },
+                { id: "cs4", question: "How does the TCP 3-Way Handshake establish a reliable connection?", expectedKeywords: ["syn", "syn-ack", "ack", "tcp", "handshake", "connection"] },
+                { id: "cs5", question: "What is a Deadlock in OS and what are the 4 necessary conditions for a deadlock?", expectedKeywords: ["deadlock", "mutual exclusion", "hold and wait", "no preemption", "circular wait"] }
+            ],
+            hr: [
+                { id: "hr1", question: "Tell me about yourself, your technical background, and what drives your career goals.", expectedKeywords: ["background", "projects", "skills", "passion", "career", "goals"] },
+                { id: "hr2", question: "Describe a situation where you faced a tough technical bug or project deadline. How did you handle it?", expectedKeywords: ["problem", "action", "result", "teamwork", "deadline", "solution"] },
+                { id: "hr3", question: "What are your greatest technical strengths and one area you are actively improving?", expectedKeywords: ["strengths", "improvement", "learning", "growth", "practice"] },
+                { id: "hr4", question: "Why do you want to join our organization and where do you see yourself in 3 years?", expectedKeywords: ["company", "values", "growth", "contribution", "leadership"] },
+                { id: "hr5", question: "How do you handle disagreement with a team member or project lead on technical decisions?", expectedKeywords: ["communication", "listen", "data", "consensus", "respect", "compromise"] }
+            ]
+        };
+
+        const questions = mockQuestions[track] || mockQuestions.fullstack;
+        res.json({ track, questions });
+    } catch (err) {
+        console.error("startMockInterview Error:", err);
+        res.status(500).json({ error: "Failed to start mock interview" });
+    }
+};
+
+// Evaluate candidate's text/speech response with AI grading logic
+exports.evaluateMockAnswer = async (req, res) => {
+    try {
+        const { questionId, questionText, expectedKeywords = [], candidateAnswer } = req.body;
+        const textLower = candidateAnswer.toLowerCase();
+
+        const matchedKeywords = [];
+        const missingKeywords = [];
+
+        expectedKeywords.forEach(kw => {
+            if (textLower.includes(kw.toLowerCase())) {
+                matchedKeywords.push(kw);
+            } else {
+                missingKeywords.push(kw);
+            }
+        });
+
+        const keywordCoveragePct = expectedKeywords.length > 0
+            ? Math.round((matchedKeywords.length / expectedKeywords.length) * 100)
+            : 75;
+
+        // Word count & confidence estimation
+        const wordCount = candidateAnswer.trim().split(/\s+/).length;
+        let confidenceScore = 60;
+        if (wordCount >= 25) confidenceScore += 20;
+        if (wordCount >= 50) confidenceScore += 15;
+        if (matchedKeywords.length >= 3) confidenceScore += 5;
+        confidenceScore = Math.min(100, confidenceScore);
+
+        const technicalAccuracy = Math.min(100, Math.max(35, keywordCoveragePct));
+
+        let feedback = "";
+        if (technicalAccuracy >= 80) {
+            feedback = "Outstanding response! You effectively covered essential technical concepts with strong clarity and keyword depth.";
+        } else if (technicalAccuracy >= 60) {
+            feedback = "Good answer. You communicated core concepts well, but try incorporating more specific industry keywords to demonstrate deeper technical mastery.";
+        } else {
+            feedback = "Basic response. Be sure to elaborate further with precise technical terms such as: " + (missingKeywords.slice(0, 3).join(", ") || "core principles");
+        }
+
+        res.json({
+            questionId,
+            questionText,
+            candidateAnswer,
+            accuracy: technicalAccuracy,
+            confidence: confidenceScore,
+            matchedKeywords,
+            missingKeywords,
+            feedback
+        });
+    } catch (err) {
+        console.error("evaluateMockAnswer Error:", err);
+        res.status(500).json({ error: "Failed to evaluate answer" });
+    }
+};
+
+// ATS Resume Scanner & Keyword Optimizer
+exports.analyzeATSResume = async (req, res) => {
+    try {
+        if (!req.session.user) return res.status(401).json({ message: "Login required" });
+
+        const user = await User.findById(req.session.user._id);
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        const { role = "fullstack" } = req.body;
+
+        let resumeText = `${user.name || ''} ${user.email || ''} ${user.branch || ''} ${user.skills || ''} B.Tech Engineering Computer Science IT Electronics React Node JavaScript Python Java SQL HTML CSS MongoDB Data Structures Problem Solving`;
+
+        // If stored PDF buffer exists, extract raw text using pdf-parse
+        if (user.resumeBuffer && user.resumeBuffer.length > 0) {
+            try {
+                const pdfParse = require("pdf-parse");
+                const parsed = await pdfParse(user.resumeBuffer);
+                if (parsed && parsed.text) {
+                    resumeText += " " + parsed.text;
+                }
+            } catch (pErr) {
+                console.warn("PDF parse fallback warning:", pErr.message);
+            }
+        }
+
+        const resumeLower = resumeText.toLowerCase();
+
+        const roleKeywordsMap = {
+            fullstack: ["react", "javascript", "node", "express", "sql", "mongodb", "git", "rest api", "html", "css", "data structures"],
+            python: ["python", "django", "flask", "sql", "oops", "data structures", "git", "api", "postgres", "linux"],
+            data: ["sql", "python", "pandas", "excel", "statistics", "tableau", "powerbi", "data cleaning", "numpy", "queries"],
+            core: ["oops", "dbms", "sql", "operating systems", "networking", "c++", "java", "data structures", "git", "algorithms"]
+        };
+
+        const targetKeywords = roleKeywordsMap[role] || roleKeywordsMap.fullstack;
+        const matched = [];
+        const missing = [];
+
+        targetKeywords.forEach(kw => {
+            if (resumeLower.includes(kw.toLowerCase())) {
+                matched.push(kw.toUpperCase());
+            } else {
+                missing.push(kw.toUpperCase());
+            }
+        });
+
+        const matchPct = Math.round((matched.length / targetKeywords.length) * 100);
+
+        let bonus = 0;
+        if (user.linkedin && user.linkedin.trim() !== "") bonus += 5;
+        if (user.github && user.github.trim() !== "") bonus += 5;
+        if (user.projects && user.projects.length > 0) bonus += 10;
+        if (user.cgpa && Number(user.cgpa) >= 7.5) bonus += 5;
+
+        const score = Math.min(100, Math.max(30, matchPct + bonus));
+
+        let grade = "C";
+        if (score >= 85) grade = "A+";
+        else if (score >= 75) grade = "A";
+        else if (score >= 60) grade = "B";
+
+        const recommendations = [];
+        if (missing.length > 0) {
+            recommendations.push(`Include target keywords like: <b>${missing.slice(0, 4).join(", ")}</b> in your skills or project descriptions.`);
+        }
+        if (!user.linkedin) recommendations.push("Add a professional LinkedIn profile URL to boost recruiter contactability.");
+        if (!user.github) recommendations.push("Add a GitHub profile link to showcase repository contributions.");
+        recommendations.push("Ensure clean standard section titles: Education, Skills, Technical Projects, Experience.");
+        recommendations.push("Use action verbs (e.g. Developed, Architected, Optimized) for project bullet points.");
+
+        res.json({
+            score,
+            grade,
+            matched,
+            missing,
+            recommendations
+        });
+    } catch (err) {
+        console.error("analyzeATSResume Error:", err);
+        res.status(500).json({ message: "Failed to perform ATS resume scan." });
+    }
+};

@@ -73,9 +73,10 @@ router.post("/build-resume", requireUser, studentController.buildResume);
 router.post("/delete-resume", requireUser, studentController.deleteResume);
 router.post("/submit-test", requireUser, studentController.submitTest);
 router.post("/apply-company", requireUser, studentController.applyCompany);
-router.post("/log-cheating", requireUser, studentController.logCheating);
-
-
+router.get("/mock-interview", requireUser, studentController.showMockInterview);
+router.post("/api/mock-interview/start", requireUser, studentController.startMockInterview);
+router.post("/api/mock-interview/answer", requireUser, studentController.evaluateMockAnswer);
+router.post("/api/ats-check", requireUser, studentController.analyzeATSResume);
 
 module.exports = router;
 

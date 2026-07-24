@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -158,6 +158,52 @@
         <div style="display: flex; justify-content: center; gap: 12px;">
             <a id="viewResumeLink" href="#" target="_blank" class="btn btn-primary">👁 View PDF</a>
             <button onclick="removeResume()" class="btn btn-danger" style="background-color: #ef4444; border-color: #ef4444; color: white; border-radius: 8px; padding: 10px 20px; font-weight: 500; cursor: pointer;">🗑 Delete Resume</button>
+        </div>
+    </div>
+
+    <!-- ATS Resume Scanner Widget -->
+    <div class="card" style="margin-top: 32px; padding: 32px; border-radius: 20px; text-align: left; background: var(--bg-card); border: 1px solid var(--border);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 24px;">
+            <div>
+                <h2 style="font-size: 22px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">📊 ATS Resume Score & Keyword Optimizer</h2>
+                <p style="color: var(--text-muted); font-size: 14px;">Scan your active attached resume against target industry job descriptions (0–100% Readability Index).</p>
+            </div>
+            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                <select id="atsTargetRole" style="padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: var(--bg-main); color: var(--text-main);">
+                    <option value="fullstack">Fullstack Software Engineer</option>
+                    <option value="python">Python Developer</option>
+                    <option value="data">Data Analyst / Data Engineer</option>
+                    <option value="core">Core CS / Backend Engineer</option>
+                </select>
+                <button onclick="runATSCheck()" class="btn btn-primary" style="padding: 10px 20px; font-weight: 600; white-space: nowrap;">🔍 Scan Resume ATS Score</button>
+            </div>
+        </div>
+
+        <!-- ATS Results Container -->
+        <div id="atsResultsBox" style="display: none;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 24px;">
+                <!-- Circular Score Display -->
+                <div class="card" style="text-align: center; padding: 24px; background: var(--bg-main); display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                    <h4 style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px;">ATS Readability Score</h4>
+                    <div style="font-size: 48px; font-weight: 800; color: var(--primary);" id="atsScoreValue">0%</div>
+                    <span id="atsBadgeGrade" style="margin-top: 8px; font-size: 12px; padding: 4px 12px; border-radius: 12px; font-weight: 700;">GRADE B</span>
+                </div>
+
+                <!-- Keyword Breakdown -->
+                <div class="card" style="padding: 24px; background: var(--bg-main);">
+                    <h4 style="font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 12px;">✅ Matched Industry Keywords</h4>
+                    <div id="atsMatchedKeywords" style="margin-bottom: 16px;"></div>
+
+                    <h4 style="font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 12px;">❌ Missing Critical Keywords for Role</h4>
+                    <div id="atsMissingKeywords"></div>
+                </div>
+            </div>
+
+            <!-- Actionable Recommendations List -->
+            <div class="card" style="padding: 24px; background: var(--bg-main);">
+                <h4 style="font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 12px;">💡 Actionable ATS Recommendations</h4>
+                <ul id="atsRecommendationsList" style="padding-left: 20px; font-size: 14px; color: var(--text-main); line-height: 1.8;"></ul>
+            </div>
         </div>
     </div>
 </div>
@@ -457,12 +503,12 @@ async function generateResume() {
             })
         });
         
-        const data = await res.json();
-        if (data.success) {
+        const msg = await res.text();
+        if (res.ok) {
             showToast("Professional PDF resume generated and linked successfully!", "success");
             loadResume();
         } else {
-            showToast(data.error || "Failed to generate resume.", "error");
+            showToast(msg || "Failed to generate resume.", "error");
         }
     } catch (e) {
         console.error(e);
@@ -470,6 +516,41 @@ async function generateResume() {
     } finally {
         btn.disabled = false;
         btn.innerText = "⚡ Build PDF Resume";
+    }
+}
+
+async function runATSCheck() {
+    const targetRole = document.getElementById("atsTargetRole").value;
+    const box = document.getElementById("atsResultsBox");
+    showToast("Analyzing resume ATS compliance...", "info");
+
+    try {
+        const res = await fetch("/api/ats-check", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ role: targetRole })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Failed to scan resume");
+
+        box.style.display = "block";
+        document.getElementById("atsScoreValue").innerText = `${data.score}%`;
+        const badge = document.getElementById("atsBadgeGrade");
+        badge.innerText = `GRADE ${data.grade}`;
+        badge.style.background = data.score >= 75 ? "#d1fae5" : "#fee2e2";
+        badge.style.color = data.score >= 75 ? "#047857" : "#b91c1c";
+
+        document.getElementById("atsMatchedKeywords").innerHTML = data.matched.map(k => `<span style="display:inline-block; font-size:11px; background:#d1fae5; color:#047857; padding:4px 10px; border-radius:12px; font-weight:600; margin:3px;">${k}</span>`).join(' ') || '<span style="font-size:13px; color:var(--text-muted);">None matched yet</span>';
+        
+        document.getElementById("atsMissingKeywords").innerHTML = data.missing.map(k => `<span style="display:inline-block; font-size:11px; background:#fee2e2; color:#b91c1c; padding:4px 10px; border-radius:12px; font-weight:600; margin:3px;">${k}</span>`).join(' ') || '<span style="font-size:13px; color:#10b981;">Awesome! All key terms covered.</span>';
+
+        document.getElementById("atsRecommendationsList").innerHTML = data.recommendations.map(r => `<li>${r}</li>`).join('');
+
+        showToast("ATS Resume Scan Complete!", "success");
+    } catch (e) {
+        console.error(e);
+        showToast(e.message || "Error running ATS scan", "error");
     }
 }
 async function removeResume() {
