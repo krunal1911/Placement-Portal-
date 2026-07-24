@@ -1,35 +1,32 @@
 const mongoose = require('mongoose');
 
-// Disable command buffering so disconnected queries fail fast instead of timing out serverless functions
-mongoose.set('bufferCommands', false);
-
-let isConnected = false;
+let connectionPromise = null;
 
 const connectDB = async () => {
-    if (isConnected || mongoose.connection.readyState >= 1) {
+    // If already fully connected (readyState === 1)
+    if (mongoose.connection.readyState === 1) {
+        return;
+    }
+
+    // If currently connecting, await the existing connection promise
+    if (connectionPromise) {
+        await connectionPromise;
+        return;
+    }
+
+    const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/placementPortal';
+
+    if (process.env.VERCEL && !process.env.MONGODB_URI) {
+        console.error("⚠️ MONGODB_URI is not defined in Vercel Environment Variables!");
         return;
     }
 
     try {
-        const mongoUri = process.env.MONGODB_URI;
-        if (mongoUri) {
-            await mongoose.connect(mongoUri, {
-                serverSelectionTimeoutMS: 5000
-            });
-            isConnected = true;
-            console.log('MongoDB Connected (Remote Atlas)');
-        } else {
-            if (!process.env.VERCEL) {
-                await mongoose.connect('mongodb://127.0.0.1:27017/placementPortal', {
-                    serverSelectionTimeoutMS: 5000
-                });
-                isConnected = true;
-                console.log('MongoDB Connected (Local Fallback)');
-            } else {
-                console.error("⚠️ MONGODB_URI is not defined in Vercel Environment Variables!");
-                return;
-            }
-        }
+        connectionPromise = mongoose.connect(mongoUri, {
+            serverSelectionTimeoutMS: 5000
+        });
+        await connectionPromise;
+        console.log('MongoDB Connected successfully ✅');
 
         // Auto-seed questions if count is low
         try {
@@ -39,6 +36,7 @@ const connectDB = async () => {
             console.error("Seeding questions error:", seedErr.message);
         }
     } catch (error) {
+        connectionPromise = null;
         console.error("Database Connection Error:", error.message);
     }
 };
