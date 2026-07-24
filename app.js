@@ -18,7 +18,7 @@ const adminRoutes   = require('./backend/routes/adminRoutes');
 const app = express();
 
 const Admin = require('./database/models/Admin');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 
 let isSettingsInitialized = false;
@@ -109,7 +109,9 @@ const authLimiter = rateLimit({
     max: 30,                    // max 30 requests per window per IP
     message: 'Too many requests from this IP, please try again after 15 minutes.',
     standardHeaders: true,
-    legacyHeaders: false
+    legacyHeaders: false,
+    validate: { trustProxy: false },
+    skip: () => !!process.env.VERCEL
 });
 app.use('/login', authLimiter);
 app.use('/admin-login', authLimiter);

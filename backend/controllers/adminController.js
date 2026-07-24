@@ -1,6 +1,6 @@
 const path = require("path");
 const fs = require("fs");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const XLSX = require("xlsx");
 const ExcelJS = require("exceljs");
 const pdfParse = require("pdf-parse");

@@ -1,5 +1,5 @@
 const path = require("path");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 
 const User = require("../../database/models/User");
 const renderView = require("../utils/renderView");
