@@ -888,7 +888,8 @@ exports.getUserCompletionData = async (req, res) => {
             return res.status(401).send("Not Logged In");
         }
 
-        const user = await User.findById(req.session.user._id);
+        const userId = req.session.user._id || req.session.user.id || req.session.user;
+        const user = await User.findById(userId);
         if (!user) {
             return res.status(404).send("User not found");
         }
@@ -914,7 +915,7 @@ exports.getUserCompletionData = async (req, res) => {
         try {
             if (Result) {
                 const results = await Result.find({ userId: user._id });
-                if (results.length > 0) {
+                if (results && results.length > 0) {
                     testsTaken = results.length;
                     let totalScoreSum = 0;
                     results.forEach(r => {
@@ -930,12 +931,14 @@ exports.getUserCompletionData = async (req, res) => {
         }
 
         try {
-            companiesAppliedCount = await Application.countDocuments({ userId: user._id });
+            if (Application) {
+                companiesAppliedCount = await Application.countDocuments({ userId: user._id });
+            }
         } catch (aErr) {
             console.warn("getUserCompletionData Application query warning:", aErr.message);
         }
 
-        const userObj = user.toObject();
+        const userObj = typeof user.toObject === 'function' ? user.toObject() : { ...user };
         delete userObj.password;
         delete userObj.resumeBuffer;
 
@@ -948,7 +951,7 @@ exports.getUserCompletionData = async (req, res) => {
         });
     } catch (err) {
         console.error("getUserCompletionData Error:", err);
-        res.status(500).send("Error fetching user completion data");
+        res.status(500).json({ error: err.message, stack: err.stack });
     }
 };
 
