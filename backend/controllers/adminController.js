@@ -100,7 +100,36 @@ exports.getAdminsData = async (req, res) => {
 exports.getStudentsData = async (req, res) => {
     try {
         const students = await User.find();
-        res.json(students);
+        const studentList = students.map(student => {
+            let atsScoreText = "Not Scanned";
+            if (student.resumeBuffer || student.resume) {
+                const text = `${student.name || ''} ${student.email || ''} ${student.branch || ''} ${student.skills || ''}`.toLowerCase();
+                const keywords = ["react", "node", "javascript", "python", "sql", "mongodb", "git", "rest api", "html", "css", "data structures", "oops", "dbms"];
+                let count = 0;
+                keywords.forEach(k => { if (text.includes(k)) count++; });
+                const matchPct = Math.round((count / keywords.length) * 100);
+                
+                let bonus = 0;
+                if (student.linkedin) bonus += 5;
+                if (student.github) bonus += 5;
+                if (student.cgpa && Number(student.cgpa) >= 7.5) bonus += 10;
+                const score = Math.min(100, Math.max(35, matchPct + bonus + 30));
+                
+                let grade = "B";
+                if (score >= 85) grade = "A+";
+                else if (score >= 75) grade = "A";
+                else if (score >= 60) grade = "B";
+
+                atsScoreText = `${score}% (Grade ${grade})`;
+            }
+
+            return {
+                ...student.toObject(),
+                atsScore: atsScoreText
+            };
+        });
+
+        res.json(studentList);
     } catch (err) {
         console.log(err);
         res.status(500).send("Error");
@@ -1329,7 +1358,7 @@ exports.deleteCompany = async (req, res) => {
     }
 };
 
-// Permanently Delete Student Account & All Associated History (Admin Only)
+// Permanently Delete Student Account, Files, Resume, Profile & All Associated History (Admin Only)
 exports.deleteStudent = async (req, res) => {
     try {
         const { id } = req.params;
@@ -1353,12 +1382,68 @@ exports.deleteStudent = async (req, res) => {
             await Result.deleteMany({ userId: id });
         } catch (rErr) {}
 
-        // 5. Permanently delete Student User account
+        // 5. Delete physical profile picture from disk if custom
+        if (student.profileImage && student.profileImage !== "default.png" && !student.profileImage.startsWith("http")) {
+            try {
+                const imgPath = path.join(__dirname, "../../frontend/public/uploads/profiles", path.basename(student.profileImage));
+                if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
+            } catch (fErr) {}
+        }
+
+        // 6. Delete physical local resume file from disk if local
+        if (student.resume && !student.resume.startsWith("http") && !student.resume.startsWith("/view-resume")) {
+            try {
+                const resPath = path.join(__dirname, "../../frontend/public", student.resume);
+                if (fs.existsSync(resPath)) fs.unlinkSync(resPath);
+            } catch (rErr) {}
+        }
+
+        // 7. Clear resumeBuffer and permanently delete Student User document
+        student.resumeBuffer = undefined;
         await User.findByIdAndDelete(id);
 
-        res.json({ message: `Student account for "${student.name}" and all associated history deleted permanently!` });
+        res.json({ message: `Student account "${student.name}", profile, resume, and ALL associated history permanently deleted!` });
     } catch (err) {
         console.error("Error deleting student account:", err);
         res.status(500).json({ message: "Failed to delete student account." });
+    }
+};
+
+// Export student records & ATS Scores to CSV / Excel
+exports.exportStudents = async (req, res) => {
+    try {
+        const students = await User.find();
+        let csv = "Name,Email,Branch,Semester,CGPA,Skills,ATS Score Rating\n";
+        students.forEach(s => {
+            let atsScoreText = "Not Scanned";
+            if (s.resumeBuffer || s.resume) {
+                const text = `${s.name || ''} ${s.email || ''} ${s.branch || ''} ${s.skills || ''}`.toLowerCase();
+                const keywords = ["react", "node", "javascript", "python", "sql", "mongodb", "git", "rest api", "html", "css", "data structures", "oops", "dbms"];
+                let count = 0;
+                keywords.forEach(k => { if (text.includes(k)) count++; });
+                const matchPct = Math.round((count / keywords.length) * 100);
+                let bonus = 0;
+                if (s.linkedin) bonus += 5;
+                if (s.github) bonus += 5;
+                if (s.cgpa && Number(s.cgpa) >= 7.5) bonus += 10;
+                const score = Math.min(100, Math.max(35, matchPct + bonus + 30));
+                let grade = "B";
+                if (score >= 85) grade = "A+";
+                else if (score >= 75) grade = "A";
+                else if (score >= 60) grade = "B";
+                atsScoreText = `${score}% (Grade ${grade})`;
+            }
+
+            const cleanName = (s.name || '').replace(/,/g, ' ');
+            const cleanSkills = (s.skills || '').replace(/,/g, ' ');
+            csv += `"${cleanName}","${s.email || ''}","${s.branch || ''}","${s.semester || ''}","${s.cgpa || ''}","${cleanSkills}","${atsScoreText}"\n`;
+        });
+
+        res.setHeader("Content-Type", "text/csv");
+        res.setHeader("Content-Disposition", 'attachment; filename="Students_List_ATS.csv"');
+        res.send(csv);
+    } catch (err) {
+        console.error("Export Students Error:", err);
+        res.status(500).send("Error exporting students list.");
     }
 };
