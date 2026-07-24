@@ -225,6 +225,9 @@ nav ul li a:hover {
 
 .hero-right {
     z-index: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .hero-right img {
@@ -234,6 +237,8 @@ nav ul li a:hover {
     object-fit: cover;
     border: 6px solid rgba(255, 255, 255, 0.2);
     box-shadow: var(--shadow-md);
+    margin: 0 auto;
+    display: block;
 }
 
 /* ================= WIDGETS & CARDS ================= */
