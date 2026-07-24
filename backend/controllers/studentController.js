@@ -29,6 +29,10 @@ exports.showDashboard = (req, res) => {
     renderView(res, "dashboard.html");
 };
 
+exports.showPresentation = (req, res) => {
+    renderView(res, "presentation.html");
+};
+
 exports.showProfile = (req, res) => {
     renderView(res, "profile.html");
 };

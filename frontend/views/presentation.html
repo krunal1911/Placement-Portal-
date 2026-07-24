@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Presentation | Campus Placement & Proctoring Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --primary: #3b82f6;
+            --primary-hover: #60a5fa;
+            --accent: #10b981;
+            --warning: #f59e0b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            z-index: 10;
+        }
+
+        .brand {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary-hover);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background: var(--primary-hover);
+        }
+
+        .viewport {
+            flex: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .slide {
+            position: absolute;
+            width: 90%;
+            max-width: 1100px;
+            height: 80%;
+            max-height: 650px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 48px;
+            box-shadow: var(--shadow);
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
+            transition: all 0.4s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow-y: auto;
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+
+        .slide-header {
+            margin-bottom: 24px;
+        }
+
+        .slide-tag {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--primary-hover);
+            margin-bottom: 8px;
+        }
+
+        .slide-title {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 1.2;
+        }
+
+        .slide-body {
+            flex: 1;
+            font-size: 15px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .card-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 16px;
+        }
+
+        .card-box h4 {
+            color: var(--text-main);
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .badge {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--primary-hover);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        footer {
+            padding: 16px 32px;
+            background: var(--bg-card);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .progress-bar-wrap {
+            flex: 1;
+            max-width: 400px;
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 0 24px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            width: 12.5%;
+            transition: width 0.3s;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            text-align: left;
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+        }
+
+        .hero-slide {
+            text-align: center;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .hero-slide h1 {
+            font-size: 42px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #60a5fa, #10b981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 16px;
+        }
+
+        .hero-slide p {
+            font-size: 18px;
+            max-width: 700px;
+            margin-bottom: 32px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="brand">
+        <span>🚀</span> Campus Placement & Proctoring Portal
+    </div>
+    <div class="controls">
+        <span class="badge" id="slideCounter">Slide 1 of 8</span>
+        <button class="btn" onclick="toggleFullscreen()">🖥 Fullscreen</button>
+    </div>
+</header>
+
+<div class="viewport">
+
+    <!-- SLIDE 1: Title -->
+    <div class="slide hero-slide active">
+        <div class="slide-tag">PROJECT PRESENTATION</div>
+        <h1>Campus Placement, Proctoring & Career Portal</h1>
+        <p>An End-to-End Enterprise Ecosystem for Student Career Preparation, AI Resume Optimization, Assessment Proctoring & Recruitment Analytics.</p>
+        <div style="display: flex; gap: 16px; justify-content: center; margin-top: 20px;">
+            <span class="badge">Node.js / Express</span>
+            <span class="badge">MongoDB</span>
+            <span class="badge">AI Mock Interview</span>
+            <span class="badge">ATS Readability Scanner</span>
+        </div>
+    </div>
+
+    <!-- SLIDE 2: Problem & Solution -->
+    <div class="slide">
+        <div class="slide-header">
+            <div class="slide-tag">EXECUTIVE SUMMARY</div>
+            <div class="slide-title">Problem Statement & Purpose</div>
+        </div>
+        <div class="slide-body grid-2">
+            <div class="card-box" style="border-left: 4px solid var(--warning);">
+                <h4 style="color: var(--warning);">❌ The Problem</h4>
+                <ul style="padding-left: 20px; margin-top: 10px;">
+                    <li>Students use fragmented platforms for aptitude tests, technical practice, and resume building.</li>
+                    <li>PDF resumes fail Applicant Tracking Systems (ATS) due to unoptimized formatting and missing keywords.</li>
+                    <li>Remote online assessments suffer from cheating risks (tab switching, copy-pasting, external help).</li>
+                    <li>Placement officers lack real-time visibility into department-wise recruitment pipelines.</li>
+                </ul>
+            </div>
+            <div class="card-box" style="border-left: 4px solid var(--accent);">
+                <h4 style="color: var(--accent);">✅ The Solution</h4>
+                <ul style="padding-left: 20px; margin-top: 10px;">
+                    <li>Unified portal bridging Students, Placement Officers, and Assessment Coordinators.</li>
+                    <li>Automated 1-step PDF Resume upload with instant 0-100% ATS Readability Scoring.</li>
+                    <li>Proctoring suite with live webcam violation snapshots and PDF audit logs.</li>
+                    <li>Real-time placement dashboards with department bar charts and candidate status Doughnut charts.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 3: Tech Stack & Architecture -->
+    <div class="slide">
+        <div class="slide-header">
+            <div class="slide-tag">SYSTEM DESIGN</div>
+            <div class="slide-title">Technology Stack & Architecture</div>
+        </div>
+        <div class="slide-body">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Architecture Layer</th>
+                        <th>Technologies Used</th>
+                        <th>Function & Key Advantage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Frontend Interface</strong></td>
+                        <td>HTML5, Vanilla CSS3, JavaScript (ES6+), Chart.js</td>
+                        <td>Glassmorphic UI, responsive breakpoints (<480px to 4K), theme engine.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Backend Engine</strong></td>
+                        <td>Node.js, Express.js (MVC Pattern)</td>
+                        <td>Modular controllers (`studentController`, `adminController`), REST APIs.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Database Layer</strong></td>
+                        <td>MongoDB, Mongoose ODM</td>
+                        <td>Schema modeling for Users, Applications, Companies, Results, CheatingLogs.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>PDF & AI Algorithms</strong></td>
+                        <td>PDFKit, ATS Keyword Algorithm, Web Speech API</td>
+                        <td>Dynamic PDF generation, ATS scoring, AI speech/text mock interview.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cloud Deployment</strong></td>
+                        <td>Vercel & Render Cloud Platforms</td>
+                        <td>Dual deployment with 100% feature parity and cross-platform path handling.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- SLIDE 4: Student Portal -->
+    <div class="slide">
+        <div class="slide-header">
+            <div class="slide-tag">STUDENT MODULE</div>
+            <div class="slide-title">Student Preparation & Career Hub</div>
+        </div>
+        <div class="slide-body grid-3">
+            <div class="card-box">
+                <h4>📄 1-Step ATS Resume Optimizer</h4>
+                <p>Upload a custom PDF resume to instantly receive a <strong>0-100% ATS Readability Score</strong>, matched industry keywords, missing keywords, and recommendations.</p>
+            </div>
+            <div class="card-box">
+                <h4>🤖 AI Mock Interview Simulator</h4>
+                <p>Live HR and Technical speech/text interview simulator with automated answer evaluation and score feedback.</p>
+            </div>
+            <div class="card-box">
+                <h4>📝 Practice & Assessment Suite</h4>
+                <p>Quantitative Aptitude tests, Technical MCQs (DBMS, OS, CN), live Leaderboard rankings, and Branch Career Roadmaps.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 5: Proctoring & Exam Security -->
+    <div class="slide">
+        <div class="slide-header">
+            <div class="slide-tag">EXAM INTEGRITY</div>
+            <div class="slide-title">Anti-Cheating & Proctoring Suite</div>
+        </div>
+        <div class="slide-body grid-3">
+            <div class="card-box">
+                <h4>📸 Snapshot Proctoring Gallery</h4>
+                <p>Captures live webcam snapshots and tab-switch thumbnails whenever security violations occur (Tab Switch, Copying, Fullscreen Exit).</p>
+            </div>
+            <div class="card-box">
+                <h4>🔒 Active Exam Link Control</h4>
+                <p>Tokenized exam links with dynamic time extension (<code>+15m</code>, <code>+30m</code>) and emergency coordinator shutdown triggers.</p>
+            </div>
+            <div class="card-box">
+                <h4>📄 PDF Cheating Audit Reports</h4>
+                <p>Exports complete cheating audit logs as formatted PDF reports with embedded webcam violation snapshots.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 6: Admin Dashboard -->
+    <div class="slide">
+        <div class="slide-header">
+            <div class="slide-tag">ADMINISTRATION</div>
+            <div class="slide-title">Admin & SuperAdmin Placement Console</div>
+        </div>
+        <div class="slide-body grid-2">
+            <div class="card-box">
+                <h4>📊 Batch Placement Analytics</h4>
+                <p>Side-by-side bar charts comparing Total Registered Students vs Placed Candidates per department (CSE, IT, Mechanical, Electrical, Civil).</p>
+            </div>
+            <div class="card-box">
+                <h4>📈 Candidate Pipeline Chart</h4>
+                <p>Multi-colored Doughnut chart displaying candidate distribution across recruitment stages (Applied, Shortlisted, Interview, Selected, Rejected).</p>
+            </div>
+            <div class="card-box">
+                <h4>📑 Data Management & Excel Export</h4>
+                <p>Instant export of registered student data, candidate ATS scores, and company job application statuses.</p>
+            </div>
+            <div class="card-box">
+                <h4>🗑 1-Click Permanent Purge</h4>
+                <p>Single-click admin option to permanently delete student profiles, resume buffers, applications, and cheating logs.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 7: UI & Responsiveness -->
+    <div class="slide">
+        <div class="slide-header">
+            <div class="slide-tag">UI / UX ENGINEERING</div>
+            <div class="slide-title">Responsive Design & Theme System</div>
+        </div>
+        <div class="slide-body grid-2">
+            <div class="card-box">
+                <h4>📱 Universal Device Breakpoints</h4>
+                <p>Fluid Flexbox and CSS Grid layouts engineered for Mobile (<480px), Tablet (768px), Laptop, and 4K Ultra-wide monitors.</p>
+            </div>
+            <div class="card-box">
+                <h4>🌙 Zero-Flicker Day/Night Theme</h4>
+                <p>Smooth CSS custom variables toggle with local storage persistence, ensuring zero visual layout shift (CLS = 0).</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 8: Conclusion -->
+    <div class="slide hero-slide">
+        <div class="slide-tag">PROJECT SUMMARY</div>
+        <h1>100% End-to-End Enterprise Solution</h1>
+        <p>A complete, highly scalable Campus Placement & Assessment Portal deployed live on Vercel and Render with verified 10/10 performance rating.</p>
+        <div style="display: flex; gap: 16px; justify-content: center; margin-top: 24px;">
+            <a href="https://placement-portal-vert-beta.vercel.app" target="_blank" class="btn" style="padding: 12px 28px; font-size: 15px;">🌐 View Live Vercel Demo</a>
+        </div>
+    </div>
+
+</div>
+
+<footer>
+    <button class="nav-btn" onclick="prevSlide()">❮</button>
+    <div class="progress-bar-wrap">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <button class="nav-btn" onclick="nextSlide()">❯</button>
+</footer>
+
+<script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+
+    function showSlide(index) {
+        if (index < 0) index = 0;
+        if (index >= totalSlides) index = totalSlides - 1;
+        
+        currentSlide = index;
+
+        slides.forEach((slide, i) => {
+            if (i === currentSlide) {
+                slide.classList.add('active');
+            } else {
+                slide.classList.remove('active');
+            }
+        });
+
+        document.getElementById('slideCounter').innerText = `Slide ${currentSlide + 1} of ${totalSlides}`;
+        document.getElementById('progressFill').style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+    }
+
+    function nextSlide() {
+        showSlide(currentSlide + 1);
+    }
+
+    function prevSlide() {
+        showSlide(currentSlide - 1);
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === ' ') {
+            nextSlide();
+        } else if (e.key === 'ArrowLeft') {
+            prevSlide();
+        }
+    });
+
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+    }
+
+    showSlide(0);
+</script>
+
+</body>
+</html>

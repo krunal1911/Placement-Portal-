@@ -35,6 +35,7 @@ const profileUpload = multer({
 // VIEWS / ROUTING
 // ==========================================
 router.get("/dashboard", requireUser, studentController.showDashboard);
+router.get("/presentation", studentController.showPresentation);
 router.get("/profile", requireUser, studentController.showProfile);
 router.get("/resume", requireUser, studentController.showResume);
 router.get("/aptitude", requireUser, verifyExamLink, studentController.showAptitude);
