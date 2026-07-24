@@ -430,6 +430,39 @@ exports.getApplicationsData = async (req, res) => {
     }
 };
 
+// Update student application status (Selected, Shortlisted, Interview Scheduled, Rejected)
+exports.updateStatus = async (req, res) => {
+    try {
+        const id = req.params.id || req.body.id || req.body.applicationId;
+        const status = req.body.status;
+
+        if (!id || !status) {
+            return res.status(400).json({ message: "Application ID and Status are required." });
+        }
+
+        const application = await Application.findById(id);
+        if (!application) {
+            return res.status(404).json({ message: "Application record not found." });
+        }
+
+        application.status = status;
+        await application.save();
+
+        try {
+            await Notification.create({
+                userId: application.userId,
+                title: "Application Status Updated",
+                message: `Your placement application status has been updated to "${status}".`
+            });
+        } catch (nErr) {}
+
+        res.json({ message: `Status updated to ${status} successfully!`, application });
+    } catch (err) {
+        console.error("updateStatus Error:", err);
+        res.status(500).json({ message: "Failed to update status." });
+    }
+};
+
 // Get all student results list
 exports.getResultsData = async (req, res) => {
     try {
