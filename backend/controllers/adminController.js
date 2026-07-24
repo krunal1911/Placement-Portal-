@@ -1,9 +1,6 @@
 const path = require("path");
 const fs = require("fs");
 const bcrypt = require("bcryptjs");
-const XLSX = require("xlsx");
-const ExcelJS = require("exceljs");
-const pdfParse = require("pdf-parse");
 
 const Admin = require("../../database/models/Admin");
 const User = require("../../database/models/User");
@@ -279,6 +276,7 @@ exports.getRecentActivity = async (req, res) => {
 // Export student statistics as dynamic Excel sheets
 exports.exportStudents = async (req, res) => {
     try {
+        const ExcelJS = require("exceljs");
         const students = await User.find();
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet("Students");
@@ -611,6 +609,7 @@ exports.deleteTechnicalQuestion = async (req, res) => {
 
 async function parseQuestionsFromPDF(filePath) {
     try {
+        const pdfParse = require("pdf-parse");
         const dataBuffer = fs.readFileSync(filePath);
         const pdfData = await pdfParse(dataBuffer);
         const text = pdfData.text || "";
@@ -708,6 +707,7 @@ exports.importQuestions = async (req, res) => {
         if (ext === ".pdf") {
             rows = await parseQuestionsFromPDF(req.file.path);
         } else {
+            const XLSX = require("xlsx");
             const workbook = XLSX.readFile(req.file.path);
             const sheetName = workbook.SheetNames[0];
             const sheet = workbook.Sheets[sheetName];
@@ -807,6 +807,7 @@ exports.importQuestions = async (req, res) => {
 // Download sample Excel template
 exports.downloadQuestionTemplate = (req, res) => {
     try {
+        const XLSX = require("xlsx");
         const sampleData = [
             {
                 "Question": "What is the time complexity of searching in a balanced Binary Search Tree (BST)?",

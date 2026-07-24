@@ -1,6 +1,5 @@
 const path = require("path");
 const fs   = require("fs");
-const PDFDocument = require("pdfkit");
 
 const { uploadFile } = require("../../database/config/cloudinary");
 
