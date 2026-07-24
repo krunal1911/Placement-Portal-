@@ -2,6 +2,12 @@
    PLACEMENT PORTAL — GLOBAL THEME ENGINE & RESPONSIVE CSS
    ============================================================ */
 
+html, body {
+    width: 100% !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+}
+
 :root {
     --primary: #2563eb;
     --primary-hover: #1d4ed8;
