@@ -1240,9 +1240,16 @@ exports.analyzeATSResume = async (req, res) => {
         const user = await User.findById(req.session.user._id);
         if (!user) return res.status(404).json({ message: "User not found" });
 
+        // Require active resume uploaded or built
+        if (!user.resume && (!user.resumeBuffer || user.resumeBuffer.length === 0)) {
+            return res.status(400).json({
+                message: "No active resume found! Please upload a PDF resume or click '⚡ Build PDF Resume' first before running the ATS scan."
+            });
+        }
+
         const { role = "fullstack" } = req.body;
 
-        let resumeText = `${user.name || ''} ${user.email || ''} ${user.branch || ''} ${user.skills || ''} B.Tech Engineering Computer Science IT Electronics React Node JavaScript Python Java SQL HTML CSS MongoDB Data Structures Problem Solving`;
+        let resumeText = `${user.name || ''} ${user.email || ''} ${user.branch || ''} ${user.skills || ''}`;
 
         // If stored PDF buffer exists, extract raw text using pdf-parse
         if (user.resumeBuffer && user.resumeBuffer.length > 0) {
