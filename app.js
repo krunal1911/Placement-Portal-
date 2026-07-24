@@ -17,11 +17,11 @@ const adminRoutes   = require('./backend/routes/adminRoutes');
 // ─── App Instance ─────────────────────────────────────────────────────────────
 const app = express();
 
-// ─── Database Connection ──────────────────────────────────────────────────────
-connectDB();
-
 const Admin = require('./database/models/Admin');
 const bcrypt = require('bcrypt');
+const mongoose = require('mongoose');
+
+let isSettingsInitialized = false;
 
 // ─── Seed Exam Settings & Migrate Schemas ─────────────────────────────────────
 const initializeSettings = async () => {
@@ -78,7 +78,20 @@ const initializeSettings = async () => {
         console.error('Failed to initialize settings/admins:', err);
     }
 };
-initializeSettings();
+
+// ─── Database Middleware ──────────────────────────────────────────────────────
+app.use(async (req, res, next) => {
+    try {
+        await connectDB();
+        if (!isSettingsInitialized && mongoose.connection.readyState === 1) {
+            isSettingsInitialized = true;
+            initializeSettings().catch(err => console.error('Failed to initialize settings:', err));
+        }
+    } catch (err) {
+        console.error('DB middleware error:', err);
+    }
+    next();
+});
 
 // Trust reverse proxy (Render) for rate-limiting headers
 app.set('trust proxy', 1);
