@@ -88,17 +88,19 @@
                     <th>Semester</th>
                     <th>Tests Taken</th>
                     <th>Average Score</th>
+                    <th style="text-align: center;">Action</th>
                 </tr>
             </thead>
             <tbody id="studentTable">
                 <tr>
-                    <td colspan="6" style="text-align: center; color: var(--text-muted);">Loading students list...</td>
+                    <td colspan="7" style="text-align: center; color: var(--text-muted);">Loading students list...</td>
                 </tr>
             </tbody>
         </table>
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="/responsive.js?v=2.3"></script>
 <script>
 let students = [];
@@ -111,14 +113,14 @@ async function loadStudents() {
         displayStudents(students);
     } catch (e) {
         console.error(e);
-        document.getElementById("studentTable").innerHTML = '<tr><td colspan="6" style="text-align:center; color:red;">Failed to load student records.</td></tr>';
+        document.getElementById("studentTable").innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">Failed to load student records.</td></tr>';
     }
 }
 
 function displayStudents(data) {
     let html = "";
     if (data.length === 0) {
-        html = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No student records match the filter criteria.</td></tr>`;
+        html = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted);">No student records match the filter criteria.</td></tr>`;
     } else {
         data.forEach(student => {
             html += `
@@ -129,11 +131,40 @@ function displayStudents(data) {
                     <td style="text-align: center;">${student.semester}</td>
                     <td style="text-align: center;">${student.testsTaken || 0}</td>
                     <td style="font-weight: 600; color: var(--primary);">${student.averageScore || 0}%</td>
+                    <td style="text-align: center;">
+                        <button onclick="deleteStudentAccount('${student._id}', '${student.name}')" class="btn" style="padding: 6px 12px; font-size: 11px; background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; font-weight: 600; cursor: pointer; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">🗑️ Delete Account</button>
+                    </td>
                 </tr>
             `;
         });
     }
     document.getElementById("studentTable").innerHTML = html;
+}
+
+async function deleteStudentAccount(id, name) {
+    const result = await Swal.fire({
+        title: "Delete Student Account?",
+        text: `Are you sure you want to permanently delete "${name}" and ALL their history (test records, applications, notifications, proctoring logs)?`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#ef4444",
+        confirmButtonText: "Yes, Delete Permanently!"
+    });
+
+    if (result.isConfirmed) {
+        try {
+            const response = await fetch(`/delete-student/${id}`, { method: "DELETE" });
+            const data = await response.json();
+            if (response.ok) {
+                Swal.fire("Deleted!", data.message || "Student account removed.", "success")
+                    .then(() => loadStudents());
+            } else {
+                Swal.fire("Error", data.message || "Failed to delete student account.", "error");
+            }
+        } catch (e) {
+            Swal.fire("Error", "Server error while deleting student account.", "error");
+        }
+    }
 }
 
 function filterStudents() {

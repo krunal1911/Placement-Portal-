@@ -67,6 +67,8 @@ router.get("/export-result-pdf/:resultId", requireAdmin, adminController.exportR
 router.get("/export-cheating-report/:logId", requireAdmin, adminController.exportCheatingReportPDF);
 router.delete("/delete-company/:id", requireAdmin, adminController.deleteCompany);
 router.get("/delete-company/:id", requireAdmin, adminController.deleteCompany);
+router.delete("/delete-student/:id", requireAdmin, adminController.deleteStudent);
+router.get("/delete-student/:id", requireAdmin, adminController.deleteStudent);
 router.get("/export-students", requireSuperAdmin, adminController.exportStudents);
 router.get("/companies-list", requireAdmin, adminController.getCompaniesList);
 

@@ -1328,3 +1328,37 @@ exports.deleteCompany = async (req, res) => {
         res.status(500).json({ message: "Failed to delete company drive." });
     }
 };
+
+// Permanently Delete Student Account & All Associated History (Admin Only)
+exports.deleteStudent = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const student = await User.findById(id);
+        if (!student) {
+            return res.status(404).json({ message: "Student record not found." });
+        }
+
+        // 1. Delete associated Applications
+        await Application.deleteMany({ userId: id });
+
+        // 2. Delete associated Cheating / Proctoring Logs
+        await CheatingLog.deleteMany({ userId: id });
+
+        // 3. Delete associated Notifications
+        await Notification.deleteMany({ userId: id });
+
+        // 4. Delete associated Results / Test History if model exists
+        try {
+            const Result = require("../../database/models/Result");
+            await Result.deleteMany({ userId: id });
+        } catch (rErr) {}
+
+        // 5. Permanently delete Student User account
+        await User.findByIdAndDelete(id);
+
+        res.json({ message: `Student account for "${student.name}" and all associated history deleted permanently!` });
+    } catch (err) {
+        console.error("Error deleting student account:", err);
+        res.status(500).json({ message: "Failed to delete student account." });
+    }
+};
