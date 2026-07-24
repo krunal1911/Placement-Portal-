@@ -1237,3 +1237,70 @@ exports.getCompaniesList = async (req, res) => {
         res.status(500).json({ error: "Failed to load companies" });
     }
 };
+
+// Export Official Cheating Incident Report PDF (Admin Only)
+exports.exportCheatingReportPDF = async (req, res) => {
+    try {
+        const { logId } = req.params;
+        const PDFDocument = require("pdfkit");
+
+        const log = await CheatingLog.findById(logId).populate('userId');
+        if (!log) {
+            return res.status(404).send("Cheating incident log record not found.");
+        }
+
+        const doc = new PDFDocument({ margin: 40, size: 'A4' });
+
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("Content-Disposition", `inline; filename="Cheating_Report_${log._id}.pdf"`);
+
+        doc.pipe(res);
+
+        // Confidential Header Banner
+        doc.fillColor("#1e293b").fontSize(20).text("CONFIDENTIAL AUDIT REPORT", { align: "center" });
+        doc.fontSize(10).fillColor("#64748b").text("AI Placement Preparation Portal — Candidate Integrity & Proctoring Violation Log", { align: "center" });
+        doc.moveDown();
+        doc.strokeColor("#cbd5e1").lineWidth(1).moveTo(40, doc.y).lineTo(550, doc.y).stroke();
+        doc.moveDown();
+
+        // Candidate Summary Section
+        doc.fillColor("#0f172a").fontSize(14).text("Candidate & Assessment Summary", { underline: true });
+        doc.moveDown(0.5);
+
+        const userName = log.userId ? log.userId.name : "Anonymous Candidate";
+        const userEmail = log.userId ? log.userId.email : "N/A";
+        const branch = log.userId ? log.userId.branch : "N/A";
+        const semester = log.userId ? log.userId.semester : "N/A";
+
+        doc.fontSize(10).fillColor("#334155");
+        doc.text(`Candidate Name: ${userName}`);
+        doc.text(`Email Address: ${userEmail}`);
+        doc.text(`Branch / Semester: ${branch} (Semester ${semester})`);
+        doc.text(`Assessment Type: ${log.testType || "General Assessment"}`);
+        doc.text(`Company Context: ${log.companyName || "General"}`);
+        doc.text(`Logged Timestamp: ${new Date(log.createdAt).toLocaleString()}`);
+
+        doc.moveDown();
+        doc.strokeColor("#cbd5e1").lineWidth(1).moveTo(40, doc.y).lineTo(550, doc.y).stroke();
+        doc.moveDown();
+
+        // Violation Details Section
+        doc.fillColor("#dc2626").fontSize(14).text("Integrity Violation Details", { underline: true });
+        doc.moveDown(0.5);
+
+        doc.fontSize(11).fillColor("#0f172a").text(`Action Type: ${log.incidentType}`);
+        doc.fontSize(10).fillColor("#475569").text(`Raw Event Details: ${log.details || "None recorded"}`);
+
+        doc.moveDown();
+        doc.fillColor("#1e3a8a").fontSize(12).text("Security AI Analysis & Explanation:");
+        doc.fontSize(10).fillColor("#334155").text(log.aiAnalysis || "Security Violation: Candidate attempted window switching, copy action, or screen manipulation during controlled assessment.");
+
+        doc.moveDown(2);
+        doc.fillColor("#94a3b8").fontSize(8).text("This document is an officially generated security audit report intended exclusively for administrative review.", { align: "center" });
+
+        doc.end();
+    } catch (err) {
+        console.error("PDF Report Export Error:", err);
+        res.status(500).send("Error generating cheating report PDF.");
+    }
+};

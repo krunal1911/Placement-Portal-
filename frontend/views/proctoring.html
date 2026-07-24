@@ -160,11 +160,12 @@
                         <th>Event Description</th>
                         <th>Severity</th>
                         <th>Timestamp</th>
+                        <th style="text-align: center;">Action</th>
                     </tr>
                 </thead>
                 <tbody id="proctoringTable">
                     <tr>
-                        <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 24px;">Loading proctoring records...</td>
+                        <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">Loading proctoring records...</td>
                     </tr>
                 </tbody>
             </table>
@@ -201,7 +202,7 @@
             displayLogs(proctorLogs);
         } catch (e) {
             console.error(e);
-            document.getElementById("proctoringTable").innerHTML = `<tr><td colspan="4" style="text-align:center; color:red; padding: 24px;">Failed to load proctoring logs.</td></tr>`;
+            document.getElementById("proctoringTable").innerHTML = `<tr><td colspan="5" style="text-align:center; color:red; padding: 24px;">Failed to load proctoring logs.</td></tr>`;
             document.getElementById("mobileProctoringContainer").innerHTML = `<div style="text-align:center; color:red; padding: 24px;">Failed to load proctoring logs.</div>`;
         }
     }
@@ -211,7 +212,7 @@
         let mobileHtml = "";
 
         if (logs.length === 0) {
-            desktopHtml = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding: 24px;">No proctoring logs recorded.</td></tr>`;
+            desktopHtml = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding: 24px;">No proctoring logs recorded.</td></tr>`;
             mobileHtml = `<div style="text-align:center; color:var(--text-muted); padding: 24px;">No proctoring logs recorded.</div>`;
         } else {
             logs.forEach(log => {
@@ -231,6 +232,9 @@
                         <td>${eventText}</td>
                         <td><span class="severity-badge ${badgeClass}">${sev.toUpperCase()}</span></td>
                         <td style="font-size: 13px; color: var(--text-muted);">${timestamp}</td>
+                        <td style="text-align: center;">
+                            <a href="/export-cheating-report/${log._id}" target="_blank" class="btn" style="padding: 6px 12px; font-size:11px; background:var(--primary-light); color:var(--primary); border:1px solid var(--border); font-weight:600; text-decoration:none; border-radius:6px; display:inline-flex; align-items:center; gap:4px;">📄 PDF Report</a>
+                        </td>
                     </tr>
                 `;
 
@@ -247,6 +251,9 @@
                         <div class="mobile-card-row">
                             <span class="mobile-label">Timestamp:</span>
                             <span class="mobile-val" style="font-size:12px;">${timestamp}</span>
+                        </div>
+                        <div style="margin-top:12px; text-align:right;">
+                            <a href="/export-cheating-report/${log._id}" target="_blank" class="btn" style="padding: 6px 12px; font-size:11px; background:var(--primary-light); color:var(--primary); border:1px solid var(--border); font-weight:600; text-decoration:none; border-radius:6px; display:inline-flex; align-items:center; gap:4px;">📄 PDF Report</a>
                         </div>
                     </div>
                 `;
