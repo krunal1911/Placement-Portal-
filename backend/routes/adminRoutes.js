@@ -7,10 +7,14 @@ const { requireAdmin, requireSuperAdmin } = require("../middleware/auth");
 
 const router = express.Router();
 
-// Multer Storage Configuration for dynamic Excel file uploading
+const os = require("os");
+
+// Multer Storage Configuration for dynamic Excel/PDF file uploading
+const uploadDir = process.env.VERCEL ? os.tmpdir() : "uploads";
+
 const excelStorage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, "uploads");
+        cb(null, uploadDir);
     },
     filename: function (req, file, cb) {
         cb(null, Date.now() + "-" + file.originalname);

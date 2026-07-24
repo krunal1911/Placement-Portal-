@@ -189,8 +189,12 @@ app.use((err, req, res, next) => {
     res.status(500).sendFile(path.join(__dirname, 'frontend', 'views', '500.html'));
 });
 
-// ─── Start Server ─────────────────────────────────────────────────────────────
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`✅ Server running on port ${PORT}`);
-});
+// ─── Export & Start Server ───────────────────────────────────────────────────
+module.exports = app;
+
+if (require.main === module) {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+        console.log(`✅ Server running on port ${PORT}`);
+    });
+}

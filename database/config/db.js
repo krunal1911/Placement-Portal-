@@ -1,14 +1,27 @@
 const mongoose = require('mongoose');
 
+let isConnected = false;
+
 const connectDB = async () => {
+    if (isConnected || mongoose.connection.readyState >= 1) {
+        return;
+    }
+
     try {
-        try {
-            await mongoose.connect(process.env.MONGODB_URI);
+        const mongoUri = process.env.MONGODB_URI;
+        if (mongoUri) {
+            await mongoose.connect(mongoUri);
+            isConnected = true;
             console.log('MongoDB Connected (Remote Atlas)');
-        } catch (remoteErr) {
-            console.warn('Remote MongoDB Connection Failed, attempting local MongoDB connection...', remoteErr.message);
-            await mongoose.connect('mongodb://127.0.0.1:27017/placementPortal');
-            console.log('MongoDB Connected (Local Fallback)');
+        } else {
+            if (!process.env.VERCEL) {
+                await mongoose.connect('mongodb://127.0.0.1:27017/placementPortal');
+                isConnected = true;
+                console.log('MongoDB Connected (Local Fallback)');
+            } else {
+                console.error("⚠️ MONGODB_URI is not defined in Vercel Environment Variables!");
+                return;
+            }
         }
 
         // Auto-seed questions if count is low
