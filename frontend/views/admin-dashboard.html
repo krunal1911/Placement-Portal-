@@ -184,15 +184,19 @@ async function loadAnalytics() {
 
         // ---------- Department Placement Bar Chart ----------
         const deptLabels = ["CSE", "IT", "Mechanical", "Electrical", "Civil"];
+        const deptTotalData = [];
         const deptPlacedData = [];
+
         if (data.deptMap) {
-            deptPlacedData.push(data.deptMap["Computer Engineering"] ? data.deptMap["Computer Engineering"].placed : 0);
-            deptPlacedData.push(data.deptMap["Information Technology"] ? data.deptMap["Information Technology"].placed : 0);
-            deptPlacedData.push(data.deptMap["Mechanical Engineering"] ? data.deptMap["Mechanical Engineering"].placed : 0);
-            deptPlacedData.push(data.deptMap["Electrical Engineering"] ? data.deptMap["Electrical Engineering"].placed : 0);
-            deptPlacedData.push(data.deptMap["Civil Engineering"] ? data.deptMap["Civil Engineering"].placed : 0);
+            const keys = ["Computer Engineering", "Information Technology", "Mechanical Engineering", "Electrical Engineering", "Civil Engineering"];
+            keys.forEach(k => {
+                const item = data.deptMap[k] || { total: 0, placed: 0 };
+                deptTotalData.push(item.total || 0);
+                deptPlacedData.push(item.placed || 0);
+            });
         } else {
-            deptPlacedData.push(12, 10, 6, 4, 3);
+            deptTotalData.push(15, 12, 8, 6, 4);
+            deptPlacedData.push(0, 0, 0, 0, 0);
         }
 
         const barCtx = document.getElementById("barChart").getContext("2d");
@@ -201,28 +205,30 @@ async function loadAnalytics() {
             type: "bar",
             data: {
                 labels: deptLabels,
-                datasets: [{
-                    label: "Placed Students",
-                    data: deptPlacedData,
-                    backgroundColor: [
-                        "rgba(59, 130, 246, 0.85)",
-                        "rgba(16, 185, 129, 0.85)",
-                        "rgba(245, 158, 11, 0.85)",
-                        "rgba(139, 92, 246, 0.85)",
-                        "rgba(236, 72, 153, 0.85)"
-                    ],
-                    borderRadius: 8
-                }]
+                datasets: [
+                    {
+                        label: "Total Registered Students",
+                        data: deptTotalData,
+                        backgroundColor: "rgba(59, 130, 246, 0.75)",
+                        borderRadius: 6
+                    },
+                    {
+                        label: "Placed Candidates",
+                        data: deptPlacedData,
+                        backgroundColor: "rgba(16, 185, 129, 0.85)",
+                        borderRadius: 6
+                    }
+                ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { display: false }
+                    legend: { display: true, labels: { color: textColor, font: { family: "Poppins", size: 12 } } }
                 },
                 scales: {
                     x: { grid: { display: false }, ticks: { color: textColor } },
-                    y: { grid: { color: gridColor }, ticks: { color: textColor } }
+                    y: { grid: { color: gridColor }, ticks: { color: textColor }, beginAtZero: true }
                 }
             }
         });

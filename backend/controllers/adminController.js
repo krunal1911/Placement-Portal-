@@ -241,6 +241,17 @@ exports.getAdminAnalytics = async (req, res) => {
             "Civil Engineering": { total: 0, placed: 0 }
         };
 
+        function normalizeBranch(b) {
+            if (!b) return "Computer Engineering";
+            const str = b.trim().toLowerCase();
+            if (str.includes("comp") || str.includes("cse") || str.includes("computer")) return "Computer Engineering";
+            if (str.includes("it") || str.includes("info") || str.includes("information")) return "Information Technology";
+            if (str.includes("mech") || str.includes("mechanical")) return "Mechanical Engineering";
+            if (str.includes("elec") || str.includes("electrical") || str.includes("ece")) return "Electrical Engineering";
+            if (str.includes("civil")) return "Civil Engineering";
+            return "Computer Engineering";
+        }
+
         const allStudents = await User.find();
         const allCompanies = await Company.find();
         const allApplications = await Application.find();
@@ -280,10 +291,10 @@ exports.getAdminAnalytics = async (req, res) => {
 
             // Department distribution
             allStudents.forEach(st => {
-                const branch = st.branch || "Computer Engineering";
-                if (!deptMap[branch]) deptMap[branch] = { total: 0, placed: 0 };
-                deptMap[branch].total++;
-                if (placedIds.has(String(st._id))) deptMap[branch].placed++;
+                const branchKey = normalizeBranch(st.branch);
+                if (!deptMap[branchKey]) deptMap[branchKey] = { total: 0, placed: 0 };
+                deptMap[branchKey].total++;
+                if (placedIds.has(String(st._id))) deptMap[branchKey].placed++;
             });
         } else {
             // Company Admin Scope
