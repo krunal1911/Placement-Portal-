@@ -278,18 +278,21 @@ exports.getAdminAnalytics = async (req, res) => {
             };
 
             const placedIds = new Set();
+            let selectedAppsCount = 0;
             allApplications.forEach(a => {
                 const st = a.status || "Applied";
                 if (!statusMap[st]) statusMap[st] = 0;
                 statusMap[st]++;
 
                 if (st === "Selected" || st === "Accepted" || st === "Placed") {
-                    placedIds.add(String(a.userId));
+                    selectedAppsCount++;
+                    if (a.userId) placedIds.add(String(a.userId._id || a.userId));
                 }
             });
 
-            placedCount = placedIds.size;
-            unplacedCount = Math.max(0, totalStudents - placedCount);
+            placedCount = selectedAppsCount;
+            const uniquePlacedStudents = placedIds.size;
+            unplacedCount = Math.max(0, totalStudents - uniquePlacedStudents);
 
             // Package CTC calculation
             let salarySum = 0, salaryCount = 0, maxPkg = 0;
@@ -350,18 +353,21 @@ exports.getAdminAnalytics = async (req, res) => {
             };
 
             const placedIds = new Set();
+            let selectedAppsCount = 0;
             myApps.forEach(a => {
                 const st = a.status || "Applied";
                 if (!statusMap[st]) statusMap[st] = 0;
                 statusMap[st]++;
 
                 if (st === "Selected" || st === "Accepted" || st === "Placed") {
-                    placedIds.add(String(a.userId));
+                    selectedAppsCount++;
+                    if (a.userId) placedIds.add(String(a.userId._id || a.userId));
                 }
             });
 
-            placedCount = placedIds.size;
-            unplacedCount = Math.max(0, totalStudents - placedCount);
+            placedCount = selectedAppsCount;
+            const uniquePlacedStudents = placedIds.size;
+            unplacedCount = Math.max(0, totalStudents - uniquePlacedStudents);
 
             // Package for this company
             if (myCompanies.length > 0 && myCompanies[0].package) {

@@ -174,7 +174,7 @@ async function loadAnalytics() {
         document.getElementById("averageScore").innerText = (data.averageScore || 78) + "%";
 
         document.getElementById("placedRatio").innerText = `${data.placedCount || 0} / ${data.totalStudents || 0}`;
-        document.getElementById("placedSubLabel").innerText = `Placed (${data.placedCount || 0}) · Unplaced (${data.unplacedCount || 0})`;
+        document.getElementById("placedSubLabel").innerText = `${data.placedCount || 0} Selected Offers · ${data.unplacedCount || 0} Unplaced`;
         document.getElementById("avgPackage").innerText = data.avgPackage || "7.2 LPA";
         document.getElementById("highestPackage").innerText = data.highestPackage || "24.0 LPA";
 
