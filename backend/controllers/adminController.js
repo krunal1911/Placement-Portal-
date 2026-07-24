@@ -1304,3 +1304,27 @@ exports.exportCheatingReportPDF = async (req, res) => {
         res.status(500).send("Error generating cheating report PDF.");
     }
 };
+
+// Delete Company / Placement Drive
+exports.deleteCompany = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const company = await Company.findById(id);
+        if (!company) {
+            return res.status(404).json({ message: "Company placement drive record not found." });
+        }
+
+        // Company Admins can only delete their own company drive
+        if (req.session.admin && req.session.admin.role === "admin") {
+            if (req.session.admin.companyName && req.session.admin.companyName.trim().toLowerCase() !== company.companyName.trim().toLowerCase()) {
+                return res.status(403).json({ message: "Unauthorized: You can only delete placement drives for your assigned company." });
+            }
+        }
+
+        await Company.findByIdAndDelete(id);
+        res.json({ message: "Placement drive deleted successfully!" });
+    } catch (err) {
+        console.error("Error deleting company drive:", err);
+        res.status(500).json({ message: "Failed to delete company drive." });
+    }
+};
