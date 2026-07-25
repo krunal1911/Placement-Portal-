@@ -282,6 +282,7 @@ exports.getCareerGuideRoadmap = async (req, res) => {
 };
 
 // Get randomized aptitude MCQ questions
+// Get randomized aptitude MCQ questions (Strict Company Isolation)
 exports.getQuestions = async (req, res) => {
     try {
         const company = req.query.company || "General";
@@ -293,13 +294,6 @@ exports.getQuestions = async (req, res) => {
             { $match: queryFilter },
             { $sample: { size: 20 } }
         ]);
-        if (questions.length === 0 && company !== "General") {
-            const fallback = await Question.aggregate([
-                { $match: { $or: [{ companyName: "General" }, { companyName: { $exists: false } }, { companyName: "" }] } },
-                { $sample: { size: 20 } }
-            ]);
-            return res.json(fallback);
-        }
         res.json(questions);
     } catch (err) {
         console.log(err);
@@ -307,7 +301,7 @@ exports.getQuestions = async (req, res) => {
     }
 };
 
-// Get all technical MCQ coding questions
+// Get all technical MCQ coding questions (Strict Company Isolation)
 exports.getTechnicalQuestions = async (req, res) => {
     try {
         const company = req.query.company || "General";
@@ -319,13 +313,6 @@ exports.getTechnicalQuestions = async (req, res) => {
             { $match: queryFilter },
             { $sample: { size: 20 } }
         ]);
-        if (questions.length === 0 && company !== "General") {
-            const fallback = await TechnicalQuestion.aggregate([
-                { $match: { $or: [{ companyName: "General" }, { companyName: { $exists: false } }, { companyName: "" }] } },
-                { $sample: { size: 20 } }
-            ]);
-            return res.json(fallback);
-        }
         res.json(questions);
     } catch (err) {
         console.log(err);
