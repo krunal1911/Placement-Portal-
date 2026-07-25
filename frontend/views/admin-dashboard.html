@@ -364,15 +364,15 @@ async function checkAdminRole() {
             const heroBtn = document.querySelector(".heroBtn");
             if (heroBtn) heroBtn.style.display = "none";
             
-            // Allow company admins to access question management, PDF/Excel import, applications, results, proctoring
+            // Allow company admins to access question management, PDF/Excel import, applications, results, proctoring, and placement drives
             document.querySelectorAll(".features .feature-card").forEach(card => {
                 const h3 = card.querySelector("h3");
                 if (h3) {
                     const text = h3.innerText.toLowerCase();
-                    if (text.includes("import") || text.includes("questions") || text.includes("applications") || text.includes("results")) {
-                        card.style.display = "block";
-                    } else {
+                    if (text.includes("super admin") || text.includes("manage admins")) {
                         card.style.display = "none";
+                    } else {
+                        card.style.display = "block";
                     }
                 }
             });
