@@ -235,8 +235,8 @@ exports.getAdminAnalytics = async (req, res) => {
         let averageScore = 0;
         let placedCount = 0;
         let unplacedCount = 0;
-        let avgPackage = "7.2 LPA";
-        let highestPackage = "24.0 LPA";
+        let avgPackage = "0.0 LPA";
+        let highestPackage = "0.0 LPA";
         let deptMap = {
             "Computer Engineering": { total: 0, placed: 0 },
             "Information Technology": { total: 0, placed: 0 },
@@ -350,7 +350,8 @@ exports.getAdminAnalytics = async (req, res) => {
             return;
         } else {
             // Company Admin Scope
-            const myCompanies = allCompanies.filter(c => c.companyName === companyName);
+            const cleanCompany = (companyName || "").trim().toLowerCase();
+            const myCompanies = allCompanies.filter(c => c.companyName && c.companyName.trim().toLowerCase() === cleanCompany);
             const myCompanyIds = new Set(myCompanies.map(c => String(c._id)));
             totalCompanies = myCompanies.length;
 
@@ -386,12 +387,23 @@ exports.getAdminAnalytics = async (req, res) => {
             unplacedCount = Math.max(0, totalStudents - uniquePlacedStudents);
 
             // Package for this company
-            if (myCompanies.length > 0 && myCompanies[0].package) {
-                const num = parseFloat(String(myCompanies[0].package).replace(/[^0-9.]/g, ""));
-                if (!isNaN(num) && num > 0) {
-                    avgPackage = num.toFixed(1) + " LPA";
-                    highestPackage = num.toFixed(1) + " LPA";
-                }
+            if (myCompanies.length > 0) {
+                let sum = 0, count = 0, max = 0;
+                myCompanies.forEach(c => {
+                    if (c.package) {
+                        const num = parseFloat(String(c.package).replace(/[^0-9.]/g, ""));
+                        if (!isNaN(num) && num > 0) {
+                            sum += num;
+                            count++;
+                            if (num > max) max = num;
+                        }
+                    }
+                });
+                avgPackage = count > 0 ? (sum / count).toFixed(1) + " LPA" : "0.0 LPA";
+                highestPackage = max > 0 ? max.toFixed(1) + " LPA" : "0.0 LPA";
+            } else {
+                avgPackage = "0.0 LPA";
+                highestPackage = "0.0 LPA";
             }
 
             try {
