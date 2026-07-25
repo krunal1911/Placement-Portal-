@@ -170,14 +170,21 @@ app.use((req, res, next) => {
     next();
 });
 
+const MongoStore = require('connect-mongo');
+
 app.use(session({
     secret: process.env.SESSION_SECRET || 'placementPortalSecret',
     resave: false,
     saveUninitialized: false,
+    store: MongoStore.create({
+        mongoUrl: process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/placementPortal',
+        ttl: 7 * 24 * 60 * 60, // 7 days session persistence in MongoDB
+        autoRemove: 'native'
+    }),
     cookie: {
-        maxAge: 24 * 60 * 60 * 1000,   // 24 hours
-        httpOnly: true,                  // Prevents client-side JS from reading cookie
-        secure: false,                   // Compatible across Vercel, Render and local proxies
+        maxAge: 7 * 24 * 60 * 60 * 1000,   // 7 days
+        httpOnly: true,                     // Prevents client-side JS from reading cookie
+        secure: false,                      // Compatible across Vercel, Render and local proxies
         sameSite: 'lax'
     }
 }));
