@@ -172,7 +172,7 @@ async function loadAnalytics() {
         document.getElementById("totalCompanies").innerText = data.totalDrives || data.totalCompanies || 0;
         document.getElementById("totalApplications").innerText = data.totalApplications || 0;
         document.getElementById("totalTests").innerText = data.totalTests || 0;
-        document.getElementById("averageScore").innerText = (data.averageScore || 78) + "%";
+        document.getElementById("averageScore").innerText = (data.averageScore !== undefined && data.averageScore !== null ? data.averageScore : 0) + "%";
 
         document.getElementById("placedRatio").innerText = `${data.placedCount || 0} / ${data.totalStudents || 0}`;
         document.getElementById("placedSubLabel").innerText = `${data.placedCount || 0} Selected Offers · ${data.unplacedCount || 0} Unplaced`;

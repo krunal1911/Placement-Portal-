@@ -265,12 +265,24 @@ exports.getAdminAnalytics = async (req, res) => {
             totalCompanies = allCompanies.length;
             totalApplications = allApplications.length;
 
+            let allResults = [];
+            try {
+                const ResultModel = require("../../database/models/Result");
+                allResults = await ResultModel.find();
+            } catch (rErr) {
+                try {
+                    const ResultModel = require("../../database/models/result");
+                    allResults = await ResultModel.find();
+                } catch (e) {}
+            }
+
+            totalTests = allResults.length;
             let totalScoreSum = 0;
-            allStudents.forEach(st => {
-                totalTests += st.testsTaken || 0;
-                totalScoreSum += st.averageScore || 0;
+            allResults.forEach(r => {
+                const scorePct = r.percentage !== undefined ? r.percentage : (r.totalQuestions ? Math.round((r.score / r.totalQuestions) * 100) : 0);
+                totalScoreSum += scorePct;
             });
-            averageScore = allStudents.length > 0 ? Math.round(totalScoreSum / allStudents.length) : 78;
+            averageScore = totalTests > 0 ? Math.round(totalScoreSum / totalTests) : 0;
 
             // Placed & Status Breakdown calculation
             const statusMap = {
@@ -387,7 +399,7 @@ exports.getAdminAnalytics = async (req, res) => {
                 totalTests = results.length;
                 let totalScore = 0;
                 results.forEach(r => { totalScore += r.percentage || 0; });
-                averageScore = results.length > 0 ? Math.round(totalScore / results.length) : 75;
+                averageScore = results.length > 0 ? Math.round(totalScore / results.length) : 0;
             } catch (rErr) {}
 
             allStudents.forEach(st => {
