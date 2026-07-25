@@ -686,25 +686,39 @@ exports.postAdminRequest = async (req, res) => {
     try {
         const { username, password, companyName, reason } = req.body;
         if (!username || !password || !companyName || !reason) {
-            return res.status(400).send("All fields are required");
+            return res.status(400).send("All fields are required. Please fill in all details.");
         }
-        const existingRequest = await AdminRequest.findOne({ username, status: "pending" });
-        const existingAdmin = await Admin.findOne({ username });
-        if (existingRequest || existingAdmin) {
-            return res.status(400).send("Username is already taken or pending request exists.");
+
+        const cleanUsername = String(username).trim().toLowerCase();
+        const safeRegex = new RegExp(`^${cleanUsername.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, "i");
+
+        const existingAdmin = await Admin.findOne({ username: safeRegex });
+        if (existingAdmin) {
+            return res.status(400).send("An administrator account with this username already exists.");
         }
+
+        const existingRequest = await AdminRequest.findOne({ username: safeRegex });
+        if (existingRequest) {
+            if (existingRequest.status === "pending") {
+                return res.status(400).send("A pending access request for this username is already being reviewed.");
+            } else {
+                await AdminRequest.deleteOne({ _id: existingRequest._id });
+            }
+        }
+
         const hashedPassword = await bcrypt.hash(password, 10);
         await AdminRequest.create({
-            username,
+            username: cleanUsername,
             password: hashedPassword,
-            companyName,
-            reason,
+            companyName: String(companyName).trim(),
+            reason: String(reason).trim(),
             status: "pending"
         });
+
         res.send("Success");
     } catch (err) {
-        console.error(err);
-        res.status(500).send("Failed to submit request");
+        console.error("Error submitting admin access request:", err);
+        res.status(500).send(err.message || "Failed to submit request");
     }
 };
 
