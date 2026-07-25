@@ -1051,8 +1051,10 @@ exports.importQuestions = async (req, res) => {
                 continue;
             }
 
+            const cleanQ = String(row.Question).trim();
             const exists = await Question.findOne({
-                question: row.Question
+                question: new RegExp(`^${cleanQ.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, "i"),
+                companyName: targetCompany
             });
 
             if (exists) {
