@@ -21,18 +21,19 @@
         <li><a href="/admin-dashboard">Dashboard</a></li>
         <li><a href="/students">Students</a></li>
         <li><a href="/applications">Applications</a></li>
+        <li><a href="/placement-drives">Placement Drives</a></li>
         <li><a href="/proctoring">Proctoring</a></li>
         <li><a href="/logout">Logout</a></li>
     </ul>
 </nav>
 
-<div class="container" style="max-width: 700px; margin: 40px auto; padding: 0 20px;">
+<div class="container" style="max-width: 950px; margin: 40px auto; padding: 0 20px;">
     <div style="margin-bottom: 24px; text-align: center;">
-        <h1 style="font-size: 28px; font-weight: 700; color: var(--text-main);">➕ Add Placement Drive</h1>
-        <p style="color: var(--text-muted); font-size: 14px;">Register a new company and job profile for students to apply.</p>
+        <h1 style="font-size: 28px; font-weight: 700; color: var(--text-main);">➕ Manage Placement Drives</h1>
+        <p style="color: var(--text-muted); font-size: 14px;">Register a new company job profile or manage existing placement drives.</p>
     </div>
 
-    <div class="form-card">
+    <div class="form-card" style="margin-bottom: 40px;">
         <form id="addCompanyForm">
             <div class="form-group">
                 <label for="companyName">Company Name</label>
@@ -72,19 +73,52 @@
             </div>
         </form>
     </div>
+
+    <!-- Active Placement Drives List Section -->
+    <div class="table-card" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+            <div>
+                <h2 style="font-size: 20px; font-weight: 700; color: var(--text-main);">🏢 Registered Placement Drives</h2>
+                <p style="color: var(--text-muted); font-size: 13px;">View all active drives and remove/delete company listings.</p>
+            </div>
+            <a href="/placement-drives" class="btn" style="padding: 8px 16px; font-size: 13px; background: var(--primary-light); color: var(--primary); text-decoration: none; border-radius: 8px; font-weight: 600;">👁️ View Drive Cards</a>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--border); text-align: left;">
+                        <th style="padding: 12px; color: var(--text-muted); font-size: 13px;">COMPANY</th>
+                        <th style="padding: 12px; color: var(--text-muted); font-size: 13px;">JOB ROLE</th>
+                        <th style="padding: 12px; color: var(--text-muted); font-size: 13px;">CTC PACKAGE</th>
+                        <th style="padding: 12px; color: var(--text-muted); font-size: 13px;">LOCATION</th>
+                        <th style="padding: 12px; color: var(--text-muted); font-size: 13px;">DEADLINE</th>
+                        <th style="padding: 12px; text-align: center; color: var(--text-muted); font-size: 13px;">ACTION</th>
+                    </tr>
+                </thead>
+                <tbody id="companyTableBody">
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 24px; color: var(--text-muted);">Loading placement drives...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="/responsive.js?v=2.3"></script>
 <script>
+let currentAdminProfile = null;
+
 async function checkAdminProfile() {
     try {
         const res = await fetch("/current-admin");
         if (res.ok) {
-            const admin = await res.json();
-            if (admin.role !== "superadmin") {
+            currentAdminProfile = await res.json();
+            if (currentAdminProfile.role !== "superadmin") {
                 const compInput = document.getElementById("companyName");
-                compInput.value = admin.companyName || "";
+                compInput.value = currentAdminProfile.companyName || "";
                 compInput.readOnly = true;
                 compInput.style.opacity = "0.7";
                 compInput.style.cursor = "not-allowed";
@@ -94,7 +128,70 @@ async function checkAdminProfile() {
         console.error("Failed to load admin profile:", e);
     }
 }
+
+async function loadExistingCompanies() {
+    try {
+        const res = await fetch("/companies");
+        const companies = await res.json();
+        const tbody = document.getElementById("companyTableBody");
+
+        if (!companies || companies.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 24px; color: var(--text-muted);">No placement drives registered yet.</td></tr>`;
+            return;
+        }
+
+        let html = "";
+        companies.forEach(c => {
+            const deadlineDate = c.deadline || c.lastDate || "N/A";
+            html += `
+                <tr style="border-bottom: 1px solid var(--border);">
+                    <td style="padding: 14px 12px; font-weight: 600; color: var(--text-main);">${c.companyName}</td>
+                    <td style="padding: 14px 12px; color: var(--text-muted);">${c.jobRole}</td>
+                    <td style="padding: 14px 12px; font-weight: 600; color: #10b981;">₹ ${c.package}</td>
+                    <td style="padding: 14px 12px; color: var(--text-muted);">📍 ${c.location}</td>
+                    <td style="padding: 14px 12px; color: var(--text-muted);">📅 ${deadlineDate}</td>
+                    <td style="padding: 14px 12px; text-align: center;">
+                        <button onclick="deleteCompanyDrive('${c._id}', '${c.companyName}')" class="btn" style="padding: 6px 12px; font-size: 12px; background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; font-weight: 600; cursor: pointer; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">🗑️ Remove Company</button>
+                    </td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+    } catch (e) {
+        console.error("Error loading companies:", e);
+        document.getElementById("companyTableBody").innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 24px; color: #ef4444;">Failed to load placement drives.</td></tr>`;
+    }
+}
+
+async function deleteCompanyDrive(id, companyName) {
+    const result = await Swal.fire({
+        title: `Delete ${companyName}?`,
+        text: "Are you sure you want to remove this placement drive? All associated candidate applications will also be deleted. This action cannot be undone.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#ef4444",
+        confirmButtonText: "Yes, Delete Company"
+    });
+
+    if (result.isConfirmed) {
+        try {
+            const res = await fetch(`/delete-company/${id}`, { method: "DELETE" });
+            let data = {};
+            try { data = await res.json(); } catch(e) {}
+            if (res.ok) {
+                Swal.fire("Deleted!", data.message || "Placement drive deleted successfully.", "success")
+                    .then(() => loadExistingCompanies());
+            } else {
+                Swal.fire("Error", data.message || "Failed to delete company drive.", "error");
+            }
+        } catch (e) {
+            Swal.fire("Error", "Server error while deleting company drive.", "error");
+        }
+    }
+}
+
 checkAdminProfile();
+loadExistingCompanies();
 
 document.getElementById("addCompanyForm").addEventListener("submit", async function(event) {
     event.preventDefault();
@@ -125,7 +222,8 @@ document.getElementById("addCompanyForm").addEventListener("submit", async funct
                 text: "Placement drive registered successfully!",
                 icon: "success"
             }).then(() => {
-                window.location.href = "/admin-dashboard";
+                document.getElementById("addCompanyForm").reset();
+                loadExistingCompanies();
             });
         } else {
             Swal.fire({

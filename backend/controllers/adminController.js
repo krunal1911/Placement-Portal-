@@ -64,6 +64,10 @@ exports.showApplications = (req, res) => {
     renderView(res, "applications.html");
 };
 
+exports.showProctoring = (req, res) => {
+    renderView(res, "proctoring.html");
+};
+
 exports.showUpdateStatus = (req, res) => {
     renderView(res, "update-status.html");
 };
@@ -433,6 +437,53 @@ exports.getApplicationsData = async (req, res) => {
     } catch (err) {
         console.log(err);
         res.status(500).send("Error");
+    }
+};
+
+// Get Proctoring Audit Logs (Admin & SuperAdmin)
+exports.getProctoringData = async (req, res) => {
+    try {
+        let filter = {};
+        if (req.session.admin && req.session.admin.role === "admin" && req.session.admin.companyName) {
+            filter.companyName = req.session.admin.companyName;
+        }
+
+        const logs = await CheatingLog.find(filter)
+            .populate("userId", "name email department branch rollNo")
+            .sort({ createdAt: -1 });
+
+        const formattedLogs = logs.map(log => {
+            const user = log.userId || {};
+            const studentName = user.name || "Anonymous Candidate";
+            const incident = log.incidentType || log.details || "Tab Switch / Security Event";
+
+            let severity = log.severity || "low";
+            if (!log.severity) {
+                const incLower = incident.toLowerCase();
+                if (incLower.includes("webcam") || incLower.includes("face") || incLower.includes("copy") || incLower.includes("multiple")) {
+                    severity = "high";
+                } else if (incLower.includes("tab") || incLower.includes("fullscreen") || incLower.includes("blur") || incLower.includes("focus")) {
+                    severity = "medium";
+                }
+            }
+
+            return {
+                _id: log._id,
+                userId: user,
+                studentName: studentName,
+                eventType: incident,
+                event: incident,
+                severity: severity,
+                details: log.details || incident,
+                snapshotImage: log.snapshotImage || "",
+                createdAt: log.createdAt || Date.now()
+            };
+        });
+
+        res.json(formattedLogs);
+    } catch (err) {
+        console.error("Error in getProctoringData:", err);
+        res.status(500).json({ message: "Failed to fetch proctoring logs.", error: err.message });
     }
 };
 
