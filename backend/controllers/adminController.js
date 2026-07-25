@@ -1004,6 +1004,21 @@ async function parseQuestionsFromPDF(filePath) {
     }
 }
 
+// Helper for flexible Excel column mapping
+function getRowValue(r, possibleKeys) {
+    if (!r) return undefined;
+    const keys = Object.keys(r);
+    for (const key of keys) {
+        const normalized = key.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+        for (const pk of possibleKeys) {
+            if (normalized === pk.toLowerCase().replace(/[^a-z0-9]/g, "")) {
+                return String(r[key]).trim();
+            }
+        }
+    }
+    return undefined;
+}
+
 // Batch import MCQ questions via uploaded Excel spreadsheets or PDF documents
 exports.importQuestions = async (req, res) => {
     try {
@@ -1012,7 +1027,7 @@ exports.importQuestions = async (req, res) => {
         }
 
         let targetCompany = req.body.companyName;
-        if (req.session.admin.role === "admin") {
+        if (req.session.admin && req.session.admin.role === "admin") {
             targetCompany = req.session.admin.companyName || "General";
         } else if (!targetCompany) {
             targetCompany = "General";
@@ -1029,17 +1044,34 @@ exports.importQuestions = async (req, res) => {
             const sheetName = workbook.SheetNames[0];
             const sheet = workbook.Sheets[sheetName];
             const rawData = XLSX.utils.sheet_to_json(sheet);
-            rows = rawData.map(r => ({
-                Question: r.Question || r.question || r["Question Text"],
-                "Option A": r["Option A"] || r.optionA || r.A || r["Option 1"],
-                "Option B": r["Option B"] || r.optionB || r.B || r["Option 2"],
-                "Option C": r["Option C"] || r.optionC || r.C || r["Option 3"],
-                "Option D": r["Option D"] || r.optionD || r.D || r["Option 4"],
-                Answer: r.Answer || r.answer || r["Correct Answer"],
-                Explanation: r.Explanation || r.explanation || "",
-                Topic: r.Topic || r.topic || "General",
-                Difficulty: r.Difficulty || r.difficulty || "Easy"
-            }));
+            rows = rawData.map(r => {
+                const q = getRowValue(r, ["question", "questiontext", "questions", "q", "qtext", "problem"]);
+                const a = getRowValue(r, ["optiona", "option1", "a", "opt1", "opta", "choicea", "choice1"]);
+                const b = getRowValue(r, ["optionb", "option2", "b", "opt2", "optb", "choiceb", "choice2"]);
+                const c = getRowValue(r, ["optionc", "option3", "c", "opt3", "optc", "choicec", "choice3"]);
+                const d = getRowValue(r, ["optiond", "option4", "d", "opt4", "optd", "choiced", "choice4"]);
+                let ans = getRowValue(r, ["answer", "correctanswer", "correct", "ans", "rightanswer", "correctoption"]);
+
+                if (ans) {
+                    const cleanAns = ans.trim().toUpperCase();
+                    if (cleanAns === "A" && a) ans = a;
+                    else if (cleanAns === "B" && b) ans = b;
+                    else if (cleanAns === "C" && c) ans = c;
+                    else if (cleanAns === "D" && d) ans = d;
+                }
+
+                return {
+                    Question: q,
+                    "Option A": a,
+                    "Option B": b,
+                    "Option C": c || "N/A",
+                    "Option D": d || "N/A",
+                    Answer: ans || a,
+                    Explanation: getRowValue(r, ["explanation", "exp", "solution", "reason", "details"]) || "",
+                    Topic: getRowValue(r, ["topic", "subject", "category", "tag"]) || "General",
+                    Difficulty: getRowValue(r, ["difficulty", "level", "diff"]) || "Medium"
+                };
+            });
         }
 
         let imported = 0;
@@ -1063,7 +1095,7 @@ exports.importQuestions = async (req, res) => {
             }
 
             await Question.create({
-                question: row.Question,
+                question: cleanQ,
                 options: [
                     row["Option A"],
                     row["Option B"],
@@ -1073,7 +1105,7 @@ exports.importQuestions = async (req, res) => {
                 answer: row.Answer || row["Option A"],
                 explanation: row.Explanation || "",
                 topic: row.Topic || "General",
-                difficulty: row.Difficulty || "Easy",
+                difficulty: row.Difficulty || "Medium",
                 companyName: targetCompany
             });
             imported++;

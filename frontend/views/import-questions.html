@@ -72,11 +72,12 @@
 
     <div class="card" style="max-width: 100%; padding: 30px;">
         <form action="/import-questions" method="POST" enctype="multipart/form-data">
+            <input type="hidden" id="hiddenCompanyName" name="companyName" value="General">
             
             <!-- Target Company Selection -->
             <div style="margin-bottom: 24px; text-align: left;">
                 <label for="companySelect" style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Assign to Company / Placement Drive</label>
-                <select id="companySelect" name="companyName" required style="width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: var(--bg-card); color: var(--text-main);">
+                <select id="companySelect" onchange="document.getElementById('hiddenCompanyName').value = this.value" required style="width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: var(--bg-card); color: var(--text-main);">
                     <option value="General">General (Default Practice Bank)</option>
                 </select>
                 <span id="companyNote" style="font-size: 12px; color: var(--text-muted); display: block; margin-top: 4px;">Questions will be associated with this company profile for student recruitment tests.</span>
@@ -141,6 +142,7 @@ async function loadCompanyOptions() {
         if (currentAdmin && currentAdmin.role === "admin" && currentAdmin.companyName) {
             // Company Admin - lock to their assigned company
             select.innerHTML = `<option value="${currentAdmin.companyName}">${currentAdmin.companyName}</option>`;
+            document.getElementById("hiddenCompanyName").value = currentAdmin.companyName;
             select.disabled = true;
             document.getElementById("companyNote").innerText = `Logged in as Company Admin for ${currentAdmin.companyName}. Questions will be tagged under ${currentAdmin.companyName}.`;
         } else {
