@@ -214,12 +214,17 @@ document.getElementById("addCompanyForm").addEventListener("submit", async funct
             body: JSON.stringify(companyData)
         });
 
-        const data = await response.json();
+        let data = {};
+        try {
+            data = await response.json();
+        } catch (jErr) {
+            data = { message: await response.text() };
+        }
 
         if (response.ok) {
             Swal.fire({
                 title: "Success!",
-                text: "Placement drive registered successfully!",
+                text: data.message || "Placement drive registered successfully!",
                 icon: "success"
             }).then(() => {
                 document.getElementById("addCompanyForm").reset();
@@ -228,7 +233,7 @@ document.getElementById("addCompanyForm").addEventListener("submit", async funct
         } else {
             Swal.fire({
                 title: "Error!",
-                text: data.message || "Failed to add company",
+                text: data.message || "Failed to add company drive.",
                 icon: "error"
             });
         }
@@ -236,7 +241,7 @@ document.getElementById("addCompanyForm").addEventListener("submit", async funct
         console.error("Error submitting form:", error);
         Swal.fire({
             title: "Error!",
-            text: "Something went wrong while connecting to the server.",
+            text: "Failed to connect to the server.",
             icon: "error"
         });
     }

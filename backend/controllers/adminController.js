@@ -1946,3 +1946,32 @@ exports.exportResultPDF = async (req, res) => {
         res.status(500).send("Error exporting result PDF report.");
     }
 };
+
+// Add / Register a new Company Placement Drive
+exports.addCompany = async (req, res) => {
+    try {
+        let { companyName, jobRole, package: pkg, location, eligibility, deadline, lastDate } = req.body;
+        
+        if (req.session.admin && req.session.admin.role === "admin" && req.session.admin.companyName) {
+            companyName = req.session.admin.companyName;
+        }
+
+        if (!companyName || !jobRole || !pkg || !location) {
+            return res.status(400).json({ message: "Please fill in all required company drive fields." });
+        }
+
+        const newCompany = await Company.create({
+            companyName: String(companyName).trim(),
+            jobRole: String(jobRole).trim(),
+            package: String(pkg).trim(),
+            location: String(location).trim(),
+            eligibility: String(eligibility || "6.0").trim(),
+            deadline: String(deadline || lastDate || "Flexible").trim()
+        });
+
+        res.status(201).json({ message: "Placement drive registered successfully!", company: newCompany });
+    } catch (err) {
+        console.error("Error adding company drive:", err);
+        res.status(500).json({ message: "Failed to register placement drive.", error: err.message });
+    }
+};
