@@ -1750,3 +1750,167 @@ exports.exportStudents = async (req, res) => {
         res.status(500).send("Error exporting students list.");
     }
 };
+
+// Get list of all company placement drives
+exports.getCompaniesList = async (req, res) => {
+    try {
+        let filter = {};
+        if (req.session.admin && req.session.admin.role === "admin" && req.session.admin.companyName) {
+            filter = { companyName: req.session.admin.companyName };
+        }
+        const companies = await Company.find(filter);
+        res.json(companies);
+    } catch (err) {
+        console.error("Error fetching companies list:", err);
+        res.status(500).json({ message: "Failed to fetch companies list." });
+    }
+};
+
+// Get all student test results (Admin & SuperAdmin)
+exports.getResultsData = async (req, res) => {
+    try {
+        let filter = {};
+        if (req.session.admin && req.session.admin.role === "admin" && req.session.admin.companyName) {
+            filter = { companyName: req.session.admin.companyName };
+        }
+        const results = await Result.find(filter)
+            .populate("userId", "name email branch semester rollNo")
+            .sort({ createdAt: -1 });
+
+        const formattedResults = results.map(r => {
+            const user = r.userId || {};
+            return {
+                _id: r._id,
+                studentName: user.name || "Anonymous Candidate",
+                email: user.email || "N/A",
+                branch: user.branch || "N/A",
+                testType: r.testType || "Assessment",
+                companyName: r.companyName || "General",
+                score: r.score || 0,
+                totalQuestions: r.totalQuestions || 10,
+                percentage: r.percentage !== undefined ? r.percentage : (r.totalQuestions ? Math.round((r.score / r.totalQuestions) * 100) : 0),
+                createdAt: r.createdAt || Date.now()
+            };
+        });
+
+        res.json(formattedResults);
+    } catch (err) {
+        console.error("Error fetching results data:", err);
+        res.status(500).json({ message: "Failed to fetch student test results." });
+    }
+};
+
+// Delete an Administrator Account (SuperAdmin Only)
+exports.deleteAdmin = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const targetAdmin = await Admin.findById(id);
+        if (!targetAdmin) {
+            return res.status(404).json({ message: "Administrator account not found." });
+        }
+
+        if (targetAdmin.role === "superadmin") {
+            return res.status(403).json({ message: "Cannot delete SuperAdmin accounts." });
+        }
+
+        await Admin.findByIdAndDelete(id);
+        res.json({ message: `Administrator "${targetAdmin.username}" deleted successfully!` });
+    } catch (err) {
+        console.error("Error deleting admin:", err);
+        res.status(500).json({ message: "Failed to delete administrator account." });
+    }
+};
+
+// Download Sample Question Bank Excel Template (.xlsx)
+exports.downloadQuestionTemplate = (req, res) => {
+    try {
+        const XLSX = require("xlsx");
+        const sampleData = [
+            {
+                Question: "What is the output of 2 + 2 in JavaScript?",
+                "Option A": "4",
+                "Option B": "22",
+                "Option C": "NaN",
+                "Option D": "Undefined",
+                Answer: "4",
+                Explanation: "The + operator performs arithmetic addition for numbers.",
+                Topic: "Basic Math",
+                Difficulty: "Easy"
+            },
+            {
+                Question: "Which data structure operates on a First-In, First-Out (FIFO) basis?",
+                "Option A": "Stack",
+                "Option B": "Queue",
+                "Option C": "Tree",
+                "Option D": "Graph",
+                Answer: "Queue",
+                Explanation: "A Queue operates on First-In, First-Out principle.",
+                Topic: "Data Structures",
+                Difficulty: "Medium"
+            }
+        ];
+
+        const worksheet = XLSX.utils.json_to_sheet(sampleData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Question Bank Template");
+
+        const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+
+        res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        res.setHeader("Content-Disposition", 'attachment; filename="Question_Bank_Import_Template.xlsx"');
+        res.send(buffer);
+    } catch (err) {
+        console.error("Error generating question template:", err);
+        res.status(500).send("Error generating question template.");
+    }
+};
+
+// Export Student Test Result PDF Document
+exports.exportResultPDF = async (req, res) => {
+    try {
+        const { resultId } = req.params;
+        const resultDoc = await Result.findById(resultId).populate("userId");
+        if (!resultDoc) {
+            return res.status(404).send("Result record not found.");
+        }
+
+        const PDFDocument = require("pdfkit");
+        const doc = new PDFDocument({ margin: 40 });
+
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("Content-Disposition", `attachment; filename="Result_Report_${resultId}.pdf"`);
+        doc.pipe(res);
+
+        const studentName = resultDoc.userId ? resultDoc.userId.name : "Student Candidate";
+        const email = resultDoc.userId ? resultDoc.userId.email : "N/A";
+        const branch = resultDoc.userId ? resultDoc.userId.branch : "N/A";
+        const pct = resultDoc.percentage !== undefined ? resultDoc.percentage : (resultDoc.totalQuestions ? Math.round((resultDoc.score / resultDoc.totalQuestions) * 100) : 0);
+
+        doc.fillColor("#1e293b").fontSize(22).text("OFFICIAL ASSESSMENT RESULT REPORT", { align: "center" });
+        doc.fontSize(10).fillColor("#64748b").text("Campus Placement & Assessment Portal", { align: "center" });
+        doc.moveDown();
+        doc.strokeColor("#cbd5e1").lineWidth(1).moveTo(40, doc.y).lineTo(550, doc.y).stroke();
+        doc.moveDown();
+
+        doc.fontSize(12).fillColor("#0f172a").text(`Student Candidate: ${studentName}`);
+        doc.text(`Email Address: ${email}`);
+        doc.text(`Department / Branch: ${branch}`);
+        doc.text(`Assessment Type: ${resultDoc.testType || "General Assessment"}`);
+        doc.text(`Company Context: ${resultDoc.companyName || "General"}`);
+        doc.text(`Completed Timestamp: ${new Date(resultDoc.createdAt).toLocaleString()}`);
+
+        doc.moveDown();
+        doc.strokeColor("#cbd5e1").lineWidth(1).moveTo(40, doc.y).lineTo(550, doc.y).stroke();
+        doc.moveDown();
+
+        doc.fontSize(14).fillColor("#1e3a8a").text("Performance Overview", { underline: true });
+        doc.moveDown(0.5);
+        doc.fontSize(12).fillColor("#0f172a").text(`Total Score: ${resultDoc.score} / ${resultDoc.totalQuestions || 10}`);
+        doc.fontSize(14).fillColor(pct >= 60 ? "#10b981" : "#dc2626").text(`Overall Percentage: ${pct}%`);
+
+        doc.end();
+    } catch (err) {
+        console.error("PDF Result Export Error:", err);
+        res.status(500).send("Error exporting result PDF report.");
+    }
+};
