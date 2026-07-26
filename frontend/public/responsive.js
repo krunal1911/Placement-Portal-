@@ -7,8 +7,15 @@
 // ─── Auto Logout on Page Refresh / Reload ─────────────────────────────────────────
 (function handleRefreshLogout() {
     const path = window.location.pathname;
-    // Skip logout check on public landing page or login/register pages
-    if (path === "/" || path === "/index.html" || path === "/login" || path === "/register" || path === "/admin-login") {
+    // Skip logout check on landing, auth pages, profile section, resume section, and upload forms
+    if (path === "/" || 
+        path === "/index.html" || 
+        path === "/login" || 
+        path === "/register" || 
+        path === "/admin-login" || 
+        path.startsWith("/profile") || 
+        path.startsWith("/resume") || 
+        path.startsWith("/upload-")) {
         try { sessionStorage.removeItem("active_page_loaded"); } catch(e) {}
         return;
     }
@@ -46,12 +53,16 @@
     // Mark current page as loaded for this session
     try { sessionStorage.setItem("active_page_loaded", path); } catch(e) {}
 
-    // Clear reload tracker on internal link clicks to allow normal navigation
+    // Clear reload tracker on internal link clicks and form submits to allow normal navigation
     document.addEventListener("click", function(e) {
         const target = e.target.closest("a");
         if (target && target.href) {
             try { sessionStorage.removeItem("active_page_loaded"); } catch(err) {}
         }
+    }, true);
+
+    document.addEventListener("submit", function() {
+        try { sessionStorage.removeItem("active_page_loaded"); } catch(err) {}
     }, true);
 })();
 
