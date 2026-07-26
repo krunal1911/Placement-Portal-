@@ -131,7 +131,7 @@ async function checkAdminProfile() {
 
 async function loadExistingCompanies() {
     try {
-        const res = await fetch("/companies");
+        const res = await fetch("/companies-list");
         const companies = await res.json();
         const tbody = document.getElementById("companyTableBody");
 

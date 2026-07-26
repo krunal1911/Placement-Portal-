@@ -67,7 +67,8 @@
 
 async function loadCompanies(){
     await checkAdminStatus();
-    const response = await fetch("/companies");
+    const endpoint = currentAdmin ? "/companies-list" : "/companies";
+    const response = await fetch(endpoint);
     const companies = await response.json();
     displayCompanies(companies);
 }
