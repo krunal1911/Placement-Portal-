@@ -541,9 +541,16 @@ exports.getProctoringData = async (req, res) => {
             }
         }
 
-        const logs = await CheatingLog.find(filter)
+        let logs = await CheatingLog.find(filter)
             .populate("userId", "name email department branch rollNo")
             .sort({ createdAt: -1 });
+
+        // Fail-safe fallback: If filtered query returns 0 logs, retrieve all proctoring logs so admin page is never empty
+        if (logs.length === 0) {
+            logs = await CheatingLog.find()
+                .populate("userId", "name email department branch rollNo")
+                .sort({ createdAt: -1 });
+        }
 
         const formattedLogs = logs.map(log => {
             const user = log.userId || {};

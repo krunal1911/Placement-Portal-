@@ -183,7 +183,7 @@
 
     async function loadProctoringLogs() {
         try {
-            const response = await fetch("/proctoring-data");
+            const response = await fetch("/proctoring-data?t=" + Date.now());
             if (!response.ok) throw new Error("Unauthorized");
             proctorLogs = await response.json();
             

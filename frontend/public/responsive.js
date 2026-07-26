@@ -6,34 +6,8 @@
 
 // ─── Auto Logout on Admin Page Refresh / Reload ───────────────────────────────────
 (function handleAdminRefreshLogout() {
-    try {
-        const path = window.location.pathname;
-        const isAdminPage = path.startsWith("/admin") || [
-            "/students",
-            "/applications",
-            "/proctoring",
-            "/results",
-            "/add-company",
-            "/manage-companies",
-            "/add-question",
-            "/manage-questions",
-            "/update-status",
-            "/manage-admins",
-            "/import-questions"
-        ].includes(path);
-
-        if (!isAdminPage || path === "/admin-login") return;
-
-        const navEntries = performance.getEntriesByType("navigation");
-        const isReload = (navEntries.length > 0 && navEntries[0].type === "reload") || (performance.navigation && performance.navigation.type === 1);
-
-        if (isReload) {
-            try { sessionStorage.clear(); } catch(e) {}
-            window.location.replace("/admin-logout");
-        }
-    } catch(e) {
-        console.error("Admin refresh logout check error:", e);
-    }
+    // Disabled reload auto-logout so page refresh reloads data smoothly without destroying active sessions
+    return;
 })();
 
 // ─── 30-Minute Idle Inactivity Auto-Logout Handler ─────────────────────────────
