@@ -151,8 +151,8 @@ nav ul li a:hover, .nav-links a:hover {
 [data-theme="dark"] .card,
 [data-theme="dark"] .feature-card,
 [data-theme="dark"] .admin-card,
-[data-theme="dark"] .hero-right,
 [data-theme="dark"] .stat-card,
+[data-theme="dark"] .stat-box,
 [data-theme="dark"] .question-card,
 [data-theme="dark"] .profile-card,
 [data-theme="dark"] .modal-content,
@@ -181,6 +181,41 @@ nav ul li a:hover, .nav-links a:hover {
     color: #f8fafc !important;
     border: 1px solid #334155 !important;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Explicit Hero Profile Avatar Container Fix: Remove dark rectangle box */
+.hero-right,
+[data-theme="dark"] .hero-right {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+#heroProfile, .hero-right img {
+    border-radius: 50% !important;
+    object-fit: cover !important;
+}
+
+/* Explicit Profile Stat Boxes Night Mode Styling */
+[data-theme="dark"] .stat-box {
+    background-color: #1e293b !important;
+    background: #1e293b !important;
+    border: 1px solid #334155 !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme="dark"] .stat-box h3,
+[data-theme="dark"] .stat-box h3 span,
+[data-theme="dark"] #tests,
+[data-theme="dark"] #score {
+    color: #60a5fa !important;
+    font-weight: 700 !important;
+}
+
+[data-theme="dark"] .stat-box p {
+    color: #cbd5e1 !important;
+    font-weight: 500 !important;
 }
 
 [data-theme="dark"] tbody tr,

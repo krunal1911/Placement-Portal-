@@ -170,6 +170,7 @@ textarea{
     border-radius:15px;
     padding:25px;
     text-align:center;
+    transition: all 0.3s ease;
 
 }
 
@@ -186,6 +187,53 @@ textarea{
     color:#666;
     font-size:16px;
 
+}
+
+/* Dark Mode Overrides for Profile Stats & Cards */
+[data-theme="dark"] body {
+    background: #0f172a !important;
+    color: #f8fafc !important;
+}
+
+[data-theme="dark"] .profile-card {
+    background: #1e293b !important;
+    border: 1px solid #334155 !important;
+    color: #f8fafc !important;
+}
+
+[data-theme="dark"] .profile-card h2,
+[data-theme="dark"] h1 {
+    color: #60a5fa !important;
+}
+
+[data-theme="dark"] .form-group label {
+    color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .form-group input,
+[data-theme="dark"] .form-group textarea {
+    background: #0f172a !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
+}
+
+[data-theme="dark"] .stat-box {
+    background: #1e293b !important;
+    border: 1px solid #334155 !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme="dark"] .stat-box h3,
+[data-theme="dark"] .stat-box h3 span,
+[data-theme="dark"] #tests,
+[data-theme="dark"] #score {
+    color: #60a5fa !important;
+    font-weight: 700 !important;
+}
+
+[data-theme="dark"] .stat-box p {
+    color: #cbd5e1 !important;
+    font-weight: 500 !important;
 }
 
 /* Buttons */
