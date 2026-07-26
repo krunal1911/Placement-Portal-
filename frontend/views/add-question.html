@@ -72,9 +72,6 @@
         <a href="/admin-dashboard" style="text-decoration: none; color: var(--text-muted); font-size: 14px; font-weight: 500;">← Back to Dashboard</a>
         <h1 style="font-size: 28px; font-weight: 700; color: var(--text-main); margin-top: 8px;">📝 Assessment Builder Console</h1>
         <p style="color: var(--text-muted); font-size: 14px;">Configure test settings and manage assessment questions.</p>
-        <div style="margin-top: 12px;">
-            <a href="/import-questions" class="btn btn-secondary" style="font-size: 13px; text-decoration: none; padding: 8px 16px; display: inline-flex; align-items: center; gap: 6px;">📥 Bulk Import Questions (Excel / PDF)</a>
-        </div>
     </div>
 
     <!-- 1. EXAM CONFIGURATION SECTION -->
@@ -254,31 +251,6 @@
     <!-- 3. ADDED QUESTIONS LIST -->
     <div class="added-questions-section">
         <h2 style="font-size: 20px; font-weight: 600; color: var(--text-main); margin-bottom: 16px; text-align: left;">📋 Questions List</h2>
-
-        <!-- 🔒 CONFIDENTIAL COMPANY FILE IMPORTER (PDF / EXCEL) -->
-        <div class="card" style="margin-bottom: 24px; text-align: left; padding: 20px; background: var(--bg-card); border: 1px solid var(--border);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-                <h3 style="font-size: 15px; font-weight: 600; color: var(--text-main); margin: 0;">🔒 Confidential Company File Importer (PDF / Excel)</h3>
-                <span style="font-size: 11px; background: var(--primary-light); color: var(--primary); padding: 4px 10px; border-radius: 12px; font-weight: 600;">🔒 Private & Isolated Company Data</span>
-            </div>
-            <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 16px;">
-                Upload your company's proprietary PDF question paper or Excel spreadsheet. All imported questions are strictly isolated and visible <b>only</b> to your company administrators.
-            </p>
-
-            <form action="/import-questions" method="POST" enctype="multipart/form-data" style="display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;">
-                <input type="hidden" name="companyName" id="companyPrivateTag" value="">
-
-                <div style="flex: 2; min-width: 260px;">
-                    <label for="privateImportFile" style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 4px;">Select Company PDF (.pdf) or Excel (.xlsx/.xls) File</label>
-                    <input type="file" id="privateImportFile" name="importFile" accept=".pdf,.xlsx,.xls" required style="width: 100%; padding: 8px 12px; border: 1px dashed var(--border); border-radius: 8px; font-size: 13px; background: var(--bg-main); color: var(--text-main);">
-                </div>
-
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button type="submit" class="btn btn-primary" style="padding: 9px 18px; font-size: 13px;">🚀 Upload & Import PDF/Excel</button>
-                    <a href="/download-question-template" class="btn btn-secondary" style="padding: 9px 16px; font-size: 13px; text-decoration: none; text-align: center;">📥 Sample Excel Template</a>
-                </div>
-            </form>
-        </div>
         
         <div style="background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow-sm);">
             <table style="margin: 0; border: none; box-shadow: none;">
