@@ -37,6 +37,7 @@ const fileUpload = multer({
 // VIEWS / ROUTING
 // ==========================================
 router.get("/admin-login", adminController.showAdminLogin);
+router.get("/admin-logout", adminController.adminLogout);
 router.get("/admin-dashboard", requireAdmin, adminController.showAdminDashboard);
 router.get("/manage-admins", requireSuperAdmin, adminController.showManageAdmins);
 router.get("/students", requireSuperAdmin, adminController.showStudents);

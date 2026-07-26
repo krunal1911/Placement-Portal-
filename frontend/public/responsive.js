@@ -182,7 +182,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } else if (isAdminView) {
             // Admin pages
             const logoutLi = document.createElement("li");
-            logoutLi.innerHTML = `<a href="/logout">Logout</a>`;
+            logoutLi.innerHTML = `<a href="/admin-logout">Logout</a>`;
 
             fetch("/current-admin")
                 .then(res => res.ok ? res.json() : Promise.reject())

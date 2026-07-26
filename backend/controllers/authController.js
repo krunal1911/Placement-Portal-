@@ -122,13 +122,17 @@ exports.login = async (req, res) => {
 };
 
 exports.logout = (req, res) => {
-    req.session.destroy(err => {
-        if (err) {
-            console.error(err);
-            return res.status(500).send("Logout Failed.");
+    if (req.session) {
+        delete req.session.user;
+        try { sessionStorage.removeItem("active_page_loaded"); } catch(e) {}
+        if (!req.session.admin) {
+            return req.session.destroy(err => {
+                if (err) console.error(err);
+                res.clearCookie("connect.sid");
+                res.redirect("/login");
+            });
         }
-
-        res.clearCookie("connect.sid");
-        res.redirect("/login");
-    });
+        return req.session.save(() => res.redirect("/login"));
+    }
+    res.redirect("/login");
 };

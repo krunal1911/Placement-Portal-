@@ -2104,3 +2104,20 @@ exports.stopLink = async (req, res) => {
         res.status(500).json({ success: false, message: "Failed to stop exam link." });
     }
 };
+
+// Admin-specific logout handler (preserves student session if active in another tab)
+exports.adminLogout = (req, res) => {
+    if (req.session) {
+        delete req.session.admin;
+        try { sessionStorage.removeItem("active_page_loaded"); } catch(e) {}
+        if (!req.session.user) {
+            return req.session.destroy(err => {
+                if (err) console.error(err);
+                res.clearCookie("connect.sid");
+                res.redirect("/admin-login");
+            });
+        }
+        return req.session.save(() => res.redirect("/admin-login"));
+    }
+    res.redirect("/admin-login");
+};
