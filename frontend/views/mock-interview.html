@@ -238,14 +238,13 @@
         <div style="text-align: center; margin-bottom: 32px;" id="startBtnContainer">
             <button onclick="startInterviewSession()" class="btn btn-primary" style="padding: 14px 36px; font-size: 16px; font-weight: 600; border-radius: 12px;">🚀 Start Live Interview Session</button>
         </div>
-
-        <!-- Simulator Console Area -->
         <div class="simulator-box" id="simulatorConsole" style="display: none;">
             <div class="examiner-header">
                 <div class="avatar-circle">🤖</div>
                 <div>
                     <span class="question-badge" id="questionCounter">Question 1 of 5</span>
-                    <h3 style="font-size: 16px; font-weight: 700; color: var(--text-main); margin: 0;">AI Placement Examiner</h3>
+                    <span class="question-badge" id="activeTrackBadge" style="background: var(--primary); color: white; margin-left: 8px; font-weight: 600;">💻 Fullstack Developer Track</span>
+                    <h3 style="font-size: 16px; font-weight: 700; color: var(--text-main); margin: 6px 0 0 0;">AI Placement Examiner</h3>
                 </div>
             </div>
 
@@ -305,10 +304,28 @@
     let recognition = null;
     let isListening = false;
 
+    const trackNames = {
+        fullstack: "💻 Fullstack Developer Track",
+        python: "🐍 Python Engineer Track",
+        data: "📊 Data Analyst / Science Track",
+        core_cs: "⚡ Core CS / Technical Track",
+        hr: "🤝 HR & Behavioral Track"
+    };
+
     function selectTrack(element, track) {
         document.querySelectorAll(".category-card").forEach(c => c.classList.remove("selected"));
         element.classList.add("selected");
         selectedTrack = track;
+
+        const badge = document.getElementById("activeTrackBadge");
+        if (badge) badge.innerText = trackNames[track] || "Target Track";
+
+        // Dynamically switch active question set if interview session is open
+        const consoleEl = document.getElementById("simulatorConsole");
+        if (consoleEl && consoleEl.style.display !== "none") {
+            showToast(`Switched to ${trackNames[track]}! Loading questions...`, "info");
+            startInterviewSession();
+        }
     }
 
     async function startInterviewSession() {
