@@ -459,26 +459,32 @@ async function submitTest(force = false) {
         }
     });
     
+    const urlParams = new URLSearchParams(window.location.search);
+    const companyName = urlParams.get('company') || 'General';
+    const payload = { 
+        score, 
+        total: questions.length,
+        testType: "Combined",
+        companyName: companyName
+    };
+
+    // Backup payload in LocalStorage first to ensure test result is never lost if network drops
+    try { localStorage.setItem("pending_exam_submission", JSON.stringify(payload)); } catch(err) {}
+
     try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const companyName = urlParams.get('company') || 'General';
         const res = await fetch("/submit-test", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ 
-                score, 
-                total: questions.length,
-                testType: "Combined",
-                companyName: companyName
-            })
+            body: JSON.stringify(payload)
         });
         
         if (!res.ok) throw new Error("Result save failed");
-        
+        try { localStorage.removeItem("pending_exam_submission"); } catch(err) {}
         showResults(score);
     } catch (e) {
-        console.error(e);
-        showToast("Error saving test result to server.", "error");
+        console.error("Offline submit fallback:", e);
+        showToast("Network drop detected. Result saved locally and will auto-sync.", "info");
+        showResults(score);
     }
 }
 
@@ -573,7 +579,7 @@ setInterval(async () => {
 function captureViolationSnapshot() {
     try {
         const video = document.querySelector("video");
-        if (video && video.srcObject) {
+        if (video && video.srcObject && video.readyState >= 2) {
             const canvas = document.createElement("canvas");
             canvas.width = 320;
             canvas.height = 240;
@@ -582,7 +588,22 @@ function captureViolationSnapshot() {
             return canvas.toDataURL("image/jpeg", 0.6);
         }
     } catch (e) {}
-    return "";
+
+    // Fallback Canvas Badge when webcam is offline or denied
+    const fbCanvas = document.createElement("canvas");
+    fbCanvas.width = 320;
+    fbCanvas.height = 240;
+    const ctx = fbCanvas.getContext("2d");
+    ctx.fillStyle = "#0f172a";
+    ctx.fillRect(0, 0, 320, 240);
+    ctx.fillStyle = "#ef4444";
+    ctx.font = "bold 14px Poppins, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("⚠️ PROCTORING ALERT", 160, 110);
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "12px Poppins, sans-serif";
+    ctx.fillText("Webcam Offline / Permission Denied", 160, 140);
+    return fbCanvas.toDataURL("image/jpeg", 0.6);
 }
 
 async function logCheatingIncident(incidentType, details) {

@@ -1105,6 +1105,12 @@ exports.importQuestions = async (req, res) => {
         let imported = 0;
         let skipped = 0;
 
+        // Fetch existing questions for targetCompany in ONE query to prevent sequential DB roundtrips
+        const existingDocs = await Question.find({ companyName: targetCompany }).select('question').lean();
+        const existingSet = new Set(existingDocs.map(q => String(q.question || "").trim().toLowerCase()));
+
+        const docsToInsert = [];
+
         for (const row of rows) {
             if (!row.Question || !row["Option A"] || !row["Option B"]) {
                 skipped++;
@@ -1112,36 +1118,38 @@ exports.importQuestions = async (req, res) => {
             }
 
             const cleanQ = String(row.Question).trim();
-            const exists = await Question.findOne({
-                question: new RegExp(`^${cleanQ.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, "i"),
-                companyName: targetCompany
-            });
+            const lowerQ = cleanQ.toLowerCase();
 
-            if (exists) {
+            if (existingSet.has(lowerQ)) {
                 skipped++;
                 continue;
             }
 
-            await Question.create({
+            existingSet.add(lowerQ); // Prevent duplicates within same Excel file
+            docsToInsert.push({
                 question: cleanQ,
                 options: [
-                    row["Option A"],
-                    row["Option B"],
-                    row["Option C"],
-                    row["Option D"]
+                    String(row["Option A"]).trim(),
+                    String(row["Option B"]).trim(),
+                    String(row["Option C"] || "N/A").trim(),
+                    String(row["Option D"] || "N/A").trim()
                 ],
-                answer: row.Answer || row["Option A"],
-                explanation: row.Explanation || "",
-                topic: row.Topic || "General",
-                difficulty: row.Difficulty || "Medium",
+                answer: String(row.Answer || row["Option A"]).trim(),
+                explanation: String(row.Explanation || "").trim(),
+                topic: String(row.Topic || "General").trim(),
+                difficulty: String(row.Difficulty || "Medium").trim(),
                 companyName: targetCompany
             });
-            imported++;
+        }
+
+        if (docsToInsert.length > 0) {
+            const insertedDocs = await Question.insertMany(docsToInsert, { ordered: false });
+            imported = insertedDocs.length;
         }
 
         // Clean uploaded file from disk after parsing
         try {
-            fs.unlinkSync(req.file.path);
+            if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
         } catch (e) {
             console.error("Cleanup error:", e);
         }

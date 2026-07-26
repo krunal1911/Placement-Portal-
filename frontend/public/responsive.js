@@ -55,6 +55,31 @@
     }, true);
 })();
 
+// ─── 30-Minute Idle Inactivity Auto-Logout Handler ─────────────────────────────
+(function setupIdleTimeout() {
+    const path = window.location.pathname;
+    if (path === "/" || path === "/index.html" || path === "/login" || path === "/register" || path === "/admin-login") {
+        return;
+    }
+
+    const IDLE_LIMIT_MS = 30 * 60 * 1000; // 30 minutes
+    let idleTimer;
+
+    function resetIdleTimer() {
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(() => {
+            try { sessionStorage.clear(); } catch(e) {}
+            window.location.replace("/logout");
+        }, IDLE_LIMIT_MS);
+    }
+
+    ["mousemove", "keydown", "click", "scroll", "touchstart"].forEach(evt => {
+        window.addEventListener(evt, resetIdleTimer, { passive: true });
+    });
+
+    resetIdleTimer();
+})();
+
 document.addEventListener("DOMContentLoaded", () => {
     const currentTheme = localStorage.getItem("theme") || "light";
     document.documentElement.setAttribute("data-theme", currentTheme);
