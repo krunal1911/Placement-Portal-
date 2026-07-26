@@ -8,12 +8,13 @@ html, body {
     overflow-x: hidden !important;
 }
 
-/* ─── ELEGANT WORD-WRAP RESPONSIVE NAVBAR ─── */
+/* ─── ELEGANT 100% SINGLE-LINE EXECUTIVE NAVBAR ─── */
 header, nav, .navbar, .admin-navbar {
+    white-space: nowrap !important;
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    padding: 12px 24px !important;
+    padding: 10px 20px !important;
     width: 100% !important;
     box-sizing: border-box !important;
     background: var(--bg-card, #ffffff) !important;
@@ -31,15 +32,15 @@ header, nav, .navbar, .admin-navbar {
 
 .logo, .navbar-brand {
     white-space: nowrap !important;
-    font-size: 20px !important;
+    font-size: 18px !important;
     font-weight: 700 !important;
     color: var(--primary, #2563eb) !important;
     display: inline-flex !important;
     align-items: center !important;
-    gap: 8px !important;
+    gap: 6px !important;
     line-height: 1 !important;
     flex-shrink: 0 !important;
-    margin-right: 16px !important;
+    margin-right: 12px !important;
     transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -52,11 +53,20 @@ nav ul, .nav-links {
     flex-direction: row !important;
     align-items: center !important;
     justify-content: flex-end !important;
-    gap: 6px 10px !important;
+    gap: 4px !important;
     list-style: none !important;
     margin: 0 !important;
-    padding: 4px 0 !important;
-    flex-wrap: wrap !important;
+    padding: 0 !important;
+    white-space: nowrap !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+}
+
+nav ul::-webkit-scrollbar, .nav-links::-webkit-scrollbar {
+    display: none !important;
 }
 
 nav ul li, .nav-links li {
@@ -68,11 +78,11 @@ nav ul li, .nav-links li {
 
 nav ul li a, .nav-links a {
     white-space: nowrap !important;
-    font-size: 13.5px !important;
+    font-size: 13px !important;
     font-weight: 500 !important;
     color: var(--text-main, #334155) !important;
-    padding: 7px 13px !important;
-    border-radius: 8px !important;
+    padding: 5px 9px !important;
+    border-radius: 6px !important;
     display: inline-block !important;
     line-height: 1.2 !important;
     text-decoration: none !important;
@@ -110,11 +120,11 @@ nav ul li a.active, .nav-links a.active {
 nav ul li a.nav-logout-btn {
     background: #ef4444 !important;
     color: #ffffff !important;
-    padding: 7px 16px !important;
-    border-radius: 8px !important;
+    padding: 6px 12px !important;
+    border-radius: 6px !important;
     font-weight: 600 !important;
-    margin-left: 6px !important;
-    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25) !important;
+    margin-left: 4px !important;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.2) !important;
 }
 
 nav ul li a.nav-logout-btn:hover {

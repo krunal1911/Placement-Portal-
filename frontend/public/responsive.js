@@ -190,8 +190,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     const navItems = [{ name: "Dashboard", url: "/admin-dashboard" }];
                     if (admin.role === "superadmin") navItems.push({ name: "Students", url: "/students" });
                     navItems.push({ name: "Applications", url: "/applications" });
-                    navItems.push({ name: "Placement Drives", url: "/placement-drives" });
-                    navItems.push({ name: "Manage Drives", url: "/add-company" });
+                    navItems.push({ name: "Drives", url: "/placement-drives" });
+                    navItems.push({ name: "Add Drive", url: "/add-company" });
                     navItems.push({ name: "Results", url: "/results" });
                     navItems.push({ name: "Questions", url: "/manage-questions" });
                     navItems.push({ name: "Proctoring", url: "/proctoring" });
