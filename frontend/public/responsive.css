@@ -1142,3 +1142,65 @@ textarea {
         display: block !important;
     }
 }
+
+/* ──────────────────────────────────────────
+   MASTER RESPONSIVE OVERRIDES (MOBILE & TABLET)
+────────────────────────────────────────── */
+@media (max-width: 992px) {
+    header, nav, .navbar, .admin-navbar {
+        padding: 10px 16px !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+
+    nav ul, .nav-links {
+        gap: 8px !important;
+    }
+
+    nav ul li a, .nav-links a {
+        font-size: 13px !important;
+        padding: 6px 10px !important;
+    }
+
+    .grid-4, .grid-3, .stats-grid, .cards-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 16px !important;
+    }
+}
+
+@media (max-width: 600px) {
+    header, nav, .navbar, .admin-navbar {
+        padding: 8px 12px !important;
+    }
+
+    .logo, .navbar-brand {
+        font-size: 17px !important;
+    }
+
+    .grid-4, .grid-3, .stats-grid, .cards-grid {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+
+    .stat-card, .card, .admin-card, .company-card {
+        padding: 16px !important;
+    }
+
+    .stat-card h2, .card h2, .admin-card h2 {
+        font-size: 24px !important;
+    }
+
+    button, .btn, input, select, textarea {
+        font-size: 14px !important;
+    }
+
+    .table-container {
+        width: 100% !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+
+    table {
+        min-width: 600px !important;
+    }
+}
