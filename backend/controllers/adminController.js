@@ -516,7 +516,29 @@ exports.getProctoringData = async (req, res) => {
     try {
         let filter = {};
         if (req.session.admin && req.session.admin.role === "admin" && req.session.admin.companyName) {
-            filter.companyName = req.session.admin.companyName;
+            const compName = (req.session.admin.companyName || "").trim();
+            if (compName) {
+                const regexComp = new RegExp(`^${compName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")}$`, "i");
+                
+                const myCompanies = await Company.find({ companyName: regexComp });
+                const myCompanyIds = myCompanies.map(c => c._id);
+
+                const companyApps = await Application.find({
+                    $or: [
+                        { companyId: { $in: myCompanyIds } },
+                        { companyName: regexComp }
+                    ]
+                }).select("userId");
+                
+                const applicantUserIds = companyApps.map(a => a.userId).filter(Boolean);
+
+                filter = {
+                    $or: [
+                        { companyName: regexComp },
+                        { userId: { $in: applicantUserIds } }
+                    ]
+                };
+            }
         }
 
         const logs = await CheatingLog.find(filter)
