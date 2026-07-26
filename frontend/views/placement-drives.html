@@ -66,11 +66,13 @@
 <script>
 
 async function loadCompanies(){
-    await checkAdminStatus();
-    const endpoint = currentAdmin ? "/companies-list" : "/companies";
-    const response = await fetch(endpoint);
-    const companies = await response.json();
-    displayCompanies(companies);
+    try {
+        const response = await fetch("/companies");
+        const companies = await response.json();
+        displayCompanies(companies);
+    } catch (e) {
+        console.error("Error loading placement drives:", e);
+    }
 }
 
 function displayCompanies(companies){
@@ -83,13 +85,6 @@ function displayCompanies(companies){
     }
 
     companies.forEach(company => {
-        let actionBtns = "";
-        if (currentAdmin) {
-            actionBtns = `<button onclick="deleteCompanyDrive('${company._id}')" style="background:#ef4444; width:100%; padding:12px; font-weight:600; cursor:pointer; border-radius:8px; color:white; border:none;">🗑️ Delete Placement Drive</button>`;
-        } else {
-            actionBtns = `<button onclick="applyCompany('${company._id}')" style="background:var(--primary); width:100%; padding:12px; font-weight:600; cursor:pointer; border-radius:8px; color:white; border:none;">Apply Now</button>`;
-        }
-
         const deadlineDate = company.deadline || company.lastDate || "Flexible";
 
         container.innerHTML += `
@@ -109,7 +104,7 @@ function displayCompanies(companies){
                 <p>📅 Deadline: ${deadlineDate}</p>
             </div>
             <div style="margin-top: 14px;">
-                ${actionBtns}
+                <button onclick="applyCompany('${company._id}')" style="background:var(--primary); width:100%; padding:12px; font-weight:600; cursor:pointer; border-radius:8px; color:white; border:none;">Apply Now</button>
             </div>
         </div>
         `;
