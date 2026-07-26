@@ -4,11 +4,36 @@
     document.documentElement.setAttribute("data-theme", savedTheme);
 })();
 
-// ─── Auto Logout on Page Refresh / Reload ─────────────────────────────────────────
-(function handleRefreshLogout() {
-    // Disabled reload auto-logout to prevent unexpected logouts during navigation or drive clicks
-    try { sessionStorage.removeItem("active_page_loaded"); } catch(e) {}
-    return;
+// ─── Auto Logout on Admin Page Refresh / Reload ───────────────────────────────────
+(function handleAdminRefreshLogout() {
+    try {
+        const path = window.location.pathname;
+        const isAdminPage = path.startsWith("/admin") || [
+            "/students",
+            "/applications",
+            "/proctoring",
+            "/results",
+            "/add-company",
+            "/manage-companies",
+            "/add-question",
+            "/manage-questions",
+            "/update-status",
+            "/manage-admins",
+            "/import-questions"
+        ].includes(path);
+
+        if (!isAdminPage || path === "/admin-login") return;
+
+        const navEntries = performance.getEntriesByType("navigation");
+        const isReload = (navEntries.length > 0 && navEntries[0].type === "reload") || (performance.navigation && performance.navigation.type === 1);
+
+        if (isReload) {
+            try { sessionStorage.clear(); } catch(e) {}
+            window.location.replace("/admin-logout");
+        }
+    } catch(e) {
+        console.error("Admin refresh logout check error:", e);
+    }
 })();
 
 // ─── 30-Minute Idle Inactivity Auto-Logout Handler ─────────────────────────────
