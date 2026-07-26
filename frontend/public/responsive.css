@@ -8,13 +8,12 @@ html, body {
     overflow-x: hidden !important;
 }
 
-/* ─── PREMIUM EXECUTIVE SINGLE-LINE NAVBAR ─── */
+/* ─── ELEGANT WORD-WRAP RESPONSIVE NAVBAR ─── */
 header, nav, .navbar, .admin-navbar {
-    white-space: nowrap !important;
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    padding: 12px 28px !important;
+    padding: 12px 24px !important;
     width: 100% !important;
     box-sizing: border-box !important;
     background: var(--bg-card, #ffffff) !important;
@@ -40,7 +39,7 @@ header, nav, .navbar, .admin-navbar {
     gap: 8px !important;
     line-height: 1 !important;
     flex-shrink: 0 !important;
-    margin-right: 20px !important;
+    margin-right: 16px !important;
     transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -52,20 +51,12 @@ nav ul, .nav-links {
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
-    gap: 8px !important;
+    justify-content: flex-end !important;
+    gap: 6px 10px !important;
     list-style: none !important;
     margin: 0 !important;
     padding: 4px 0 !important;
-    white-space: nowrap !important;
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-    -ms-overflow-style: none !important;
-    scrollbar-width: none !important;
-}
-
-nav ul::-webkit-scrollbar, .nav-links::-webkit-scrollbar {
-    display: none !important;
+    flex-wrap: wrap !important;
 }
 
 nav ul li, .nav-links li {
@@ -80,7 +71,7 @@ nav ul li a, .nav-links a {
     font-size: 13.5px !important;
     font-weight: 500 !important;
     color: var(--text-main, #334155) !important;
-    padding: 7px 14px !important;
+    padding: 7px 13px !important;
     border-radius: 8px !important;
     display: inline-block !important;
     line-height: 1.2 !important;
@@ -117,19 +108,18 @@ nav ul li a.active, .nav-links a.active {
 }
 
 nav ul li a.nav-logout-btn {
-    background: rgba(239, 68, 68, 0.1) !important;
-    color: #ef4444 !important;
-    border: 1px solid rgba(239, 68, 68, 0.25) !important;
-    padding: 6px 14px !important;
+    background: #ef4444 !important;
+    color: #ffffff !important;
+    padding: 7px 16px !important;
     border-radius: 8px !important;
     font-weight: 600 !important;
-    margin-left: 10px !important;
+    margin-left: 6px !important;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25) !important;
 }
 
 nav ul li a.nav-logout-btn:hover {
-    background: #ef4444 !important;
+    background: #dc2626 !important;
     color: #ffffff !important;
-    border-color: #ef4444 !important;
 }
 
 /* ─── PREMIUM UI MICRO-ANIMATIONS & GLASSMORPHISM ─── */
