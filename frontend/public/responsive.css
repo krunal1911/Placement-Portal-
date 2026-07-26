@@ -8,27 +8,39 @@ html, body {
     overflow-x: hidden !important;
 }
 
-/* ─── SLEEK NO-WRAP LOGO & NAVIGATION HEADER ─── */
+/* ─── PREMIUM EXECUTIVE SINGLE-LINE NAVBAR ─── */
 header, nav, .navbar, .admin-navbar {
     white-space: nowrap !important;
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    padding: 10px 3% !important;
+    padding: 12px 28px !important;
     width: 100% !important;
     box-sizing: border-box !important;
+    background: var(--bg-card, #ffffff) !important;
+    border-bottom: 1px solid var(--border, #e2e8f0) !important;
     transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+[data-theme="dark"] header,
+[data-theme="dark"] nav,
+[data-theme="dark"] .navbar,
+[data-theme="dark"] .admin-navbar {
+    background: #0f172a !important;
+    border-bottom-color: #334155 !important;
 }
 
 .logo, .navbar-brand {
     white-space: nowrap !important;
-    font-size: 19px !important;
+    font-size: 20px !important;
     font-weight: 700 !important;
+    color: var(--primary, #2563eb) !important;
     display: inline-flex !important;
     align-items: center !important;
-    gap: 6px !important;
+    gap: 8px !important;
     line-height: 1 !important;
     flex-shrink: 0 !important;
+    margin-right: 20px !important;
     transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -40,12 +52,20 @@ nav ul, .nav-links {
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
-    gap: 4px !important;
+    gap: 8px !important;
     list-style: none !important;
     margin: 0 !important;
-    padding: 0 !important;
+    padding: 4px 0 !important;
     white-space: nowrap !important;
-    flex-wrap: wrap !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+}
+
+nav ul::-webkit-scrollbar, .nav-links::-webkit-scrollbar {
+    display: none !important;
 }
 
 nav ul li, .nav-links li {
@@ -57,29 +77,59 @@ nav ul li, .nav-links li {
 
 nav ul li a, .nav-links a {
     white-space: nowrap !important;
-    font-size: 13px !important;
-    font-weight: 600 !important;
-    padding: 5px 9px !important;
-    border-radius: 6px !important;
+    font-size: 13.5px !important;
+    font-weight: 500 !important;
+    color: var(--text-main, #334155) !important;
+    padding: 7px 14px !important;
+    border-radius: 8px !important;
     display: inline-block !important;
     line-height: 1.2 !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    text-decoration: none !important;
+    transition: all 0.2s ease !important;
 }
 
-nav ul li a.nav-logout-btn {
-    background: #ef4444 !important;
-    color: #ffffff !important;
-    padding: 5px 12px !important;
-    border-radius: 6px !important;
-    margin-left: 4px !important;
-}
-
-nav ul li a.nav-logout-btn:hover {
-    background: #dc2626 !important;
+[data-theme="dark"] nav ul li a,
+[data-theme="dark"] .nav-links a {
+    color: #cbd5e1 !important;
 }
 
 nav ul li a:hover, .nav-links a:hover {
-    transform: translateY(-1px);
+    background: rgba(37, 99, 235, 0.1) !important;
+    color: #2563eb !important;
+}
+
+[data-theme="dark"] nav ul li a:hover,
+[data-theme="dark"] .nav-links a:hover {
+    background: rgba(96, 165, 250, 0.15) !important;
+    color: #60a5fa !important;
+}
+
+nav ul li a.active, .nav-links a.active {
+    background: #2563eb !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+}
+
+[data-theme="dark"] nav ul li a.active,
+[data-theme="dark"] .nav-links a.active {
+    background: #3b82f6 !important;
+    color: #ffffff !important;
+}
+
+nav ul li a.nav-logout-btn {
+    background: rgba(239, 68, 68, 0.1) !important;
+    color: #ef4444 !important;
+    border: 1px solid rgba(239, 68, 68, 0.25) !important;
+    padding: 6px 14px !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    margin-left: 10px !important;
+}
+
+nav ul li a.nav-logout-btn:hover {
+    background: #ef4444 !important;
+    color: #ffffff !important;
+    border-color: #ef4444 !important;
 }
 
 /* ─── PREMIUM UI MICRO-ANIMATIONS & GLASSMORPHISM ─── */
