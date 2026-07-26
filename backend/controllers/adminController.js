@@ -460,23 +460,31 @@ exports.getAdminAnalytics = async (req, res) => {
     }
 };
 
-// Get all applications list
+// Get all applications list (Superadmin sees all, Company Admin sees only their company)
 exports.getApplicationsData = async (req, res) => {
     try {
         let query = {};
         if (req.session.admin && req.session.admin.role !== "superadmin") {
-            const companyName = req.session.admin.companyName;
-            const myCompanies = await Company.find({ companyName });
-            const myCompanyIds = myCompanies.map(c => c._id);
-            query = { companyId: { $in: myCompanyIds } };
+            const companyName = (req.session.admin.companyName || "").trim();
+            if (companyName) {
+                const regexCompany = new RegExp(`^${companyName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")}$`, "i");
+                const myCompanies = await Company.find({ companyName: regexCompany });
+                const myCompanyIds = myCompanies.map(c => c._id);
+                query = {
+                    $or: [
+                        { companyId: { $in: myCompanyIds } },
+                        { companyName: regexCompany }
+                    ]
+                };
+            }
         }
         const applications = await Application.find(query)
             .populate('userId')
             .populate('companyId');
         res.json(applications);
     } catch (err) {
-        console.log(err);
-        res.status(500).send("Error");
+        console.error("getApplicationsData Error:", err);
+        res.status(500).json({ error: "Failed to fetch applications." });
     }
 };
 
@@ -537,23 +545,43 @@ exports.updateStatus = async (req, res) => {
             return res.status(400).json({ message: "Application ID and Status are required." });
         }
 
-        const application = await Application.findById(id);
+        const application = await Application.findById(id).populate("companyId");
         if (!application) {
             return res.status(404).json({ message: "Application record not found." });
+        }
+
+        // SECURITY SCOPING: If logged in as Company Admin (not Superadmin), verify company authorization!
+        if (req.session.admin && req.session.admin.role !== "superadmin") {
+            const adminCompany = (req.session.admin.companyName || "").trim().toLowerCase();
+            const appCompany = (
+                (application.companyId && application.companyId.companyName) || 
+                application.companyName || 
+                ""
+            ).trim().toLowerCase();
+
+            if (adminCompany && appCompany && adminCompany !== appCompany) {
+                return res.status(403).json({ 
+                    message: `Forbidden: As ${req.session.admin.companyName} Admin, you can only update status for ${req.session.admin.companyName} applications.` 
+                });
+            }
         }
 
         application.status = status;
         await application.save();
 
         try {
+            const compTitle = application.companyId ? application.companyId.companyName : (application.companyName || "Placement Drive");
             await Notification.create({
                 userId: application.userId,
                 title: "Application Status Updated",
-                message: `Your placement application status has been updated to "${status}".`
+                message: `Your application status for ${compTitle} has been updated to "${status}".`,
+                type: status === "Selected" ? "success" : (status === "Rejected" ? "danger" : "info")
             });
-        } catch (nErr) {}
+        } catch (nErr) {
+            console.error("Notification trigger warning:", nErr);
+        }
 
-        res.json({ message: `Status updated to ${status} successfully!`, application });
+        res.json({ message: `Status updated to "${status}" successfully!`, status: application.status });
     } catch (err) {
         console.error("updateStatus Error:", err);
         res.status(500).json({ message: "Failed to update status." });
