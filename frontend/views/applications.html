@@ -155,6 +155,33 @@ function displayApplications(data) {
     let desktopHtml = "";
     let mobileHtml = "";
     
+    const isSuperadmin = currentAdmin && currentAdmin.role === "superadmin";
+
+    const bannerContainer = document.getElementById("roleNoticeBanner");
+    if (bannerContainer) {
+        if (isSuperadmin) {
+            bannerContainer.style.display = "block";
+            bannerContainer.innerHTML = `
+                <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 14px 20px; margin-bottom: 24px; font-size: 13.5px; color: var(--text-main); display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size:18px;">ℹ️</span>
+                    <div>
+                        <b style="color: var(--primary);">Superadmin Read-Only Governance:</b> Candidate evaluation stages (Select, Reject, Interview, Shortlist) are managed exclusively by each company's designated recruiter.
+                    </div>
+                </div>
+            `;
+        } else {
+            bannerContainer.style.display = "none";
+        }
+    }
+
+    const badgeStyles = {
+        "Applied": "background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;",
+        "Shortlisted": "background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe;",
+        "Interview Scheduled": "background: #fef3c7; color: #d97706; border: 1px solid #fde68a;",
+        "Selected": "background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0;",
+        "Rejected": "background: #fef2f2; color: #dc2626; border: 1px solid #fecaca;"
+    };
+    
     if (data.length === 0) {
         desktopHtml = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding: 24px;">No placement applications found.</td></tr>`;
         mobileHtml = `<div style="text-align:center; padding: 24px; color:var(--text-muted);">No placement applications found.</div>`;
@@ -170,15 +197,24 @@ function displayApplications(data) {
                 ? `<a href="/view-resume/${app.userId._id}" target="_blank" class="btn" style="padding: 6px 12px; font-size:11px; background:var(--primary-light); color:var(--primary); border:1px solid var(--border); font-weight:600; text-decoration:none; border-radius:6px; display:inline-flex; align-items:center; gap:4px;">📄 View PDF</a>`
                 : `<span style="color:var(--text-muted); font-size:12px;">No Resume</span>`;
 
-            const statusOptions = `
-                <select id="status-${app._id}" style="padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: var(--bg-card); color: var(--text-main); width: 100%; min-width: 140px;">
-                    <option value="Applied" ${status === "Applied" ? "selected" : ""}>Applied</option>
-                    <option value="Shortlisted" ${status === "Shortlisted" ? "selected" : ""}>Shortlisted</option>
-                    <option value="Interview Scheduled" ${status === "Interview Scheduled" ? "selected" : ""}>Interview Scheduled</option>
-                    <option value="Selected" ${status === "Selected" ? "selected" : ""}>Selected</option>
-                    <option value="Rejected" ${status === "Rejected" ? "selected" : ""}>Rejected</option>
-                </select>
-            `;
+            let statusCellHtml = "";
+            let actionCellHtml = "";
+
+            if (isSuperadmin) {
+                statusCellHtml = `<span style="padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; display: inline-block; ${badgeStyles[status] || badgeStyles['Applied']}">${status}</span>`;
+                actionCellHtml = `<span style="color: var(--text-muted); font-size: 12px; font-style: italic;">Recruiter Managed</span>`;
+            } else {
+                statusCellHtml = `
+                    <select id="status-${app._id}" style="padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: var(--bg-card); color: var(--text-main); width: 100%; min-width: 140px;">
+                        <option value="Applied" ${status === "Applied" ? "selected" : ""}>Applied</option>
+                        <option value="Shortlisted" ${status === "Shortlisted" ? "selected" : ""}>Shortlisted</option>
+                        <option value="Interview Scheduled" ${status === "Interview Scheduled" ? "selected" : ""}>Interview Scheduled</option>
+                        <option value="Selected" ${status === "Selected" ? "selected" : ""}>Selected</option>
+                        <option value="Rejected" ${status === "Rejected" ? "selected" : ""}>Rejected</option>
+                    </select>
+                `;
+                actionCellHtml = `<button class="btn btn-primary" onclick="updateStatus('${app._id}')" style="padding: 6px 14px; font-size: 12px;">Save</button>`;
+            }
 
             // Desktop Table Row
             desktopHtml += `
@@ -188,15 +224,16 @@ function displayApplications(data) {
                     <td style="font-weight: 500; color: var(--primary);">${companyName}</td>
                     <td>${jobRole}</td>
                     <td>${resumeHtml}</td>
-                    <td>${statusOptions}</td>
-                    <td style="text-align: center;">
-                        <button class="btn btn-primary" onclick="updateStatus('${app._id}')" style="padding: 6px 14px; font-size: 12px;">Save</button>
-                    </td>
+                    <td>${statusCellHtml}</td>
+                    <td style="text-align: center;">${actionCellHtml}</td>
                 </tr>
             `;
 
             // Mobile Card
-            const statusOptionsMobile = statusOptions.replace(`id="status-${app._id}"`, `id="status-mob-${app._id}"`);
+            let mobileStatusWidget = isSuperadmin 
+                ? statusCellHtml 
+                : `<div style="flex:1; margin-right:10px;"><select id="status-mob-${app._id}" style="padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: var(--bg-card); color: var(--text-main); width: 100%;"><option value="Applied" ${status === "Applied" ? "selected" : ""}>Applied</option><option value="Shortlisted" ${status === "Shortlisted" ? "selected" : ""}>Shortlisted</option><option value="Interview Scheduled" ${status === "Interview Scheduled" ? "selected" : ""}>Interview Scheduled</option><option value="Selected" ${status === "Selected" ? "selected" : ""}>Selected</option><option value="Rejected" ${status === "Rejected" ? "selected" : ""}>Rejected</option></select></div><button class="btn btn-primary" onclick="updateStatus('${app._id}', true)" style="padding: 6px 16px; font-size: 13px;">Save</button>`;
+
             mobileHtml += `
                 <div class="mobile-app-card">
                     <div class="mobile-card-row" style="border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:10px;">
@@ -216,10 +253,7 @@ function displayApplications(data) {
                         <span class="mobile-val">${jobRole}</span>
                     </div>
                     <div class="mobile-card-row" style="margin-top:12px; border-top:1px solid var(--border); padding-top:12px; align-items:center;">
-                        <div style="flex:1; margin-right:10px;">
-                            ${statusOptionsMobile}
-                        </div>
-                        <button class="btn btn-primary" onclick="updateStatus('${app._id}', true)" style="padding: 6px 16px; font-size: 13px;">Save</button>
+                        ${mobileStatusWidget}
                     </div>
                 </div>
             `;

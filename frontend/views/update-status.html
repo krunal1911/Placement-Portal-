@@ -88,6 +88,16 @@ async function loadApplications() {
 
 function displayApplications(data) {
     let html = "";
+    const isSuperadmin = currentAdmin && currentAdmin.role === "superadmin";
+
+    const badgeStyles = {
+        "Applied": "background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;",
+        "Shortlisted": "background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe;",
+        "Interview Scheduled": "background: #fef3c7; color: #d97706; border: 1px solid #fde68a;",
+        "Selected": "background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0;",
+        "Rejected": "background: #fef2f2; color: #dc2626; border: 1px solid #fecaca;"
+    };
+
     if (data.length === 0) {
         html = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding: 24px;">No student applications found.</td></tr>`;
     } else {
@@ -97,16 +107,24 @@ function displayApplications(data) {
             const companyName = app.companyId ? app.companyId.companyName : "N/A";
             const status = app.status || "Applied";
 
-            const statusCellHtml = `
-                <select id="${app._id}" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: var(--bg-card); color: var(--text-main); width: 100%;">
-                    <option value="Applied" ${status === "Applied" ? "selected" : ""}>Applied</option>
-                    <option value="Shortlisted" ${status === "Shortlisted" ? "selected" : ""}>Shortlisted</option>
-                    <option value="Interview Scheduled" ${status === "Interview Scheduled" ? "selected" : ""}>Interview Scheduled</option>
-                    <option value="Selected" ${status === "Selected" ? "selected" : ""}>Selected</option>
-                    <option value="Rejected" ${status === "Rejected" ? "selected" : ""}>Rejected</option>
-                </select>
-            `;
-            const actionCellHtml = `<button class="btn btn-primary" style="padding: 6px 14px; font-size: 12px;" onclick="updateAppStatus('${app._id}')">Save Status</button>`;
+            let statusCellHtml = "";
+            let actionCellHtml = "";
+
+            if (isSuperadmin) {
+                statusCellHtml = `<span style="padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; display: inline-block; ${badgeStyles[status] || badgeStyles['Applied']}">${status}</span>`;
+                actionCellHtml = `<span style="color: var(--text-muted); font-size: 12px; font-style: italic;">Managed by Recruiter</span>`;
+            } else {
+                statusCellHtml = `
+                    <select id="${app._id}" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: var(--bg-card); color: var(--text-main); width: 100%;">
+                        <option value="Applied" ${status === "Applied" ? "selected" : ""}>Applied</option>
+                        <option value="Shortlisted" ${status === "Shortlisted" ? "selected" : ""}>Shortlisted</option>
+                        <option value="Interview Scheduled" ${status === "Interview Scheduled" ? "selected" : ""}>Interview Scheduled</option>
+                        <option value="Selected" ${status === "Selected" ? "selected" : ""}>Selected</option>
+                        <option value="Rejected" ${status === "Rejected" ? "selected" : ""}>Rejected</option>
+                    </select>
+                `;
+                actionCellHtml = `<button class="btn btn-primary" style="padding: 6px 14px; font-size: 12px;" onclick="updateAppStatus('${app._id}')">Save Status</button>`;
+            }
 
             html += `
                 <tr>
