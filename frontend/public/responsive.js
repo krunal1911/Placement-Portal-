@@ -106,26 +106,18 @@ document.addEventListener("DOMContentLoaded", () => {
         // Check view type
         const isLanding = path === "/" || path === "/index.html";
         const isAuthPage = path === "/login" || path === "/register" || path === "/admin-login";
-        const isAdminView = path.startsWith("/admin") || 
-                            path.startsWith("/students") || 
-                            path.startsWith("/applications") || 
-                            path.startsWith("/proctoring") || 
-                            path.startsWith("/results") || 
-                            path.startsWith("/manage") || 
-                            path.startsWith("/add-") || 
-                            path.startsWith("/import-") || 
-                            path.startsWith("/export-") || 
-                            path.startsWith("/update-");
+        const isExplicitAdminPage = path.startsWith("/admin") || 
+                                    path.startsWith("/students") || 
+                                    path.startsWith("/applications") || 
+                                    path.startsWith("/proctoring") || 
+                                    path.startsWith("/results") || 
+                                    path.startsWith("/manage") || 
+                                    path.startsWith("/add-") || 
+                                    path.startsWith("/import-") || 
+                                    path.startsWith("/export-") || 
+                                    path.startsWith("/update-");
 
-        if (isLanding) {
-            // Landing page: Keep landing navigation and append theme toggle button
-            ul.appendChild(themeLi);
-        } else if (isAuthPage) {
-            // Auth pages: Append theme toggle button to top bar
-            ul.innerHTML = "";
-            ul.appendChild(themeLi);
-        } else if (isAdminView) {
-            // Admin pages
+        function renderAdminNavbar() {
             const logoutLi = document.createElement("li");
             logoutLi.innerHTML = `<a href="/admin-logout" class="nav-logout-btn">Logout 🚪</a>`;
 
@@ -156,28 +148,49 @@ document.addEventListener("DOMContentLoaded", () => {
                 })
                 .catch(() => {
                     ul.innerHTML = `
-                        <li><a href="/admin-dashboard">Dashboard</a></li>
-                        <li><a href="/applications">Applications</a></li>
-                        <li><a href="/placement-drives">Placement Drives</a></li>
-                        <li><a href="/add-company">Manage Drives</a></li>
-                        <li><a href="/results">Results</a></li>
-                        <li><a href="/proctoring">Proctoring</a></li>
+                        <li><a href="/admin-dashboard" class="${path === '/admin-dashboard' ? 'active' : ''}">Dashboard</a></li>
+                        <li><a href="/applications" class="${path === '/applications' ? 'active' : ''}">Applications</a></li>
+                        <li><a href="/placement-drives" class="${path === '/placement-drives' ? 'active' : ''}">Drives</a></li>
+                        <li><a href="/add-company" class="${path === '/add-company' ? 'active' : ''}">Add Drive</a></li>
+                        <li><a href="/results" class="${path === '/results' ? 'active' : ''}">Results</a></li>
+                        <li><a href="/proctoring" class="${path === '/proctoring' ? 'active' : ''}">Proctoring</a></li>
                     `;
                     ul.appendChild(themeLi);
                     ul.appendChild(logoutLi);
                 });
-        } else {
-            // Student pages
+        }
+
+        function renderStudentNavbar() {
             const logoutLi = document.createElement("li");
             logoutLi.innerHTML = `<a href="/logout">Logout</a>`;
 
             ul.innerHTML = `
                 <li><a href="/dashboard" ${path === '/dashboard' ? 'class="active"' : ''}>Dashboard</a></li>
                 <li><a href="/profile" ${path === '/profile' ? 'class="active"' : ''}>Profile</a></li>
+                <li><a href="/placement-drives" ${path === '/placement-drives' ? 'class="active"' : ''}>Companies</a></li>
+                <li><a href="/my-applications" ${path === '/my-applications' ? 'class="active"' : ''}>Applications</a></li>
                 <li><a href="/leaderboard" ${path === '/leaderboard' ? 'class="active"' : ''}>Leaderboard</a></li>
             `;
             ul.appendChild(themeLi);
             ul.appendChild(logoutLi);
+        }
+
+        if (isLanding) {
+            ul.appendChild(themeLi);
+        } else if (isAuthPage) {
+            ul.innerHTML = "";
+            ul.appendChild(themeLi);
+        } else if (isExplicitAdminPage) {
+            renderAdminNavbar();
+        } else if (path === "/placement-drives") {
+            fetch("/current-admin")
+                .then(res => {
+                    if (res.ok) renderAdminNavbar();
+                    else renderStudentNavbar();
+                })
+                .catch(() => renderStudentNavbar());
+        } else {
+            renderStudentNavbar();
         }
 
         // Mobile Hamburger Setup
