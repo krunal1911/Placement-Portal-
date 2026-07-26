@@ -351,15 +351,26 @@ exports.getAdminAnalytics = async (req, res) => {
         } else {
             // Company Admin Scope
             const cleanCompany = (companyName || "").trim().toLowerCase();
+            const regexCompany = new RegExp(`^${cleanCompany}$`, "i");
+
             const myCompanies = allCompanies.filter(c => c.companyName && c.companyName.trim().toLowerCase() === cleanCompany);
             const myCompanyIds = new Set(myCompanies.map(c => String(c._id)));
             totalCompanies = myCompanies.length;
 
-            const myApps = allApplications.filter(a => myCompanyIds.has(String(a.companyId)));
+            const myApps = allApplications.filter(a => 
+                (a.companyId && myCompanyIds.has(String(a.companyId))) || 
+                (a.companyName && a.companyName.trim().toLowerCase() === cleanCompany)
+            );
             totalApplications = myApps.length;
 
-            const applicantIds = new Set(myApps.map(a => String(a.userId)));
-            totalStudents = applicantIds.length;
+            const applicantIds = new Set();
+            myApps.forEach(a => {
+                if (a.userId) {
+                    const uid = typeof a.userId === 'object' ? String(a.userId._id || a.userId) : String(a.userId);
+                    applicantIds.add(uid);
+                }
+            });
+            totalStudents = applicantIds.size;
 
             const statusMap = {
                 "Applied": 0,
@@ -370,21 +381,26 @@ exports.getAdminAnalytics = async (req, res) => {
             };
 
             const placedIds = new Set();
+            const rejectedIds = new Set();
             let selectedAppsCount = 0;
+
             myApps.forEach(a => {
                 const st = a.status || "Applied";
                 if (!statusMap[st]) statusMap[st] = 0;
                 statusMap[st]++;
 
+                const uid = a.userId ? (typeof a.userId === 'object' ? String(a.userId._id || a.userId) : String(a.userId)) : null;
+
                 if (st === "Selected" || st === "Accepted" || st === "Placed") {
                     selectedAppsCount++;
-                    if (a.userId) placedIds.add(String(a.userId._id || a.userId));
+                    if (uid) placedIds.add(uid);
+                } else if (st === "Rejected") {
+                    if (uid) rejectedIds.add(uid);
                 }
             });
 
-            placedCount = selectedAppsCount;
-            const uniquePlacedStudents = placedIds.size;
-            unplacedCount = Math.max(0, totalStudents - uniquePlacedStudents);
+            placedCount = placedIds.size || selectedAppsCount;
+            unplacedCount = rejectedIds.size || Math.max(0, totalStudents - placedCount);
 
             // Package for this company
             if (myCompanies.length > 0) {
@@ -407,7 +423,7 @@ exports.getAdminAnalytics = async (req, res) => {
             }
 
             try {
-                const results = await Result.find({ companyName });
+                const results = await Result.find({ companyName: { $regex: regexCompany } });
                 totalTests = results.length;
                 let totalScore = 0;
                 results.forEach(r => { totalScore += r.percentage || 0; });
