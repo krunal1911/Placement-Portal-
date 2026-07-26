@@ -9,25 +9,50 @@
     const path = window.location.pathname;
     // Skip logout check on public landing page or login/register pages
     if (path === "/" || path === "/index.html" || path === "/login" || path === "/register" || path === "/admin-login") {
+        try { sessionStorage.removeItem("active_page_loaded"); } catch(e) {}
         return;
     }
 
     let isReload = false;
-    if (window.performance && window.performance.getEntriesByType) {
-        const navEntries = window.performance.getEntriesByType("navigation");
-        if (navEntries.length > 0 && navEntries[0].type === "reload") {
+
+    // Method 1: Performance Navigation Timing API
+    try {
+        if (window.performance && window.performance.getEntriesByType) {
+            const navEntries = window.performance.getEntriesByType("navigation");
+            if (navEntries.length > 0 && navEntries[0].type === "reload") {
+                isReload = true;
+            }
+        }
+        if (!isReload && window.performance && window.performance.navigation) {
+            if (window.performance.navigation.type === 1) { // TYPE_RELOAD
+                isReload = true;
+            }
+        }
+    } catch (e) {}
+
+    // Method 2: Session Storage Page Load Tracking
+    try {
+        if (!isReload && sessionStorage.getItem("active_page_loaded") === path) {
             isReload = true;
         }
-    }
-    if (!isReload && window.performance && window.performance.navigation) {
-        if (window.performance.navigation.type === 1) { // TYPE_RELOAD
-            isReload = true;
-        }
-    }
+    } catch (e) {}
 
     if (isReload) {
-        window.location.href = "/logout";
+        try { sessionStorage.removeItem("active_page_loaded"); } catch(e) {}
+        window.location.replace("/logout");
+        return;
     }
+
+    // Mark current page as loaded for this session
+    try { sessionStorage.setItem("active_page_loaded", path); } catch(e) {}
+
+    // Clear reload tracker on internal link clicks to allow normal navigation
+    document.addEventListener("click", function(e) {
+        const target = e.target.closest("a");
+        if (target && target.href) {
+            try { sessionStorage.removeItem("active_page_loaded"); } catch(err) {}
+        }
+    }, true);
 })();
 
 document.addEventListener("DOMContentLoaded", () => {
