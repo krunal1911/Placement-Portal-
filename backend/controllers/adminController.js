@@ -524,6 +524,8 @@ exports.getProctoringData = async (req, res) => {
 
         if (!isSuper) {
             const compName = (req.session.admin.companyName || "").trim();
+            const isGeneralOrEmpty = !compName || compName.toLowerCase() === "general";
+
             if (compName) {
                 const regexComp = new RegExp(`^${compName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")}$`, "i");
                 
@@ -536,15 +538,46 @@ exports.getProctoringData = async (req, res) => {
                         { companyName: regexComp }
                     ]
                 }).select("userId");
-                
                 const applicantUserIds = companyApps.map(a => a.userId).filter(Boolean);
+
+                let ResultModel;
+                try {
+                    ResultModel = require("../../database/models/Result");
+                } catch (rE) {
+                    try {
+                        ResultModel = require("../../database/models/result");
+                    } catch (e2) {}
+                }
+
+                let testUserIds = [];
+                if (ResultModel) {
+                    const companyResults = await ResultModel.find({
+                        $or: [
+                            { companyName: regexComp },
+                            { company: regexComp }
+                        ]
+                    }).select("userId");
+                    testUserIds = companyResults.map(r => r.userId).filter(Boolean);
+                }
+
+                const allCompanyUserIds = Array.from(new Set([
+                    ...applicantUserIds.map(id => String(id._id || id)),
+                    ...testUserIds.map(id => String(id._id || id))
+                ]));
 
                 filter = {
                     $or: [
                         { companyName: regexComp },
-                        { userId: { $in: applicantUserIds } }
+                        { userId: { $in: allCompanyUserIds } }
                     ]
                 };
+
+                if (isGeneralOrEmpty) {
+                    filter.$or.push({ companyName: "General" });
+                    filter.$or.push({ companyName: { $exists: false } });
+                    filter.$or.push({ companyName: "" });
+                    filter.$or.push({ companyName: null });
+                }
             } else {
                 filter = { companyName: "__NO_COMPANY_MATCH__" };
             }
