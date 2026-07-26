@@ -515,7 +515,14 @@ exports.getApplicationsData = async (req, res) => {
 exports.getProctoringData = async (req, res) => {
     try {
         let filter = {};
-        if (req.session.admin && req.session.admin.role === "admin" && req.session.admin.companyName) {
+
+        if (!req.session.admin) {
+            return res.status(401).json({ error: "Unauthorized" });
+        }
+
+        const isSuper = req.session.admin.role === "superadmin";
+
+        if (!isSuper) {
             const compName = (req.session.admin.companyName || "").trim();
             if (compName) {
                 const regexComp = new RegExp(`^${compName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")}$`, "i");
@@ -538,19 +545,14 @@ exports.getProctoringData = async (req, res) => {
                         { userId: { $in: applicantUserIds } }
                     ]
                 };
+            } else {
+                filter = { companyName: "__NO_COMPANY_MATCH__" };
             }
         }
 
-        let logs = await CheatingLog.find(filter)
+        const logs = await CheatingLog.find(filter)
             .populate("userId", "name email department branch rollNo")
             .sort({ createdAt: -1 });
-
-        // Fail-safe fallback: If filtered query returns 0 logs, retrieve all proctoring logs so admin page is never empty
-        if (logs.length === 0) {
-            logs = await CheatingLog.find()
-                .populate("userId", "name email department branch rollNo")
-                .sort({ createdAt: -1 });
-        }
 
         const formattedLogs = logs.map(log => {
             const user = log.userId || {};
