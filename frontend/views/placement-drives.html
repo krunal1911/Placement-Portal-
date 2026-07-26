@@ -74,17 +74,25 @@ async function loadCompanies(){
 }
 
 function displayCompanies(companies){
+    const container = document.getElementById("companyContainer");
+    container.innerHTML = "";
 
-    const container=document.getElementById("companyContainer");
-    container.innerHTML="";
+    if (!companies || companies.length === 0) {
+        container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px; font-size: 16px;">No active placement drives found.</div>`;
+        return;
+    }
 
-    companies.forEach(company=>{
-        let actionBtns = `<button onclick="applyCompany('${company._id}')">Apply Now</button>`;
+    companies.forEach(company => {
+        let actionBtns = "";
         if (currentAdmin) {
-            actionBtns += `<button onclick="deleteCompanyDrive('${company._id}')" style="background:#ef4444; margin-top:10px;">🗑️ Delete Placement Drive</button>`;
+            actionBtns = `<button onclick="deleteCompanyDrive('${company._id}')" style="background:#ef4444; width:100%; padding:12px; font-weight:600; cursor:pointer; border-radius:8px; color:white; border:none;">🗑️ Delete Placement Drive</button>`;
+        } else {
+            actionBtns = `<button onclick="applyCompany('${company._id}')" style="background:var(--primary); width:100%; padding:12px; font-weight:600; cursor:pointer; border-radius:8px; color:white; border:none;">Apply Now</button>`;
         }
 
-        container.innerHTML+=`
+        const deadlineDate = company.deadline || company.lastDate || "Flexible";
+
+        container.innerHTML += `
         <div class="company-card">
             <div class="top">
                 <div>
@@ -97,10 +105,12 @@ function displayCompanies(companies){
             </div>
             <div class="details">
                 <p>📍 ${company.location}</p>
-                <p>🎓 ${company.eligibility}</p>
-                <p>📅 Last Date : ${company.lastDate}</p>
+                <p>🎓 Min CGPA: ${company.eligibility}</p>
+                <p>📅 Deadline: ${deadlineDate}</p>
             </div>
-            ${actionBtns}
+            <div style="margin-top: 14px;">
+                ${actionBtns}
+            </div>
         </div>
         `;
     });
@@ -109,9 +119,15 @@ function displayCompanies(companies){
 let currentAdmin = null;
 async function checkAdminStatus() {
     try {
-        const res = await fetch("/current-admin");
-        if (res.ok) currentAdmin = await res.json();
-    } catch (e) {}
+        const res = await fetch("/current-admin", { cache: "no-store" });
+        if (res.ok) {
+            currentAdmin = await res.json();
+        } else {
+            currentAdmin = null;
+        }
+    } catch (e) {
+        currentAdmin = null;
+    }
 }
 
 async function deleteCompanyDrive(id) {
