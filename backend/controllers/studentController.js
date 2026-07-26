@@ -1193,45 +1193,195 @@ exports.showMockInterview = (req, res) => {
     renderView(res, "mock-interview.html");
 };
 
-// Start AI Mock Interview session with track questions
+// Start AI Mock Interview session with track questions & rich explanations
 exports.startMockInterview = async (req, res) => {
     try {
         const { track } = req.body;
         const mockQuestions = {
             fullstack: [
-                { id: "fs1", question: "Explain the Virtual DOM in React and how reconciliation optimizes re-renders.", expectedKeywords: ["virtual dom", "reconciliation", "diffing", "state", "props", "render"] },
-                { id: "fs2", question: "How do Node.js Event Loop and non-blocking I/O operate under heavy concurrency?", expectedKeywords: ["event loop", "non-blocking", "call stack", "callback queue", "libuv", "async"] },
-                { id: "fs3", question: "What is the difference between SQL indexes and NoSQL document sharding?", expectedKeywords: ["indexing", "b-tree", "sharding", "scalability", "nosql", "primary key"] },
-                { id: "fs4", question: "How do JWT authentication tokens differ from server-side session cookies in security?", expectedKeywords: ["jwt", "stateless", "cookies", "session", "httpOnly", "secret", "bearer"] },
-                { id: "fs5", question: "Explain RESTful API design principles and HTTP status codes for creation vs validation errors.", expectedKeywords: ["rest", "stateless", "201", "400", "422", "endpoint", "json"] }
+                { 
+                    id: "fs1", 
+                    question: "Explain the Virtual DOM in React and how reconciliation optimizes re-renders.", 
+                    expectedKeywords: ["virtual dom", "reconciliation", "diffing", "state", "props", "render"],
+                    idealAnswer: "The Virtual DOM is an in-memory representation of the real DOM. When state or props change, React creates a new Virtual DOM tree, performs a fast diffing algorithm against the previous tree (Reconciliation), and batches only the minimum required changes to the real DOM.",
+                    explanation: "Real DOM updates are expensive because browser layout calculations and repaints are slow. React avoids this by updating an in-memory JS tree (Virtual DOM) first, calculating the exact difference (diffing algorithm), and applying only the modified nodes to the DOM."
+                },
+                { 
+                    id: "fs2", 
+                    question: "How do Node.js Event Loop and non-blocking I/O operate under heavy concurrency?", 
+                    expectedKeywords: ["event loop", "non-blocking", "call stack", "callback queue", "libuv", "async"],
+                    idealAnswer: "Node.js runs on a single thread powered by the libuv library. Asynchronous I/O operations (file system, network calls) are offloaded to libuv thread pool or OS kernel. When completed, callbacks are pushed to the Event Queue and executed by the Event Loop when the main Call Stack is empty.",
+                    explanation: "Instead of creating a thread per connection (which consumes high RAM), Node.js delegates I/O tasks asynchronously. The single-threaded Event Loop continuously polls the microtask/macrotask queues and pushes completed callbacks back onto the Call Stack."
+                },
+                { 
+                    id: "fs3", 
+                    question: "What is the difference between SQL indexes and NoSQL document sharding?", 
+                    expectedKeywords: ["indexing", "b-tree", "sharding", "scalability", "nosql", "primary key"],
+                    idealAnswer: "SQL indexes use data structures like B-Trees on table columns to speed up query retrieval without scanning entire tables. NoSQL document sharding is a horizontal partitioning technique that distributes database records across multiple server nodes for horizontal scalability.",
+                    explanation: "Indexing optimizes search performance on a single database node by maintaining ordered pointers (B-Tree). Sharding scales databases horizontally across multiple machines by partitioning dataset keys across nodes."
+                },
+                { 
+                    id: "fs4", 
+                    question: "How do JWT authentication tokens differ from server-side session cookies in security?", 
+                    expectedKeywords: ["jwt", "stateless", "cookies", "session", "httpOnly", "secret", "bearer"],
+                    idealAnswer: "JWT is a stateless authentication token signed with a secret key that contains encoded user payloads. Server-side session cookies store session state in server memory or database (like Redis) and send a session ID cookie with every request.",
+                    explanation: "JWTs eliminate server-side session storage lookups, making them ideal for distributed microservices. However, JWTs cannot be invalidated server-side before expiration unless paired with a token blacklist or short TTLs."
+                },
+                { 
+                    id: "fs5", 
+                    question: "Explain RESTful API design principles and HTTP status codes for creation vs validation errors.", 
+                    expectedKeywords: ["rest", "stateless", "201", "400", "422", "endpoint", "json"],
+                    idealAnswer: "RESTful APIs use standard HTTP verbs (GET, POST, PUT, DELETE) on noun-based URI resources. HTTP 201 Created signifies successful resource creation, HTTP 400 Bad Request indicates malformed requests, and HTTP 422 Unprocessable Entity denotes validation errors.",
+                    explanation: "REST guidelines enforce client-server separation and stateless communication. Using uniform HTTP status codes ensures standardized API response handling for frontend clients."
+                }
             ],
             python: [
-                { id: "py1", question: "Explain Python Decorators and give a practical use case like logging or auth.", expectedKeywords: ["decorator", "wrapper", "first-class function", "kwargs", "args"] },
-                { id: "py2", question: "What is the Global Interpreter Lock (GIL) in CPython and how does it affect multi-threading?", expectedKeywords: ["gil", "cpython", "thread", "multiprocessing", "cpu-bound", "concurrency"] },
-                { id: "py3", question: "How do Generators and the yield keyword optimize memory in Python processing?", expectedKeywords: ["generator", "yield", "memory", "iterator", "lazy evaluation"] },
-                { id: "py4", question: "Explain deep copy vs shallow copy in Python data structures.", expectedKeywords: ["copy", "deepcopy", "reference", "mutable", "object"] },
-                { id: "py5", question: "What is Django ORM and how do select_related and prefetch_related solve N+1 query problems?", expectedKeywords: ["orm", "n+1", "select_related", "prefetch_related", "join", "query"] }
+                { 
+                    id: "py1", 
+                    question: "Explain Python Decorators and give a practical use case like logging or auth.", 
+                    expectedKeywords: ["decorator", "wrapper", "first-class function", "kwargs", "args"],
+                    idealAnswer: "A Python decorator is a design pattern used to extend or modify the behavior of a function or method without altering its source code. Decorators take a function as an argument, wrap it with extra functionality (like authentication or execution timing), and return the wrapped function.",
+                    explanation: "Functions in Python are first-class objects. Decorators use `@decorator_name` syntax to wrap execution logic cleanly, making code DRY and modular for middleware, permission checks, and logging."
+                },
+                { 
+                    id: "py2", 
+                    question: "What is the Global Interpreter Lock (GIL) in CPython and how does it affect multi-threading?", 
+                    expectedKeywords: ["gil", "cpython", "thread", "multiprocessing", "cpu-bound", "concurrency"],
+                    idealAnswer: "The GIL is a mutex lock in CPython that allows only one native thread to execute Python bytecode at a time. It prevents race conditions in memory management but limits CPU-bound multi-threading. For CPU-intensive tasks, multiprocessing or C-extensions are used instead.",
+                    explanation: "Because memory management in CPython is not thread-safe (reference counting), GIL ensures atomic operations. I/O-bound tasks still benefit from threading because the GIL is released during socket/file I/O wait periods."
+                },
+                { 
+                    id: "py3", 
+                    question: "How do Generators and the yield keyword optimize memory in Python processing?", 
+                    expectedKeywords: ["generator", "yield", "memory", "iterator", "lazy evaluation"],
+                    idealAnswer: "Generators are iterators defined using functions containing the `yield` keyword. Unlike lists that store all elements in RAM simultaneously, generators produce values one at a time on demand (lazy evaluation), reducing memory footprint to O(1).",
+                    explanation: "When a generator function encounters `yield`, it pauses execution and returns the current value, preserving the stack state until `.next()` is called again."
+                },
+                { 
+                    id: "py4", 
+                    question: "Explain deep copy vs shallow copy in Python data structures.", 
+                    expectedKeywords: ["copy", "deepcopy", "reference", "mutable", "object"],
+                    idealAnswer: "A shallow copy (`copy.copy()`) creates a new container object but inserts references to the nested objects of the original. A deep copy (`copy.deepcopy()`) recursively constructs a brand new copy of the container and all nested objects inside it.",
+                    explanation: "Modifying nested mutable elements (like list of lists) in a shallow copy will mutate the original structure, whereas a deep copy completely decouples the memory addresses."
+                },
+                { 
+                    id: "py5", 
+                    question: "What is Django ORM and how do select_related and prefetch_related solve N+1 query problems?", 
+                    expectedKeywords: ["orm", "n+1", "select_related", "prefetch_related", "join", "query"],
+                    idealAnswer: "The N+1 query problem occurs when fetching a list of parent records triggers N additional queries for each related child record. `select_related` performs a SQL JOIN for single-valued relationships (ForeignKey), while `prefetch_related` performs separate queries and joins them in Python for multi-valued relationships (ManyToMany).",
+                    explanation: "Using `select_related` reduces total DB roundtrips from N+1 down to 1 single JOIN query, dramatically optimizing database latency."
+                }
             ],
             data: [
-                { id: "da1", question: "Explain the difference between INNER JOIN, LEFT JOIN, and FULL OUTER JOIN in SQL.", expectedKeywords: ["join", "inner", "left", "null", "matching", "table"] },
-                { id: "da2", question: "How do Pandas groupby and aggregate functions work when cleaning missing dataset values?", expectedKeywords: ["pandas", "groupby", "fillna", "dropna", "aggregate", "dataframe"] },
-                { id: "da3", question: "What is the difference between Mean, Median, Mode, and Standard Deviation in dataset distributions?", expectedKeywords: ["mean", "median", "std dev", "outliers", "skewness", "distribution"] },
-                { id: "da4", question: "Explain CTEs (Common Table Expressions) vs Subqueries in SQL performance optimization.", expectedKeywords: ["cte", "with", "subquery", "readability", "execution plan"] },
-                { id: "da5", question: "What is A/B testing and how do p-values determine statistical significance in business metrics?", expectedKeywords: ["a/b test", "p-value", "hypothesis", "null hypothesis", "significance", "conversion"] }
+                { 
+                    id: "da1", 
+                    question: "Explain the difference between INNER JOIN, LEFT JOIN, and FULL OUTER JOIN in SQL.", 
+                    expectedKeywords: ["join", "inner", "left", "null", "matching", "table"],
+                    idealAnswer: "INNER JOIN returns only matching records present in both tables. LEFT JOIN returns all records from the left table and matched records from the right table (filling non-matches with NULL). FULL OUTER JOIN returns all records when there is a match in either left or right table.",
+                    explanation: "JOINs combine columns from one or more tables based on related keys. Use INNER JOIN for strict intersections, LEFT JOIN to preserve base dataset rows, and FULL OUTER JOIN for complete set unions."
+                },
+                { 
+                    id: "da2", 
+                    question: "How do Pandas groupby and aggregate functions work when cleaning missing dataset values?", 
+                    expectedKeywords: ["pandas", "groupby", "fillna", "dropna", "aggregate", "dataframe"],
+                    idealAnswer: "Pandas `groupby()` splits data into subset groups based on keys, applies transformations or aggregations (like mean/median), and combines the results. Missing values (NaN) can be cleaned using `fillna(df.groupby('category').transform('median'))` or `dropna()`.",
+                    explanation: "Cleaning data by category-specific imputation (e.g. filling missing salary by job role median) avoids biasing dataset metrics compared to global mean filling."
+                },
+                { 
+                    id: "da3", 
+                    question: "What is the difference between Mean, Median, Mode, and Standard Deviation in dataset distributions?", 
+                    expectedKeywords: ["mean", "median", "std dev", "outliers", "skewness", "distribution"],
+                    idealAnswer: "Mean is the mathematical average (sensitive to extreme outliers). Median is the 50th percentile midpoint (robust to outliers). Mode is the most frequent value. Standard Deviation measures data dispersion and spread around the mean.",
+                    explanation: "In skewed distributions (e.g. income data), median is preferred over mean because extreme values distort the average away from central tendency."
+                },
+                { 
+                    id: "da4", 
+                    question: "Explain CTEs (Common Table Expressions) vs Subqueries in SQL performance optimization.", 
+                    expectedKeywords: ["cte", "with", "subquery", "readability", "execution plan"],
+                    idealAnswer: "A CTE is defined using the `WITH` clause to create a temporary named result set accessible within the main query. CTEs improve query readability, modularity, and recursive query handling compared to nested subqueries.",
+                    explanation: "Modern SQL optimizers execute CTEs and subqueries similarly, but CTEs allow self-referencing recursive logic (e.g. organizational hierarchy trees) and cleaner code structure."
+                },
+                { 
+                    id: "da5", 
+                    question: "What is A/B testing and how do p-values determine statistical significance in business metrics?", 
+                    expectedKeywords: ["a/b test", "p-value", "hypothesis", "null hypothesis", "significance", "conversion"],
+                    idealAnswer: "A/B testing compares two versions (Control A vs Variant B) to measure conversion changes. The p-value measures the probability that the observed result occurred by random chance. A p-value < 0.05 rejects the null hypothesis and confirms statistical significance.",
+                    explanation: "Ensuring statistical significance guarantees that a product change (e.g. new checkout UI) drives genuine user behavior improvements rather than random sampling noise."
+                }
             ],
             core_cs: [
-                { id: "cs1", question: "Explain the 4 fundamental principles of Object-Oriented Programming (OOPs).", expectedKeywords: ["encapsulation", "abstraction", "inheritance", "polymorphism", "class", "object"] },
-                { id: "cs2", question: "What is Process vs Thread and how does context switching overhead differ?", expectedKeywords: ["process", "thread", "memory space", "context switch", "overhead", "cpu"] },
-                { id: "cs3", question: "Explain ACID properties in Relational Database Management Systems.", expectedKeywords: ["atomicity", "consistency", "isolation", "durability", "transaction", "commit"] },
-                { id: "cs4", question: "How does the TCP 3-Way Handshake establish a reliable connection?", expectedKeywords: ["syn", "syn-ack", "ack", "tcp", "handshake", "connection"] },
-                { id: "cs5", question: "What is a Deadlock in OS and what are the 4 necessary conditions for a deadlock?", expectedKeywords: ["deadlock", "mutual exclusion", "hold and wait", "no preemption", "circular wait"] }
+                { 
+                    id: "cs1", 
+                    question: "Explain the 4 fundamental principles of Object-Oriented Programming (OOPs).", 
+                    expectedKeywords: ["encapsulation", "abstraction", "inheritance", "polymorphism", "class", "object"],
+                    idealAnswer: "The 4 OOP principles are: 1. Encapsulation (bundling data and methods with private access), 2. Abstraction (hiding implementation complexity behind simple interfaces), 3. Inheritance (reusing parent class properties), and 4. Polymorphism (allowing objects to take multiple forms via method overriding/overloading).",
+                    explanation: "OOP structure promotes code reuse, maintainability, and security by restricting direct attribute access and providing modular design patterns."
+                },
+                { 
+                    id: "cs2", 
+                    question: "What is Process vs Thread and how does context switching overhead differ?", 
+                    expectedKeywords: ["process", "thread", "memory space", "context switch", "overhead", "cpu"],
+                    idealAnswer: "A Process is an independent executing program with its own isolated memory address space. A Thread is a lightweight unit of execution within a process that shares memory with sibling threads. Context switching between processes incurs heavy CPU overhead due to virtual memory page table switching, whereas thread context switching is significantly faster.",
+                    explanation: "Because threads within the same process share heap memory and file descriptors, switching between them only saves registers and stack pointers."
+                },
+                { 
+                    id: "cs3", 
+                    question: "Explain ACID properties in Relational Database Management Systems.", 
+                    expectedKeywords: ["atomicity", "consistency", "isolation", "durability", "transaction", "commit"],
+                    idealAnswer: "ACID properties ensure database transaction reliability: Atomicity (all operations complete or all rollback), Consistency (data obeys constraints before and after transaction), Isolation (concurrent transactions execute independently without interference), and Durability (committed data persists permanently even during crash).",
+                    explanation: "ACID guarantees data integrity during bank transfers and financial transactions, preventing double-spending or partial state updates."
+                },
+                { 
+                    id: "cs4", 
+                    question: "How does the TCP 3-Way Handshake establish a reliable connection?", 
+                    expectedKeywords: ["syn", "syn-ack", "ack", "tcp", "handshake", "connection"],
+                    idealAnswer: "The TCP 3-Way Handshake establishes connection via: 1. Client sends SYN (Synchronize sequence number) packet to server, 2. Server responds with SYN-ACK (Synchronize-Acknowledge), 3. Client replies with ACK (Acknowledge). Both endpoints now synchronize sequence numbers and establish full-duplex communication.",
+                    explanation: "Unlike connectionless UDP, TCP handshake ensures sequence synchronization and buffer allocation before transmitting application payload data."
+                },
+                { 
+                    id: "cs5", 
+                    question: "What is a Deadlock in OS and what are the 4 necessary conditions for a deadlock?", 
+                    expectedKeywords: ["deadlock", "mutual exclusion", "hold and wait", "no preemption", "circular wait"],
+                    idealAnswer: "A Deadlock occurs when set of processes are blocked because each holds a resource while waiting for another resource held by another process. The 4 Coffman conditions are: Mutual Exclusion, Hold and Wait, No Preemption, and Circular Wait.",
+                    explanation: "Breaking any one of the 4 conditions (e.g., using Banker's algorithm or resource ordering) prevents deadlocks from occurring."
+                }
             ],
             hr: [
-                { id: "hr1", question: "Tell me about yourself, your technical background, and what drives your career goals.", expectedKeywords: ["background", "projects", "skills", "passion", "career", "goals"] },
-                { id: "hr2", question: "Describe a situation where you faced a tough technical bug or project deadline. How did you handle it?", expectedKeywords: ["problem", "action", "result", "teamwork", "deadline", "solution"] },
-                { id: "hr3", question: "What are your greatest technical strengths and one area you are actively improving?", expectedKeywords: ["strengths", "improvement", "learning", "growth", "practice"] },
-                { id: "hr4", question: "Why do you want to join our organization and where do you see yourself in 3 years?", expectedKeywords: ["company", "values", "growth", "contribution", "leadership"] },
-                { id: "hr5", question: "How do you handle disagreement with a team member or project lead on technical decisions?", expectedKeywords: ["communication", "listen", "data", "consensus", "respect", "compromise"] }
+                { 
+                    id: "hr1", 
+                    question: "Tell me about yourself, your technical background, and what drives your career goals.", 
+                    expectedKeywords: ["background", "projects", "skills", "passion", "career", "goals"],
+                    idealAnswer: "Structure your response in 90 seconds using Present-Past-Future format: Summarize your current engineering specialization and technical skills, highlight 1-2 key project wins or internship contributions, and state how your career goals align with this role.",
+                    explanation: "Keep your response concise, professional, and tailored to software engineering. Focus on technical problem-solving, hands-on project experience, and enthusiasm for continuous learning."
+                },
+                { 
+                    id: "hr2", 
+                    question: "Describe a situation where you faced a tough technical bug or project deadline. How did you handle it?", 
+                    expectedKeywords: ["problem", "action", "result", "teamwork", "deadline", "solution"],
+                    idealAnswer: "Use the STAR method (Situation, Task, Action, Result). State the technical bottleneck, describe your debugging approach (log analysis, root cause diagnosis, or refactoring), explain your collaboration with team members, and end with the positive outcome.",
+                    explanation: "Interviewers evaluate your resilience and systematic problem-solving under pressure. Allocate 70% of your time to the Action steps you took to diagnose and resolve the issue."
+                },
+                { 
+                    id: "hr3", 
+                    question: "What are your greatest technical strengths and one area you are actively improving?", 
+                    expectedKeywords: ["strengths", "improvement", "learning", "growth", "practice"],
+                    idealAnswer: "State 1-2 core technical strengths backed by examples (e.g. system design, rapid debugging). For improvement, pick a genuine technical skill you are currently mastering (e.g. Docker containerization or Kubernetes) and outline the steps you take to learn it.",
+                    explanation: "Avoid cliché weaknesses like 'I work too hard'. Instead, show self-awareness and proactive learning by describing a real technical skill you are expanding through projects or courses."
+                },
+                { 
+                    id: "hr4", 
+                    question: "Why do you want to join our organization and where do you see yourself in 3 years?", 
+                    expectedKeywords: ["company", "values", "growth", "contribution", "leadership"],
+                    idealAnswer: "Connect your career aspiration to the company's tech stack, culture, and products. Explain that in 3 years, you aim to grow into a senior technical contributor or module lead taking ownership of critical engineering projects.",
+                    explanation: "Demonstrate that you have researched the company's mission and engineering accomplishments, showing long-term commitment and growth potential."
+                },
+                { 
+                    id: "hr5", 
+                    question: "How do you handle disagreement with a team member or project lead on technical decisions?", 
+                    expectedKeywords: ["communication", "listen", "data", "consensus", "respect", "compromise"],
+                    idealAnswer: "I listen respectfully to understand their architectural perspective, present data-driven benchmarks or documentation supporting my approach, and collaborate to find the optimal trade-off. Once a decision is finalized by the lead, I fully commit to executing it.",
+                    explanation: "Professional maturity means setting ego aside, relying on data and benchmarks, and committing to team decisions to deliver high-quality software."
+                }
             ]
         };
 
@@ -1243,7 +1393,7 @@ exports.startMockInterview = async (req, res) => {
     }
 };
 
-// Evaluate candidate's text/speech response with AI grading logic
+// Evaluate candidate's text/speech response with AI grading logic & rich explanation
 exports.evaluateMockAnswer = async (req, res) => {
     try {
         const { questionId, questionText, expectedKeywords = [], candidateAnswer } = req.body;

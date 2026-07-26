@@ -369,17 +369,22 @@
             });
 
             const evalResult = await res.json();
+            evalResult.idealAnswer = q.idealAnswer || "";
+            evalResult.explanation = q.explanation || "";
             interviewEvaluations.push(evalResult);
 
             Swal.fire({
                 title: evalResult.accuracy >= 70 ? "Good Answer! 🎉" : "Answer Evaluated 📝",
                 html: `
-                    <div style="text-align: left; font-size: 14px;">
-                        <p><b>Technical Accuracy:</b> <span style="color: #2563eb; font-weight:700;">${evalResult.accuracy}%</span></p>
-                        <p><b>Confidence Rating:</b> <span style="color: #10b981; font-weight:700;">${evalResult.confidence}%</span></p>
-                        <p style="margin-top: 8px;"><b>Matched Keywords:</b><br>${evalResult.matchedKeywords.map(k => `<span class="keyword-pill pill-success">${k}</span>`).join(' ') || 'None'}</p>
-                        <p style="margin-top: 8px;"><b>Key Concepts Missed:</b><br>${evalResult.missingKeywords.map(k => `<span class="keyword-pill pill-danger">${k}</span>`).join(' ') || 'None'}</p>
-                        <p style="margin-top: 10px; background: var(--bg-main); padding: 10px; border-radius: 8px;"><b>Feedback:</b> ${evalResult.feedback}</p>
+                    <div style="text-align: left; font-size: 13.5px;">
+                        <p style="margin-bottom: 6px;"><b>Technical Accuracy:</b> <span style="color: #2563eb; font-weight:700;">${evalResult.accuracy}%</span> &nbsp;|&nbsp; <b>Confidence Rating:</b> <span style="color: #10b981; font-weight:700;">${evalResult.confidence}%</span></p>
+                        <p style="margin-top: 6px; margin-bottom: 6px;"><b>Matched Keywords:</b><br>${evalResult.matchedKeywords.map(k => `<span class="keyword-pill pill-success">${k}</span>`).join(' ') || 'None'}</p>
+                        <p style="margin-top: 6px; margin-bottom: 8px;"><b>Key Concepts Missed:</b><br>${evalResult.missingKeywords.map(k => `<span class="keyword-pill pill-danger">${k}</span>`).join(' ') || 'None'}</p>
+                        <div style="background: var(--bg-main); padding: 12px; border-radius: 10px; border-left: 4px solid var(--primary); margin-top: 10px;">
+                            <p style="margin: 0 0 6px 0;"><b>Feedback:</b> ${evalResult.feedback}</p>
+                            ${evalResult.idealAnswer ? `<p style="margin: 6px 0 0 0; color: #10b981;"><b>💡 Ideal Technical Answer:</b><br>${evalResult.idealAnswer}</p>` : ''}
+                            ${evalResult.explanation ? `<p style="margin: 6px 0 0 0; color: var(--text-muted); font-size: 12.5px;"><b>📘 Concept Explanation:</b><br>${evalResult.explanation}</p>` : ''}
+                        </div>
                     </div>
                 `,
                 icon: evalResult.accuracy >= 70 ? "success" : "info",
@@ -421,7 +426,11 @@
                         <span><b>Accuracy:</b> <span style="color:var(--primary); font-weight:700;">${item.accuracy}%</span></span>
                         <span><b>Confidence:</b> <span style="color:var(--success); font-weight:700;">${item.confidence}%</span></span>
                     </div>
-                    <p style="font-size: 13px; margin-bottom: 4px;"><b>Feedback:</b> ${item.feedback}</p>
+                    <div style="font-size: 13px; background: var(--bg-card); padding: 12px; border-radius: 8px; border: 1px solid var(--border); margin-top: 8px;">
+                        <p style="margin: 0 0 4px 0;"><b>Feedback:</b> ${item.feedback}</p>
+                        ${item.idealAnswer ? `<p style="margin: 4px 0 0 0; color: #10b981;"><b>💡 Ideal Answer:</b> ${item.idealAnswer}</p>` : ''}
+                        ${item.explanation ? `<p style="margin: 4px 0 0 0; color: var(--text-muted); font-size: 12px;"><b>📘 Concept Explanation:</b> ${item.explanation}</p>` : ''}
+                    </div>
                 </div>
             `;
         });
