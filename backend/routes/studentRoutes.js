@@ -2,7 +2,7 @@ const express = require("express");
 const multer  = require("multer");
 
 const studentController = require("../controllers/studentController");
-const { requireUser, requireAdmin, verifyExamLink } = require("../middleware/auth");
+const { requireUser, requireAdmin, requireUserOrAdmin, verifyExamLink } = require("../middleware/auth");
 
 const router = express.Router();
 
@@ -43,7 +43,7 @@ router.get("/technical", requireUser, verifyExamLink, studentController.showTech
 router.get("/combined", requireUser, verifyExamLink, studentController.showCombined);
 router.get("/career-guide", requireUser, studentController.showCareerGuide);
 router.get("/leaderboard", requireUser, studentController.showLeaderboard);
-router.get("/placement-drives", requireUser, studentController.showPlacementDrives);
+router.get("/placement-drives", requireUserOrAdmin, studentController.showPlacementDrives);
 router.get("/history", requireUser, studentController.showHistory);
 router.get("/my-applications", requireUser, studentController.showMyApplications);
 router.get("/view-resume", requireUser, studentController.viewOwnResume);
@@ -56,7 +56,7 @@ router.get("/current-user", requireUser, studentController.getCurrentUser);
 router.get("/dashboard-data", requireUser, studentController.getDashboardData);
 router.get("/history-data", requireUser, studentController.getHistoryData);
 router.get("/leaderboard-data", requireUser, studentController.getLeaderboardData);
-router.get("/companies", requireUser, studentController.getCompanies);
+router.get("/companies", requireUserOrAdmin, studentController.getCompanies);
 router.get("/my-applications-data", requireUser, studentController.getMyApplicationsData);
 router.get("/notifications", requireUser, studentController.getNotifications);
 router.get("/career-guide/:career", requireUser, studentController.getCareerGuideRoadmap);

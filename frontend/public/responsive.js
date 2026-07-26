@@ -6,64 +6,9 @@
 
 // ─── Auto Logout on Page Refresh / Reload ─────────────────────────────────────────
 (function handleRefreshLogout() {
-    const path = window.location.pathname;
-    // Skip logout check on landing, auth pages, profile section, resume section, and upload forms
-    if (path === "/" || 
-        path === "/index.html" || 
-        path === "/login" || 
-        path === "/register" || 
-        path === "/admin-login" || 
-        path.startsWith("/profile") || 
-        path.startsWith("/resume") || 
-        path.startsWith("/upload-")) {
-        try { sessionStorage.removeItem("active_page_loaded"); } catch(e) {}
-        return;
-    }
-
-    let isReload = false;
-
-    // Method 1: Performance Navigation Timing API
-    try {
-        if (window.performance && window.performance.getEntriesByType) {
-            const navEntries = window.performance.getEntriesByType("navigation");
-            if (navEntries.length > 0 && navEntries[0].type === "reload") {
-                isReload = true;
-            }
-        }
-        if (!isReload && window.performance && window.performance.navigation) {
-            if (window.performance.navigation.type === 1) { // TYPE_RELOAD
-                isReload = true;
-            }
-        }
-    } catch (e) {}
-
-    // Method 2: Session Storage Page Load Tracking
-    try {
-        if (!isReload && sessionStorage.getItem("active_page_loaded") === path) {
-            isReload = true;
-        }
-    } catch (e) {}
-
-    if (isReload) {
-        try { sessionStorage.removeItem("active_page_loaded"); } catch(e) {}
-        window.location.replace("/logout");
-        return;
-    }
-
-    // Mark current page as loaded for this session
-    try { sessionStorage.setItem("active_page_loaded", path); } catch(e) {}
-
-    // Clear reload tracker on internal link clicks and form submits to allow normal navigation
-    document.addEventListener("click", function(e) {
-        const target = e.target.closest("a");
-        if (target && target.href) {
-            try { sessionStorage.removeItem("active_page_loaded"); } catch(err) {}
-        }
-    }, true);
-
-    document.addEventListener("submit", function() {
-        try { sessionStorage.removeItem("active_page_loaded"); } catch(err) {}
-    }, true);
+    // Disabled reload auto-logout to prevent unexpected logouts during navigation or drive clicks
+    try { sessionStorage.removeItem("active_page_loaded"); } catch(e) {}
+    return;
 })();
 
 // ─── 30-Minute Idle Inactivity Auto-Logout Handler ─────────────────────────────

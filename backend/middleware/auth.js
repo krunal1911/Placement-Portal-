@@ -1,4 +1,12 @@
-const ActiveExamLink = require("../../database/models/ActiveExamLink");
+const requireUserOrAdmin = (req, res, next) => {
+    if (!req.session.user && !req.session.admin) {
+        if (req.xhr || (req.headers.accept && req.headers.accept.indexOf('json') > -1)) {
+            return res.status(401).json({ error: "Authentication required" });
+        }
+        return res.redirect('/login');
+    }
+    next();
+};
 
 const requireUser = (req, res, next) => {
     if (!req.session.user) {
@@ -102,5 +110,6 @@ module.exports = {
     requireUser,
     requireAdmin,
     requireSuperAdmin,
+    requireUserOrAdmin,
     verifyExamLink
 };
