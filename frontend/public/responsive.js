@@ -4,6 +4,32 @@
     document.documentElement.setAttribute("data-theme", savedTheme);
 })();
 
+// ─── Auto Logout on Page Refresh / Reload ─────────────────────────────────────────
+(function handleRefreshLogout() {
+    const path = window.location.pathname;
+    // Skip logout check on public landing page or login/register pages
+    if (path === "/" || path === "/index.html" || path === "/login" || path === "/register" || path === "/admin-login") {
+        return;
+    }
+
+    let isReload = false;
+    if (window.performance && window.performance.getEntriesByType) {
+        const navEntries = window.performance.getEntriesByType("navigation");
+        if (navEntries.length > 0 && navEntries[0].type === "reload") {
+            isReload = true;
+        }
+    }
+    if (!isReload && window.performance && window.performance.navigation) {
+        if (window.performance.navigation.type === 1) { // TYPE_RELOAD
+            isReload = true;
+        }
+    }
+
+    if (isReload) {
+        window.location.href = "/logout";
+    }
+})();
+
 document.addEventListener("DOMContentLoaded", () => {
     const currentTheme = localStorage.getItem("theme") || "light";
     document.documentElement.setAttribute("data-theme", currentTheme);
