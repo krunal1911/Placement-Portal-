@@ -398,6 +398,8 @@ async function checkAdminRole() {
 loadAnalytics();
 loadRecentActivity();
 checkAdminRole();
+// Auto-sync dashboard analytics in real-time every 5 seconds without manual page refresh
+setInterval(loadAnalytics, 5000);
 </script>
 </body>
 </html>

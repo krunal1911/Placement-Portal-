@@ -192,6 +192,8 @@ async function deleteCompanyDrive(id, companyName) {
 
 checkAdminProfile();
 loadExistingCompanies();
+// Auto-sync company drives in real-time every 5 seconds without manual page refresh
+setInterval(loadExistingCompanies, 5000);
 
 document.getElementById("addCompanyForm").addEventListener("submit", async function(event) {
     event.preventDefault();

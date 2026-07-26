@@ -225,7 +225,8 @@ async function checkUserSession() {
 }
 checkUserSession();
 loadCompanies();
-
+// Auto-sync placement drives in real-time every 5 seconds without manual page refresh
+setInterval(loadCompanies, 5000);
 </script>
 
     <script src="/responsive.js?v=4.0"></script>
