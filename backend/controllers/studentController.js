@@ -78,19 +78,47 @@ exports.showMyApplications = (req, res) => {
 // ==========================================
 
 // Get Current User Profile details (with profileImage & resume fields)
-exports.getCurrentUser = (req, res) => {
-    if (!req.session.user) {
-        return res.status(401).send("Not Logged In");
+exports.getCurrentUser = async (req, res) => {
+    try {
+        if (!req.session.user) {
+            return res.status(401).send("Not Logged In");
+        }
+        const user = await User.findById(req.session.user._id);
+        if (!user) {
+            return res.status(404).send("User not found");
+        }
+        res.json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            branch: user.branch,
+            semester: user.semester,
+            resume: user.resume,
+            profileImage: user.profileImage || "default.png"
+        });
+    } catch (err) {
+        console.error("getCurrentUser error:", err);
+        res.status(500).send("Server Error");
     }
-    res.json({
-        _id: req.session.user._id,
-        name: req.session.user.name,
-        email: req.session.user.email,
-        branch: req.session.user.branch,
-        semester: req.session.user.semester,
-        resume: req.session.user.resume,
-        profileImage: req.session.user.profileImage
-    });
+};
+
+// Verification API endpoint for real-time exam link active checking
+exports.verifyTokenAPI = async (req, res) => {
+    try {
+        const { company, token, examType } = req.query;
+        if (!company || company === "General") {
+            return res.json({ valid: true });
+        }
+        const ActiveExamLink = require("../../database/models/ActiveExamLink");
+        const link = await ActiveExamLink.findOne({ token });
+        if (!link || !link.isActive || link.companyName !== company || Date.now() > link.expiresAt.getTime()) {
+            return res.status(410).json({ valid: false, message: "Exam token stopped or expired." });
+        }
+        res.json({ valid: true });
+    } catch (err) {
+        console.error("verifyTokenAPI error:", err);
+        res.status(500).json({ valid: false });
+    }
 };
 
 // Get student performance analytics metrics

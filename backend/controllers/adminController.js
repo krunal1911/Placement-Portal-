@@ -1987,3 +1987,96 @@ exports.addCompany = async (req, res) => {
         res.status(500).json({ message: "Failed to register placement drive.", error: err.message });
     }
 };
+
+// Generate a secure signed exam link
+exports.generateSignedLink = async (req, res) => {
+    try {
+        const crypto = require("crypto");
+        const { examType, companyName, durationMinutes } = req.body;
+        const adminCompany = (req.session.admin && req.session.admin.role === "admin" && req.session.admin.companyName)
+            ? req.session.admin.companyName 
+            : (companyName || "General");
+
+        const token = crypto.randomBytes(24).toString("hex");
+        const minutes = parseInt(durationMinutes) || 60;
+        const expiresAt = new Date(Date.now() + minutes * 60 * 1000);
+
+        const newLink = await ActiveExamLink.create({
+            token,
+            examType: examType || "aptitude",
+            companyName: adminCompany,
+            expiresAt,
+            isActive: true
+        });
+
+        const baseUrl = `${req.protocol}://${req.get("host")}`;
+        const examUrl = `${baseUrl}/${newLink.examType}?company=${encodeURIComponent(newLink.companyName)}&token=${newLink.token}`;
+
+        res.json({
+            success: true,
+            link: examUrl,
+            token: newLink.token,
+            expiresAt: newLink.expiresAt
+        });
+    } catch (err) {
+        console.error("Error generating signed link:", err);
+        res.status(500).json({ success: false, message: "Failed to generate exam link." });
+    }
+};
+
+// Get active exam links
+exports.getActiveLinks = async (req, res) => {
+    try {
+        let filter = {};
+        if (req.session.admin && req.session.admin.role === "admin" && req.session.admin.companyName) {
+            filter.companyName = req.session.admin.companyName;
+        }
+
+        const links = await ActiveExamLink.find(filter).sort({ createdAt: -1 });
+        res.json(links);
+    } catch (err) {
+        console.error("Error fetching active links:", err);
+        res.status(500).json({ message: "Failed to fetch active links." });
+    }
+};
+
+// Extend link duration (+15 mins)
+exports.extendLink = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const link = await ActiveExamLink.findById(id);
+        if (!link) {
+            return res.status(404).json({ success: false, message: "Exam link not found." });
+        }
+
+        const currentExp = new Date(link.expiresAt > new Date() ? link.expiresAt : new Date());
+        link.expiresAt = new Date(currentExp.getTime() + 15 * 60 * 1000);
+        link.isActive = true;
+        await link.save();
+
+        res.json({ success: true, message: "Exam time extended by +15 minutes!", expiresAt: link.expiresAt });
+    } catch (err) {
+        console.error("Error extending link:", err);
+        res.status(500).json({ success: false, message: "Failed to extend link duration." });
+    }
+};
+
+// Stop exam link immediately
+exports.stopLink = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const link = await ActiveExamLink.findById(id);
+        if (!link) {
+            return res.status(404).json({ success: false, message: "Exam link not found." });
+        }
+
+        link.isActive = false;
+        link.expiresAt = new Date(Date.now() - 1000); // Expire immediately
+        await link.save();
+
+        res.json({ success: true, message: "Exam link stopped & revoked successfully!" });
+    } catch (err) {
+        console.error("Error stopping link:", err);
+        res.status(500).json({ success: false, message: "Failed to stop exam link." });
+    }
+};

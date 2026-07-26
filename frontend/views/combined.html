@@ -540,6 +540,36 @@ let warningCount = 0;
 const MAX_WARNINGS = 3;
 const TEST_TYPE = "Combined";
 
+// Real-time monitoring: check if admin stopped or revoked test token
+setInterval(async () => {
+    if (!isExamActive) return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get("token");
+    const company = urlParams.get("company");
+    if (token && company) {
+        try {
+            const checkRes = await fetch(`/api/verify-token?company=${encodeURIComponent(company)}&token=${encodeURIComponent(token)}&examType=combined`);
+            if (!checkRes.ok) {
+                isExamActive = false;
+                if (document.fullscreenElement) {
+                    try { document.exitFullscreen(); } catch(e) {}
+                }
+                Swal.fire({
+                    icon: "error",
+                    title: "Exam Terminated by Admin",
+                    text: "This assessment token has been stopped or revoked by the Administrator.",
+                    confirmButtonText: "Exit to Dashboard",
+                    confirmButtonColor: "#ef4444",
+                    allowOutsideClick: false,
+                    allowEscapeKey: false
+                }).then(() => {
+                    window.location.href = "/dashboard";
+                });
+            }
+        } catch (e) {}
+    }
+}, 10000);
+
 function captureViolationSnapshot() {
     try {
         const video = document.querySelector("video");

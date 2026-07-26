@@ -63,6 +63,7 @@ router.get("/career-guide/:career", requireUser, studentController.getCareerGuid
 router.get("/questions", requireUser, studentController.getQuestions);
 router.get("/technical-questions", requireUser, studentController.getTechnicalQuestions);
 router.get("/user", requireUser, studentController.getUserCompletionData);
+router.get("/api/verify-token", studentController.verifyTokenAPI);
 
 // ==========================================
 // POST WRITE ACTIONS
