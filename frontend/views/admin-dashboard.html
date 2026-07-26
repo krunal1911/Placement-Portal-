@@ -174,9 +174,13 @@ async function loadAnalytics() {
         document.getElementById("totalTests").innerText = data.totalTests || 0;
         document.getElementById("averageScore").innerText = (data.averageScore !== undefined && data.averageScore !== null ? data.averageScore : 0) + "%";
 
-        const totalCandidatesCount = data.totalStudents || ((data.placedCount || 0) + (data.unplacedCount || 0)) || 0;
-        document.getElementById("placedRatio").innerText = `${data.placedCount || 0} / ${totalCandidatesCount}`;
-        document.getElementById("placedSubLabel").innerText = `${data.placedCount || 0} Selected Offers · ${data.unplacedCount || 0} Rejected/Unplaced`;
+        const totalApps = data.totalApplications || 0;
+        const selectedOffers = data.placedCount !== undefined ? data.placedCount : (data.statusMap ? (data.statusMap["Selected"] || 0) : 0);
+        const rejectedApps = data.rejectedCount !== undefined ? data.rejectedCount : (data.statusMap ? (data.statusMap["Rejected"] || 0) : 0);
+        const inReviewApps = Math.max(0, totalApps - (selectedOffers + rejectedApps));
+
+        document.getElementById("placedRatio").innerText = `${selectedOffers} / ${totalApps}`;
+        document.getElementById("placedSubLabel").innerText = `${selectedOffers} Selected · ${rejectedApps} Rejected · ${inReviewApps} In Review`;
         document.getElementById("avgPackage").innerText = data.avgPackage || "7.2 LPA";
         document.getElementById("highestPackage").innerText = data.highestPackage || "24.0 LPA";
 

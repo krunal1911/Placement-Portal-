@@ -353,8 +353,11 @@ exports.getAdminAnalytics = async (req, res) => {
                 totalApplications,
                 totalTests,
                 averageScore,
-                placedCount,
+                placedCount: selectedAppsCount,
+                rejectedCount: statusMap["Rejected"] || 0,
                 unplacedCount,
+                placedStudentsCount: uniquePlacedStudents,
+                unplacedStudentsCount: unplacedCount,
                 avgPackage,
                 highestPackage,
                 deptMap,
@@ -417,7 +420,8 @@ exports.getAdminAnalytics = async (req, res) => {
             });
 
             placedCount = selectedAppsCount;
-            unplacedCount = rejectedIds.size || Math.max(0, totalStudents - placedIds.size);
+            const rejectedCount = statusMap["Rejected"] || 0;
+            unplacedCount = Math.max(0, totalStudents - placedIds.size);
 
             // Package for this company
             if (myCompanies.length > 0) {
@@ -464,8 +468,11 @@ exports.getAdminAnalytics = async (req, res) => {
                 totalApplications,
                 totalTests,
                 averageScore,
-                placedCount,
+                placedCount: selectedAppsCount,
+                rejectedCount,
                 unplacedCount,
+                placedStudentsCount: placedIds.size,
+                unplacedStudentsCount: unplacedCount,
                 avgPackage,
                 highestPackage,
                 deptMap,
