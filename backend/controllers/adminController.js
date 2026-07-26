@@ -535,7 +535,7 @@ exports.getProctoringData = async (req, res) => {
     }
 };
 
-// Update student application status (Only allowed for the specific Company Recruiter)
+// Update student application status (Superadmin can update all; Company Admin can update only their company)
 exports.updateStatus = async (req, res) => {
     try {
         const id = req.params.id || req.body.id || req.body.applicationId;
@@ -562,15 +562,8 @@ exports.updateStatus = async (req, res) => {
             ""
         ).trim().toLowerCase();
 
-        // SECURITY SCOPING: Superadmin overview mode is read-only. Application stage changes must be made by the designated Company Recruiter.
-        if (adminRole === "superadmin" && !req.body.overrideSuperadmin) {
-            return res.status(403).json({ 
-                message: "Superadmin View is read-only for candidate evaluation stages. Application statuses must be updated by the designated Company Recruiter." 
-            });
-        }
-
-        // SECURITY SCOPING: If logged in as Company Admin, verify that candidate applied to THEIR company!
-        if (adminRole === "admin") {
+        // SECURITY SCOPING: If logged in as Company Admin (not Superadmin), verify company match!
+        if (adminRole !== "superadmin") {
             if (!adminCompany || !appCompany || adminCompany !== appCompany) {
                 return res.status(403).json({ 
                     message: `Forbidden: As ${req.session.admin.companyName} Recruiter, you can only update status for ${req.session.admin.companyName} applications.` 
