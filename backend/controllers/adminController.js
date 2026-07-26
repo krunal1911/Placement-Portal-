@@ -535,7 +535,7 @@ exports.getProctoringData = async (req, res) => {
     }
 };
 
-// Update student application status (Selected, Shortlisted, Interview Scheduled, Rejected)
+// Update student application status (Only allowed for the specific Company Recruiter)
 exports.updateStatus = async (req, res) => {
     try {
         const id = req.params.id || req.body.id || req.body.applicationId;
@@ -545,23 +545,35 @@ exports.updateStatus = async (req, res) => {
             return res.status(400).json({ message: "Application ID and Status are required." });
         }
 
+        if (!req.session.admin) {
+            return res.status(401).json({ message: "Admin authentication required." });
+        }
+
         const application = await Application.findById(id).populate("companyId");
         if (!application) {
             return res.status(404).json({ message: "Application record not found." });
         }
 
-        // SECURITY SCOPING: If logged in as Company Admin (not Superadmin), verify company authorization!
-        if (req.session.admin && req.session.admin.role !== "superadmin") {
-            const adminCompany = (req.session.admin.companyName || "").trim().toLowerCase();
-            const appCompany = (
-                (application.companyId && application.companyId.companyName) || 
-                application.companyName || 
-                ""
-            ).trim().toLowerCase();
+        const adminRole = req.session.admin.role;
+        const adminCompany = (req.session.admin.companyName || "").trim().toLowerCase();
+        const appCompany = (
+            (application.companyId && application.companyId.companyName) || 
+            application.companyName || 
+            ""
+        ).trim().toLowerCase();
 
-            if (adminCompany && appCompany && adminCompany !== appCompany) {
+        // SECURITY SCOPING: Superadmin overview mode is read-only. Application stage changes must be made by the designated Company Recruiter.
+        if (adminRole === "superadmin" && !req.body.overrideSuperadmin) {
+            return res.status(403).json({ 
+                message: "Superadmin View is read-only for candidate evaluation stages. Application statuses must be updated by the designated Company Recruiter." 
+            });
+        }
+
+        // SECURITY SCOPING: If logged in as Company Admin, verify that candidate applied to THEIR company!
+        if (adminRole === "admin") {
+            if (!adminCompany || !appCompany || adminCompany !== appCompany) {
                 return res.status(403).json({ 
-                    message: `Forbidden: As ${req.session.admin.companyName} Admin, you can only update status for ${req.session.admin.companyName} applications.` 
+                    message: `Forbidden: As ${req.session.admin.companyName} Recruiter, you can only update status for ${req.session.admin.companyName} applications.` 
                 });
             }
         }
