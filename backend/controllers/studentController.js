@@ -309,14 +309,13 @@ exports.getCareerGuideRoadmap = async (req, res) => {
     }
 };
 
-// Get randomized aptitude MCQ questions
-// Get randomized aptitude MCQ questions (Strict Company Isolation)
+// Get randomized aptitude MCQ questions (Strict Company Isolation with Case-Insensitive Matching)
 exports.getQuestions = async (req, res) => {
     try {
-        const company = req.query.company || "General";
-        const queryFilter = company === "General" 
-            ? { $or: [{ companyName: "General" }, { companyName: { $exists: false } }, { companyName: "" }] }
-            : { companyName: company };
+        const company = (req.query.company || "General").trim();
+        const queryFilter = (company === "General" || !company)
+            ? { $or: [{ companyName: "General" }, { companyName: { $exists: false } }, { companyName: "" }, { companyName: null }] }
+            : { companyName: new RegExp(`^${company.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")}$`, "i") };
 
         const questions = await Question.aggregate([
             { $match: queryFilter },
@@ -329,13 +328,13 @@ exports.getQuestions = async (req, res) => {
     }
 };
 
-// Get all technical MCQ coding questions (Strict Company Isolation)
+// Get all technical MCQ coding questions (Strict Company Isolation with Case-Insensitive Matching)
 exports.getTechnicalQuestions = async (req, res) => {
     try {
-        const company = req.query.company || "General";
-        const queryFilter = company === "General" 
-            ? { $or: [{ companyName: "General" }, { companyName: { $exists: false } }, { companyName: "" }] }
-            : { companyName: company };
+        const company = (req.query.company || "General").trim();
+        const queryFilter = (company === "General" || !company)
+            ? { $or: [{ companyName: "General" }, { companyName: { $exists: false } }, { companyName: "" }, { companyName: null }] }
+            : { companyName: new RegExp(`^${company.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")}$`, "i") };
 
         const questions = await TechnicalQuestion.aggregate([
             { $match: queryFilter },

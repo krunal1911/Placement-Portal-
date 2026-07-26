@@ -197,18 +197,16 @@ exports.getExamSettings = async (req, res) => {
 exports.getQuestionsList = async (req, res) => {
     try {
         let filter = {};
-        if (req.session.admin.role === "admin") {
-            const co = req.session.admin.companyName;
-            filter = co === "General" 
-                ? { $or: [{ companyName: "General" }, { companyName: { $exists: false } }, { companyName: "" }] }
-                : { companyName: co };
-        } else {
-            if (req.query.company) {
-                const co = req.query.company;
-                filter = co === "General" 
-                    ? { $or: [{ companyName: "General" }, { companyName: { $exists: false } }, { companyName: "" }] }
-                    : { companyName: co };
-            }
+        const isCompanyAdmin = req.session.admin && req.session.admin.role === "admin";
+        const targetCompany = isCompanyAdmin 
+            ? (req.session.admin.companyName || "").trim() 
+            : (req.query.company || "").trim();
+
+        if (targetCompany && targetCompany.toLowerCase() !== "general") {
+            const regexCo = new RegExp(`^${targetCompany.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")}$`, "i");
+            filter = { companyName: regexCo };
+        } else if (targetCompany.toLowerCase() === "general") {
+            filter = { $or: [{ companyName: "General" }, { companyName: { $exists: false } }, { companyName: "" }, { companyName: null }] };
         }
 
         if (req.params.type === "aptitude") {
@@ -1119,9 +1117,9 @@ exports.importQuestions = async (req, res) => {
             return res.status(400).send("Please select a file to import (.xlsx, .xls, or .pdf).");
         }
 
-        let targetCompany = req.body.companyName;
-        if (req.session.admin && req.session.admin.role === "admin") {
-            targetCompany = req.session.admin.companyName || "General";
+        let targetCompany = (req.body.companyName || "").trim();
+        if (req.session.admin && req.session.admin.role === "admin" && req.session.admin.companyName) {
+            targetCompany = req.session.admin.companyName.trim();
         } else if (!targetCompany) {
             targetCompany = "General";
         }
@@ -1146,7 +1144,7 @@ exports.importQuestions = async (req, res) => {
                 let ans = getRowValue(r, ["answer", "correctanswer", "correct", "ans", "rightanswer", "correctoption"]);
 
                 if (ans) {
-                    const cleanAns = ans.trim().toUpperCase();
+                    const cleanAns = String(ans).trim().toUpperCase();
                     if (cleanAns === "A" && a) ans = a;
                     else if (cleanAns === "B" && b) ans = b;
                     else if (cleanAns === "C" && c) ans = c;
@@ -1170,8 +1168,9 @@ exports.importQuestions = async (req, res) => {
         let imported = 0;
         let skipped = 0;
 
-        // Fetch existing questions for targetCompany in ONE query to prevent sequential DB roundtrips
-        const existingDocs = await Question.find({ companyName: targetCompany }).select('question').lean();
+        // Fetch existing questions for targetCompany case-insensitively
+        const companyRegex = new RegExp(`^${targetCompany.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")}$`, "i");
+        const existingDocs = await Question.find({ companyName: companyRegex }).select('question').lean();
         const existingSet = new Set(existingDocs.map(q => String(q.question || "").trim().toLowerCase()));
 
         const docsToInsert = [];
