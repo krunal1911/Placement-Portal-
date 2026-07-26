@@ -119,16 +119,22 @@ exports.getRecentActivity = async (req, res) => {
 
         let query = {};
         if (!isSuper) {
-            const myCompanies = await Company.find({ companyName });
+            const cleanCompany = (companyName || "").trim();
+            const myCompanies = await Company.find({ companyName: new RegExp(`^${cleanCompany.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")}$`, "i") });
             const myCompanyIds = myCompanies.map(c => c._id);
-            query = { companyId: { $in: myCompanyIds } };
+            query = {
+                $or: [
+                    { companyId: { $in: myCompanyIds } },
+                    { companyName: new RegExp(`^${cleanCompany.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")}$`, "i") }
+                ]
+            };
         }
 
         const applications = await Application.find(query)
-            .sort({ appliedAt: -1, createdAt: -1 })
-            .limit(10)
-            .populate("userId", "name email branch")
-            .populate("companyId", "companyName jobRole package");
+            .sort({ createdAt: -1, appliedAt: -1 })
+            .limit(50)
+            .populate("userId")
+            .populate("companyId");
 
         res.json(applications);
     } catch (err) {
@@ -294,7 +300,9 @@ exports.getAdminAnalytics = async (req, res) => {
             };
 
             const placedIds = new Set();
+            const userSelectionMap = {};
             let selectedAppsCount = 0;
+
             allApplications.forEach(a => {
                 const st = a.status || "Applied";
                 if (!statusMap[st]) statusMap[st] = 0;
@@ -302,7 +310,11 @@ exports.getAdminAnalytics = async (req, res) => {
 
                 if (st === "Selected" || st === "Accepted" || st === "Placed") {
                     selectedAppsCount++;
-                    if (a.userId) placedIds.add(String(a.userId._id || a.userId));
+                    if (a.userId) {
+                        const uid = String(a.userId._id || a.userId);
+                        placedIds.add(uid);
+                        userSelectionMap[uid] = (userSelectionMap[uid] || 0) + 1;
+                    }
                 }
             });
 
@@ -330,7 +342,8 @@ exports.getAdminAnalytics = async (req, res) => {
                 const branchKey = normalizeBranch(st.branch);
                 if (!deptMap[branchKey]) deptMap[branchKey] = { total: 0, placed: 0 };
                 deptMap[branchKey].total++;
-                if (placedIds.has(String(st._id))) deptMap[branchKey].placed++;
+                const countForStudent = userSelectionMap[String(st._id)] || 0;
+                deptMap[branchKey].placed += countForStudent;
             });
 
             res.json({
@@ -382,6 +395,7 @@ exports.getAdminAnalytics = async (req, res) => {
 
             const placedIds = new Set();
             const rejectedIds = new Set();
+            const companyUserSelectionMap = {};
             let selectedAppsCount = 0;
 
             myApps.forEach(a => {
@@ -393,14 +407,17 @@ exports.getAdminAnalytics = async (req, res) => {
 
                 if (st === "Selected" || st === "Accepted" || st === "Placed") {
                     selectedAppsCount++;
-                    if (uid) placedIds.add(uid);
+                    if (uid) {
+                        placedIds.add(uid);
+                        companyUserSelectionMap[uid] = (companyUserSelectionMap[uid] || 0) + 1;
+                    }
                 } else if (st === "Rejected") {
                     if (uid) rejectedIds.add(uid);
                 }
             });
 
-            placedCount = placedIds.size || selectedAppsCount;
-            unplacedCount = rejectedIds.size || Math.max(0, totalStudents - placedCount);
+            placedCount = selectedAppsCount;
+            unplacedCount = rejectedIds.size || Math.max(0, totalStudents - placedIds.size);
 
             // Package for this company
             if (myCompanies.length > 0) {
@@ -435,7 +452,8 @@ exports.getAdminAnalytics = async (req, res) => {
                     const branchKey = normalizeBranch(st.branch);
                     if (!deptMap[branchKey]) deptMap[branchKey] = { total: 0, placed: 0 };
                     deptMap[branchKey].total++;
-                    if (placedIds.has(String(st._id))) deptMap[branchKey].placed++;
+                    const countForStudent = companyUserSelectionMap[String(st._id)] || 0;
+                    deptMap[branchKey].placed += countForStudent;
                 }
             });
 
