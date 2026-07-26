@@ -170,17 +170,23 @@ app.use((req, res, next) => {
     next();
 });
 
-const MongoStore = require('connect-mongo');
+let sessionStore;
+try {
+    const MongoStore = require('connect-mongo');
+    sessionStore = MongoStore.create({
+        mongoUrl: process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/placementPortal',
+        ttl: 7 * 24 * 60 * 60,
+        autoRemove: 'native'
+    });
+} catch (sErr) {
+    console.error('MongoStore initialization warning:', sErr.message);
+}
 
 app.use(session({
     secret: process.env.SESSION_SECRET || 'placementPortalSecret',
     resave: false,
     saveUninitialized: false,
-    store: MongoStore.create({
-        mongoUrl: process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/placementPortal',
-        ttl: 7 * 24 * 60 * 60, // 7 days session persistence in MongoDB
-        autoRemove: 'native'
-    }),
+    store: sessionStore,
     cookie: {
         maxAge: 7 * 24 * 60 * 60 * 1000,   // 7 days
         httpOnly: true,                     // Prevents client-side JS from reading cookie
