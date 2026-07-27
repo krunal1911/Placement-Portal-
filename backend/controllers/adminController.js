@@ -1477,107 +1477,6 @@ exports.getProctoringData = async (req, res) => {
     }
 };
 
-exports.generateSignedLink = async (req, res) => {
-    try {
-        const { examType, companyName, expiresMinutes } = req.body;
-        if (!examType || !companyName || !expiresMinutes) {
-            return res.status(400).send("Missing parameters");
-        }
-        if (req.session.admin.role === "admin" && companyName !== req.session.admin.companyName) {
-            return res.status(403).send("Unauthorized to generate link for this company");
-        }
-        
-        const crypto = require("crypto");
-        const token = crypto.randomBytes(16).toString("hex");
-        const expiresAt = new Date(Date.now() + Number(expiresMinutes) * 60 * 1000);
-        
-        const newLink = new ActiveExamLink({
-            examType,
-            companyName,
-            expiresAt,
-            token,
-            isActive: true,
-            createdById: req.session.admin._id
-        });
-        await newLink.save();
-        
-        res.json({
-            expiresAt: expiresAt.getTime(),
-            token
-        });
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Error generating signed link");
-    }
-};
-
-exports.getActiveLinks = async (req, res) => {
-    try {
-        let query = {};
-        if (req.session.admin.role !== "superadmin") {
-            query = { companyName: req.session.admin.companyName };
-        }
-        const links = await ActiveExamLink.find(query)
-            .sort({ createdAt: -1 })
-            .limit(50);
-        res.json(links);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Error fetching active links");
-    }
-};
-
-exports.extendLink = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { minutes } = req.body;
-        if (!minutes || isNaN(minutes)) {
-            return res.status(400).send("Invalid extension minutes");
-        }
-        
-        const link = await ActiveExamLink.findById(id);
-        if (!link) {
-            return res.status(404).send("Link not found");
-        }
-        if (req.session.admin.role !== "superadmin" && link.companyName !== req.session.admin.companyName) {
-            return res.status(403).send("Unauthorized");
-        }
-        
-        // Extend time (if it's already expired, extend relative to now; otherwise relative to the current expiresAt)
-        const currentExpiration = link.expiresAt.getTime();
-        const baseTime = currentExpiration > Date.now() ? currentExpiration : Date.now();
-        link.expiresAt = new Date(baseTime + Number(minutes) * 60 * 1000);
-        link.isActive = true; // reactivate if it was inactive
-        await link.save();
-        
-        res.json({ message: "Time extended successfully", expiresAt: link.expiresAt.getTime() });
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Error extending link");
-    }
-};
-
-exports.stopLink = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const link = await ActiveExamLink.findById(id);
-        if (!link) {
-            return res.status(404).send("Link not found");
-        }
-        if (req.session.admin.role !== "superadmin" && link.companyName !== req.session.admin.companyName) {
-            return res.status(403).send("Unauthorized");
-        }
-        
-        link.isActive = false;
-        link.expiresAt = new Date(); // expire immediately
-        await link.save();
-        
-        res.json({ message: "Exam link revoked/stopped successfully" });
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Error stopping link");
-    }
-};
 
 exports.exportResultPDF = async (req, res) => {
     try {
@@ -2144,21 +2043,24 @@ exports.addCompany = async (req, res) => {
 exports.generateSignedLink = async (req, res) => {
     try {
         const crypto = require("crypto");
-        const { examType, companyName, durationMinutes } = req.body;
-        const adminCompany = (req.session.admin && req.session.admin.role === "admin" && req.session.admin.companyName)
+        const { examType, companyName, expiresMinutes, durationMinutes } = req.body;
+        
+        const isCompanyAdmin = req.session.admin && req.session.admin.role === "admin" && req.session.admin.companyName;
+        const targetCompany = isCompanyAdmin 
             ? req.session.admin.companyName 
-            : (companyName || "General");
+            : ((companyName || "").trim() || "General");
 
+        const minutes = parseInt(expiresMinutes || durationMinutes) || 30;
         const token = crypto.randomBytes(24).toString("hex");
-        const minutes = parseInt(durationMinutes) || 60;
         const expiresAt = new Date(Date.now() + minutes * 60 * 1000);
 
         const newLink = await ActiveExamLink.create({
             token,
             examType: examType || "aptitude",
-            companyName: adminCompany,
+            companyName: targetCompany,
             expiresAt,
-            isActive: true
+            isActive: true,
+            createdById: req.session.admin ? req.session.admin._id : null
         });
 
         const baseUrl = `${req.protocol}://${req.get("host")}`;
@@ -2168,7 +2070,7 @@ exports.generateSignedLink = async (req, res) => {
             success: true,
             link: examUrl,
             token: newLink.token,
-            expiresAt: newLink.expiresAt
+            expiresAt: newLink.expiresAt.getTime()
         });
     } catch (err) {
         console.error("Error generating signed link:", err);
@@ -2181,7 +2083,8 @@ exports.getActiveLinks = async (req, res) => {
     try {
         let filter = {};
         if (req.session.admin && req.session.admin.role === "admin" && req.session.admin.companyName) {
-            filter.companyName = req.session.admin.companyName;
+            const compName = req.session.admin.companyName.trim();
+            filter.companyName = new RegExp(`^${compName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")}$`, "i");
         }
 
         const links = await ActiveExamLink.find(filter).sort({ createdAt: -1 });
@@ -2196,17 +2099,18 @@ exports.getActiveLinks = async (req, res) => {
 exports.extendLink = async (req, res) => {
     try {
         const { id } = req.params;
+        const minutes = parseInt(req.body.minutes || req.body.durationMinutes) || 15;
         const link = await ActiveExamLink.findById(id);
         if (!link) {
             return res.status(404).json({ success: false, message: "Exam link not found." });
         }
 
         const currentExp = new Date(link.expiresAt > new Date() ? link.expiresAt : new Date());
-        link.expiresAt = new Date(currentExp.getTime() + 15 * 60 * 1000);
+        link.expiresAt = new Date(currentExp.getTime() + minutes * 60 * 1000);
         link.isActive = true;
         await link.save();
 
-        res.json({ success: true, message: "Exam time extended by +15 minutes!", expiresAt: link.expiresAt });
+        res.json({ success: true, message: `Exam time extended by +${minutes} minutes!`, expiresAt: link.expiresAt });
     } catch (err) {
         console.error("Error extending link:", err);
         res.status(500).json({ success: false, message: "Failed to extend link duration." });

@@ -783,8 +783,9 @@ async function requestSignedLink() {
         if (response.ok) {
             const data = await response.json();
             const origin = window.location.origin;
-            const url = `${origin}/${examType}?company=${encodeURIComponent(companyName)}&token=${data.token}`;
-            document.getElementById("shareableLinkVal").value = url;
+            const linkToken = data.token || "";
+            const generatedUrl = data.link || `${origin}/${examType}?company=${encodeURIComponent(companyName)}&token=${linkToken}`;
+            document.getElementById("shareableLinkVal").value = generatedUrl;
             
             Swal.fire({
                 icon: "success",
