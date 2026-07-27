@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const Admin = require('./database/models/Admin');
 
-const dbUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/placementPortal';
+const dbUri = process.env.MONGODB_URI || 'mongodb+srv://desaikrunal2005_db_user:XIdzUVr0oiicYkYl@cluster0.jketbal.mongodb.net/placementPortal';
 mongoose.connect(dbUri);
 
 async function addAdmin(){

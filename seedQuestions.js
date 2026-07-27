@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const Question = require('./database/models/Question');
 const TechnicalQuestion = require('./database/models/TechnicalQuestion');
 
-const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/placementPortal';
+const mongoUri = process.env.MONGODB_URI || 'mongodb+srv://desaikrunal2005_db_user:XIdzUVr0oiicYkYl@cluster0.jketbal.mongodb.net/placementPortal';
 
 const aptitudeQuestions = [
     {
