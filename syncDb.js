@@ -1,3 +1,6 @@
+const dns = require('dns');
+try { dns.setServers(['8.8.8.8', '1.1.1.1']); } catch(e) {}
+
 require('dotenv').config();
 const mongoose = require('mongoose');
 
@@ -59,18 +62,25 @@ async function syncAllData() {
         const localConn = await mongoose.connect(LOCAL_URI);
         console.log(`✅ Connected to Local Database!`);
 
-        // Helper to upsert array of docs into local db
+        // Helper to clear and clone collection into local DB
         const cloneCollection = async (Model, docs, name) => {
-            if (!docs || docs.length === 0) {
-                console.log(` 🔹 [${name}] No records to sync.`);
-                return;
+            try {
+                await Model.deleteMany({});
+                if (!docs || docs.length === 0) {
+                    console.log(` 🔹 [${name}] Cleaned local collection (0 cloud records).`);
+                    return;
+                }
+                await Model.insertMany(docs);
+                console.log(` ✅ [${name}] Synced ${docs.length} records to Local DB (100% Exact Match).`);
+            } catch (err) {
+                console.warn(` ⚠️ [${name}] Sync warning: ${err.message}`);
+                // Fallback to loop upsert
+                for (const doc of docs) {
+                    try {
+                        await Model.updateOne({ _id: doc._id }, doc, { upsert: true });
+                    } catch (uErr) {}
+                }
             }
-            let count = 0;
-            for (const doc of docs) {
-                await Model.updateOne({ _id: doc._id }, doc, { upsert: true });
-                count++;
-            }
-            console.log(` ✅ [${name}] Synced ${count} records to Local DB.`);
         };
 
         console.log(`\n💾 Copying & Syncing Records to Local MongoDB...`);
