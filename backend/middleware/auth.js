@@ -1,3 +1,5 @@
+const ActiveExamLink = require("../../database/models/ActiveExamLink");
+
 const requireUserOrAdmin = (req, res, next) => {
     if (!req.session.user && !req.session.admin) {
         if (req.xhr || (req.headers.accept && req.headers.accept.indexOf('json') > -1)) {
@@ -50,7 +52,7 @@ const verifyExamLink = async (req, res, next) => {
     const examType = req.path.replace("/", ""); // "aptitude", "technical", or "combined"
     
     // Allow general practice exams to be accessed without tokens
-    if (!company || company === "General") {
+    if (!company || company.trim().toLowerCase() === "general") {
         return next();
     }
     
@@ -66,7 +68,9 @@ const verifyExamLink = async (req, res, next) => {
     }
     
     try {
-        const link = await ActiveExamLink.findOne({ token });
+        const cleanToken = String(token).trim();
+        const link = await ActiveExamLink.findOne({ token: cleanToken });
+        
         if (!link) {
             return res.status(403).send(`
                 <div style="font-family: 'Poppins', sans-serif; text-align: center; padding: 50px 20px;">
@@ -77,8 +81,11 @@ const verifyExamLink = async (req, res, next) => {
             `);
         }
         
-        // Check if the link matches the requested company and exam type
-        if (link.companyName !== company || link.examType !== examType) {
+        // Check if the link matches the requested company and exam type (case-insensitive company match)
+        const reqCo = (company || "").trim().toLowerCase();
+        const linkCo = (link.companyName || "").trim().toLowerCase();
+
+        if (reqCo !== linkCo || link.examType !== examType) {
             return res.status(400).send(`
                 <div style="font-family: 'Poppins', sans-serif; text-align: center; padding: 50px 20px;">
                     <h1 style="color: #dc2626; font-size: 32px; margin-bottom: 12px;">🚫 Parameter Mismatch</h1>
@@ -89,7 +96,8 @@ const verifyExamLink = async (req, res, next) => {
         }
         
         // Check if link is explicitly disabled or expired
-        if (!link.isActive || Date.now() > link.expiresAt.getTime()) {
+        const expiresTime = link.expiresAt ? new Date(link.expiresAt).getTime() : 0;
+        if (!link.isActive || (expiresTime > 0 && Date.now() > expiresTime)) {
             return res.status(410).send(`
                 <div style="font-family: 'Poppins', sans-serif; text-align: center; padding: 50px 20px;">
                     <h1 style="color: #ef4444; font-size: 32px; margin-bottom: 12px;">⏰ Exam Link Closed (Timeout)</h1>
