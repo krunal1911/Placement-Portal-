@@ -1152,32 +1152,54 @@ exports.viewStudentResume = async (req, res) => {
 
 exports.logCheating = async (req, res) => {
     try {
-        const { testType, incidentType, details, companyName, snapshotImage } = req.body;
-        const userId = req.session.user._id;
+        const { testType, incidentType, details, companyName, snapshotImage, candidateName, candidateEmail } = req.body;
+        
+        let userId = null;
+        let name = candidateName || "";
+        let email = candidateEmail || "";
+
+        if (req.session && req.session.user) {
+            userId = req.session.user._id;
+            name = name || req.session.user.name || "Registered Candidate";
+            email = email || req.session.user.email || "";
+        }
+
+        if (!name) name = "Assessment Candidate";
+
+        let cleanCompanyName = (companyName || "").trim();
+        if (!cleanCompanyName || cleanCompanyName === "undefined" || cleanCompanyName === "null") {
+            cleanCompanyName = "General";
+        }
 
         let aiAnalysis = "";
         if (incidentType === "Tab Switch") {
-            aiAnalysis = "High Severity: Student switched windows or tabs, likely to search search engines or external resources for question content.";
+            aiAnalysis = "High Severity: Candidate switched windows or tabs during test, enabling external lookup.";
         } else if (incidentType === "Copy Action") {
-            aiAnalysis = "Medium Severity: Student attempted to copy questions or options from the assessment page, suggesting intent to share or translate.";
+            aiAnalysis = "Medium Severity: Candidate attempted to copy test questions or options.";
         } else if (incidentType === "Screenshot Attempt") {
-            aiAnalysis = "High Severity: Student attempted a print-screen or screen capture shortcut, indicating an effort to capture and distribute test content.";
+            aiAnalysis = "High Severity: Candidate attempted screen capture shortcut to save exam material.";
         } else if (incidentType === "Exit Fullscreen") {
-            aiAnalysis = "Medium Severity: Student exited forced fullscreen mode, violating exam guidelines and enabling split-screen operations.";
+            aiAnalysis = "Medium Severity: Candidate exited forced fullscreen mode.";
         } else {
-            aiAnalysis = "Unknown Proctor Alert: Unusual activity detected during the exam session.";
+            aiAnalysis = "Proctor Alert: Security boundary event recorded during assessment.";
         }
 
-        const log = await CheatingLog.create({
-            userId,
-            testType,
-            incidentType,
-            details,
+        const logData = {
+            testType: testType || "Aptitude",
+            incidentType: incidentType || "Proctor Alert",
+            details: details || "Security Boundary Alert",
             aiAnalysis,
-            companyName: companyName || "General",
-            snapshotImage: snapshotImage || ""
-        });
+            companyName: cleanCompanyName,
+            snapshotImage: snapshotImage || "",
+            candidateName: name,
+            candidateEmail: email
+        };
 
+        if (userId) {
+            logData.userId = userId;
+        }
+
+        const log = await CheatingLog.create(logData);
         res.json({ success: true, log });
     } catch (err) {
         console.error("Error logging cheating incident:", err);

@@ -589,7 +589,7 @@ exports.getProctoringData = async (req, res) => {
 
         const formattedLogs = logs.map(log => {
             const user = log.userId || {};
-            const studentName = user.name || "Anonymous Candidate";
+            const studentName = user.name || log.candidateName || log.candidateEmail || "Assessment Candidate";
             const incident = log.incidentType || log.details || "Tab Switch / Security Event";
 
             let severity = log.severity || "low";

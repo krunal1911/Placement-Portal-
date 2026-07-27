@@ -4,7 +4,15 @@ const cheatingLogSchema = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
-        required: true
+        required: false
+    },
+    candidateName: {
+        type: String,
+        default: ""
+    },
+    candidateEmail: {
+        type: String,
+        default: ""
     },
     testType: {
         type: String,
