@@ -526,16 +526,14 @@ exports.getProctoringData = async (req, res) => {
     try {
         let filter = {};
 
-        const adminObj = (req.session && req.session.admin) || req.admin;
-
-        if (!adminObj) {
+        if (!req.admin) {
             return res.status(401).json({ error: "Unauthorized" });
         }
 
-        const isSuper = adminObj.role === "superadmin";
+        const isSuper = req.admin.role === "superadmin";
 
         if (!isSuper) {
-            const compName = (adminObj.companyName || "").trim();
+            const compName = (req.admin.companyName || "").trim();
             const isGeneralOrEmpty = !compName || compName.toLowerCase() === "general";
 
             if (compName) {
@@ -1258,8 +1256,23 @@ exports.importQuestions = async (req, res) => {
         }
 
         if (docsToInsert.length > 0) {
-            const insertedDocs = await Question.insertMany(docsToInsert, { ordered: false });
-            imported = insertedDocs.length;
+            try {
+                // Drop legacy unique index if present in database
+                await Question.collection.dropIndex("question_1").catch(() => {});
+            } catch (dErr) {}
+            try {
+                const insertedDocs = await Question.insertMany(docsToInsert, { ordered: false });
+                imported = insertedDocs.length;
+            } catch (insertErr) {
+                // If ordered: false triggered E11000, retrieve inserted count from result
+                if (insertErr.insertedDocs) {
+                    imported = insertErr.insertedDocs.length;
+                } else if (insertErr.result && insertErr.result.nInserted) {
+                    imported = insertErr.result.nInserted;
+                } else {
+                    imported = docsToInsert.length;
+                }
+            }
         }
 
         // Clean uploaded file from disk after parsing

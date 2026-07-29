@@ -91,7 +91,7 @@ router.delete("/reject-request/:id", requireSuperAdmin, adminController.rejectAd
 router.post("/admin-login", adminController.adminLogin);
 router.post("/add-admin", requireSuperAdmin, adminController.addAdmin);
 router.post("/add-question", requireAdmin, adminController.addQuestion);
-router.post("/exam-settings/:type", requireSuperAdmin, adminController.updateExamSettings);
+router.post("/exam-settings/:type", requireAdmin, adminController.updateExamSettings);
 router.post("/update-question/:id", requireAdmin, adminController.updateQuestion);
 router.post("/update-technical/:id", requireAdmin, adminController.updateTechnicalQuestion);
 router.get("/delete-question/:id", requireAdmin, adminController.deleteQuestion);
