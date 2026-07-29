@@ -1,3 +1,86 @@
+// ─── Per-Tab Admin Identity (fixes cross-tab session bleed) ───────────────────
+// A browser's cookies (and therefore the login session) are shared by EVERY tab.
+// If a superadmin is logged in in one tab and a company admin logs in in another
+// tab of the same browser, they'd otherwise share one `req.session.admin` on the
+// server — so refreshing the first tab could suddenly show the second admin's
+// data. To keep each tab's identity independent (and surviving a refresh), each
+// tab keeps its own signed token in sessionStorage (which is NOT shared across
+// tabs, unlike cookies/localStorage) and sends it on every request.
+(function setupPerTabAdminIdentity() {
+    const TOKEN_KEY = "portalAuthToken";
+
+    // Pick up a token handed off via ?tk=... (right after login, or carried
+    // forward from a previous page by the click-handler below) and store it
+    // for this tab only, then strip it from the visible URL.
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const incoming = params.get("tk");
+        if (incoming) {
+            sessionStorage.setItem(TOKEN_KEY, incoming);
+            params.delete("tk");
+            const query = params.toString();
+            const cleanUrl = window.location.pathname + (query ? "?" + query : "") + window.location.hash;
+            window.history.replaceState({}, "", cleanUrl);
+        }
+    } catch (e) {}
+
+    function getTabToken() {
+        try { return sessionStorage.getItem(TOKEN_KEY); } catch (e) { return null; }
+    }
+
+    // Attach the token to every same-origin fetch() call automatically, so
+    // individual pages don't need to be edited one by one.
+    const originalFetch = window.fetch ? window.fetch.bind(window) : null;
+    if (originalFetch) {
+        window.fetch = function (input, init) {
+            const token = getTabToken();
+            if (token) {
+                let isSameOrigin = true;
+                try {
+                    const targetUrl = new URL(typeof input === "string" ? input : input.url, window.location.origin);
+                    isSameOrigin = targetUrl.origin === window.location.origin;
+                } catch (e) {}
+
+                if (isSameOrigin) {
+                    init = init || {};
+                    const headers = new Headers(init.headers || (typeof input !== "string" && input.headers) || {});
+                    if (!headers.has("Authorization")) headers.set("Authorization", "Bearer " + token);
+                    init.headers = headers;
+                }
+            }
+            return originalFetch(input, init);
+        };
+    }
+
+    // A full-page navigation (clicking a link) can't carry a custom header, so
+    // carry this tab's token forward as ?tk= on same-origin link clicks. The
+    // logout links intentionally drop the token instead, so this tab correctly
+    // becomes logged out.
+    document.addEventListener("click", function (e) {
+        const token = getTabToken();
+        if (!token) return;
+
+        const link = e.target && e.target.closest ? e.target.closest("a[href]") : null;
+        if (!link) return;
+
+        const href = link.getAttribute("href");
+        if (!href || href.charAt(0) === "#" || /^(mailto:|tel:|javascript:)/i.test(href)) return;
+        if (link.target === "_blank" || link.hasAttribute("download")) return;
+
+        let url;
+        try { url = new URL(href, window.location.origin); } catch (err) { return; }
+        if (url.origin !== window.location.origin) return;
+
+        if (url.pathname === "/admin-logout" || url.pathname === "/logout") {
+            try { sessionStorage.removeItem(TOKEN_KEY); } catch (err) {}
+            return;
+        }
+
+        url.searchParams.set("tk", token);
+        link.setAttribute("href", url.pathname + url.search + url.hash);
+    }, true);
+})();
+
 // ─── Immediate Theme Application (Prevents White/Dark Flicker) ────────────────
 (function applyInitialTheme() {
     const savedTheme = localStorage.getItem("theme") || "light";
@@ -130,7 +213,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     navItems.push({ name: "Add Drive", url: "/add-company" });
                     navItems.push({ name: "Results", url: "/results" });
                     navItems.push({ name: "Questions", url: "/manage-questions" });
-                    navItems.push({ name: "Proctoring", url: "/proctoring" });
 
                     ul.innerHTML = "";
                     navItems.forEach(item => {
@@ -152,7 +234,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         <li><a href="/placement-drives" class="${path === '/placement-drives' ? 'active' : ''}">Drives</a></li>
                         <li><a href="/add-company" class="${path === '/add-company' ? 'active' : ''}">Add Drive</a></li>
                         <li><a href="/results" class="${path === '/results' ? 'active' : ''}">Results</a></li>
-                        <li><a href="/proctoring" class="${path === '/proctoring' ? 'active' : ''}">Proctoring</a></li>
                     `;
                     ul.appendChild(themeLi);
                     ul.appendChild(logoutLi);

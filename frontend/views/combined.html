@@ -629,39 +629,7 @@ async function logCheatingIncident(incidentType, details) {
 }
 
 function triggerCheatingWarning(incidentType, details) {
-    if (!isExamActive) return;
-    
-    warningCount++;
-    logCheatingIncident(incidentType, `${details} (Warning ${warningCount}/${MAX_WARNINGS})`);
-    
-    if (warningCount >= MAX_WARNINGS) {
-        isExamActive = false;
-        Swal.fire({
-            icon: "error",
-            title: "Test Disqualified",
-            text: "You have exceeded the maximum of 3 proctoring warnings. Your test is being automatically submitted now.",
-            confirmButtonText: "Submit Test",
-            confirmButtonColor: "#ef4444",
-            allowOutsideClick: false,
-            allowEscapeKey: false
-        }).then(() => {
-            submitTest(true);
-        });
-    } else {
-        Swal.fire({
-            icon: "warning",
-            title: "Proctoring Alert",
-            html: `⚠️ <b>${incidentType}</b> detected!<br><br>Do not exit fullscreen, switch tabs, or copy text.<br><br><span style="color:#ef4444; font-weight:bold;">Warning ${warningCount} of ${MAX_WARNINGS}</span>`,
-            confirmButtonText: "Return to Exam",
-            confirmButtonColor: "#2563eb",
-            allowOutsideClick: false,
-            allowEscapeKey: false
-        }).then(() => {
-            if (incidentType === "Exit Fullscreen") {
-                enterFullscreenMode();
-            }
-        });
-    }
+    return;
 }
 
 function enterFullscreenMode() {

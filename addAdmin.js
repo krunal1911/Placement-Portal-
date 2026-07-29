@@ -1,12 +1,11 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const connectDB = require('./database/config/db');
 const Admin = require('./database/models/Admin');
 
-const dbUri = process.env.MONGODB_URI || 'mongodb+srv://desaikrunal2005_db_user:XIdzUVr0oiicYkYl@cluster0.jketbal.mongodb.net/placementPortal';
-mongoose.connect(dbUri);
-
 async function addAdmin(){
+    await connectDB();
 
     await Admin.deleteMany();
 
@@ -18,15 +17,32 @@ async function addAdmin(){
         role: "superadmin"
     });
 
-    // 2. Create Regular Admin
+    // 2. Create Regular Admin (General)
     const regularHashed = await bcrypt.hash("admin123", 10);
     await Admin.create({
         username: "admin",
         password: regularHashed,
-        role: "admin"
+        role: "admin",
+        companyName: "General"
     });
 
-    console.log("Seeding complete: Created 'superadmin' (superadmin123) and 'admin' (admin123) accounts.");
+    // 3. Create Company Admin (TCS)
+    await Admin.create({
+        username: "tcs_admin",
+        password: regularHashed,
+        role: "admin",
+        companyName: "TCS"
+    });
+
+    // 4. Create Company Admin (Chemical Industry)
+    await Admin.create({
+        username: "chemical_admin",
+        password: regularHashed,
+        role: "admin",
+        companyName: "Chemical Industry"
+    });
+
+    console.log("Seeding complete: Created 'superadmin', 'admin', 'tcs_admin', and 'chemical_admin' accounts.");
 
     mongoose.connection.close();
 

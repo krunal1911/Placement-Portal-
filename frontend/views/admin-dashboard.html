@@ -18,7 +18,6 @@
         <li><a href="/students">Students</a></li>
         <li><a href="/applications">Applications</a></li>
         <li><a href="/placement-drives">Placement Drives</a></li>
-        <li><a href="/proctoring">Proctoring</a></li>
         <li><a href="/logout">Logout</a></li>
     </ul>
 </nav>
@@ -161,12 +160,18 @@
 <script>
 let barChartInstance = null;
 let pieChartInstance = null;
+let analyticsRequestSeq = 0;
 
 async function loadAnalytics() {
+    const requestId = ++analyticsRequestSeq;
     try {
         const response = await fetch("/admin-analytics");
         if (!response.ok) return;
         const data = await response.json();
+
+        // Ignore this response if a newer request has since been kicked off —
+        // otherwise a late-arriving response can overwrite the UI with stale data.
+        if (requestId !== analyticsRequestSeq) return;
 
         document.getElementById("totalStudents").innerText = data.totalStudents || 0;
         document.getElementById("totalCompanies").innerText = data.totalDrives || data.totalCompanies || 0;
@@ -367,7 +372,10 @@ async function checkAdminRole() {
             });
             
             const heroBtn = document.querySelector(".heroBtn");
-            if (heroBtn) heroBtn.style.display = "none";
+            if (heroBtn) {
+                heroBtn.textContent = "+ Manage My Drive";
+                heroBtn.setAttribute("href", "/add-company");
+            }
             
             // Allow company admins to access question management, PDF/Excel import, applications, results, proctoring, and placement drives
             document.querySelectorAll(".features .feature-card").forEach(card => {

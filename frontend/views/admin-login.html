@@ -92,17 +92,30 @@ password:document.getElementById("password").value
 
 });
 
-const result=(await response.text()).trim();
+let data;
+try {
+    data = await response.json();
+} catch (e) {
+    alert("Login failed. Please try again.");
+    return;
+}
 
-if(result!=="Success"){
+if (data.message !== "Success") {
 
-alert(result);
+alert(data.message || "Login failed. Please try again.");
 
 return;
 
 }
 
-window.location.href="/admin-dashboard";
+// Store this tab's own identity token (sessionStorage is isolated per tab,
+// unlike the shared login cookie) so this tab keeps its own admin identity
+// even if another tab logs in as a different admin.
+try {
+    if (data.token) sessionStorage.setItem("portalAuthToken", data.token);
+} catch (e) {}
+
+window.location.href = "/admin-dashboard" + (data.token ? ("?tk=" + encodeURIComponent(data.token)) : "");
 
 });
 

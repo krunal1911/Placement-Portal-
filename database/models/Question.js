@@ -4,8 +4,7 @@ const questionSchema = new mongoose.Schema({
 
     question: {
         type: String,
-        required: true,
-        unique: true
+        required: true
     },
 
     options: {
@@ -44,5 +43,10 @@ const questionSchema = new mongoose.Schema({
     }
 
 });
+
+// Uniqueness should be scoped PER COMPANY, not global — otherwise two different
+// companies could never share a common question phrase (e.g. "What is 15 + 25?"),
+// and imports/adds would fail with duplicate-key errors across unrelated companies.
+questionSchema.index({ companyName: 1, question: 1 }, { unique: true });
 
 module.exports = mongoose.model('Question', questionSchema);

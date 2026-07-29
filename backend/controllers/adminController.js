@@ -16,6 +16,7 @@ const CheatingLog = require("../../database/models/CheatingLog");
 const ActiveExamLink = require("../../database/models/ActiveExamLink");
 
 const renderView = require("../utils/renderView");
+const { sign: signAdminToken } = require("../utils/authToken");
 
 // ==========================================
 // VIEW PAGES
@@ -78,14 +79,14 @@ exports.showUpdateStatus = (req, res) => {
 
 // Authenticated current admin profile details
 exports.getCurrentAdmin = (req, res) => {
-    if (!req.session.admin) {
+    if (!req.admin) {
         return res.status(401).json({ error: "Admin authentication required" });
     }
     res.json({
-        _id: req.session.admin._id,
-        username: req.session.admin.username,
-        role: req.session.admin.role,
-        companyName: req.session.admin.companyName || ""
+        _id: req.admin._id,
+        username: req.admin.username,
+        role: req.admin.role,
+        companyName: req.admin.companyName || ""
     });
 };
 
@@ -100,22 +101,14 @@ exports.getAdminsData = async (req, res) => {
     }
 };
 
-// Get list of all student registrations
-exports.getCurrentAdmin = (req, res) => {
-    if (!req.session.admin) {
-        return res.status(401).json({ error: "Unauthorized" });
-    }
-    res.json(req.session.admin);
-};
-
 exports.getRecentActivity = async (req, res) => {
     try {
-        if (!req.session.admin) {
+        if (!req.admin) {
             return res.status(401).json({ error: "Unauthorized" });
         }
 
-        const isSuper = req.session.admin.role === "superadmin";
-        const companyName = req.session.admin.companyName;
+        const isSuper = req.admin.role === "superadmin";
+        const companyName = req.admin.companyName;
 
         let query = {};
         if (!isSuper) {
@@ -197,9 +190,9 @@ exports.getExamSettings = async (req, res) => {
 exports.getQuestionsList = async (req, res) => {
     try {
         let filter = {};
-        const isCompanyAdmin = req.session.admin && req.session.admin.role === "admin";
+        const isCompanyAdmin = req.admin && req.admin.role === "admin";
         const targetCompany = isCompanyAdmin 
-            ? (req.session.admin.companyName || "").trim() 
+            ? (req.admin.companyName || "").trim() 
             : (req.query.company || "").trim();
 
         if (targetCompany && targetCompany.toLowerCase() !== "general") {
@@ -225,12 +218,12 @@ exports.getQuestionsList = async (req, res) => {
 // Unified Batch Placement Analytics API
 exports.getAdminAnalytics = async (req, res) => {
     try {
-        if (!req.session.admin) {
+        if (!req.admin) {
             return res.status(401).json({ error: "Login First" });
         }
 
-        const isSuper = req.session.admin.role === "superadmin";
-        const companyName = req.session.admin.companyName;
+        const isSuper = req.admin.role === "superadmin";
+        const companyName = req.admin.companyName;
 
         let totalStudents = 0;
         let totalCompanies = 0;
@@ -336,13 +329,23 @@ exports.getAdminAnalytics = async (req, res) => {
             if (maxPkg > 0) highestPackage = maxPkg.toFixed(1) + " LPA";
 
             // Department distribution
+            let attributedPlaced = 0;
             allStudents.forEach(st => {
                 const branchKey = normalizeBranch(st.branch);
                 if (!deptMap[branchKey]) deptMap[branchKey] = { total: 0, placed: 0 };
                 deptMap[branchKey].total++;
                 const countForStudent = userSelectionMap[String(st._id)] || 0;
                 deptMap[branchKey].placed += countForStudent;
+                attributedPlaced += countForStudent;
             });
+            // Reconcile: any selected applications whose student record couldn't be
+            // resolved (e.g. deleted student) still need to be reflected somewhere,
+            // otherwise this chart's total silently drops below the real placed count.
+            const unattributedPlaced = selectedAppsCount - attributedPlaced;
+            if (unattributedPlaced > 0) {
+                if (!deptMap["Unmapped"]) deptMap["Unmapped"] = { total: 0, placed: 0 };
+                deptMap["Unmapped"].placed += unattributedPlaced;
+            }
 
             res.json({
                 totalStudents,
@@ -449,6 +452,7 @@ exports.getAdminAnalytics = async (req, res) => {
                 averageScore = results.length > 0 ? Math.round(totalScore / results.length) : 0;
             } catch (rErr) {}
 
+            let attributedCompanyPlaced = 0;
             allStudents.forEach(st => {
                 if (applicantIds.has(String(st._id))) {
                     const branchKey = normalizeBranch(st.branch);
@@ -456,8 +460,14 @@ exports.getAdminAnalytics = async (req, res) => {
                     deptMap[branchKey].total++;
                     const countForStudent = companyUserSelectionMap[String(st._id)] || 0;
                     deptMap[branchKey].placed += countForStudent;
+                    attributedCompanyPlaced += countForStudent;
                 }
             });
+            const unattributedCompanyPlaced = selectedAppsCount - attributedCompanyPlaced;
+            if (unattributedCompanyPlaced > 0) {
+                if (!deptMap["Unmapped"]) deptMap["Unmapped"] = { total: 0, placed: 0 };
+                deptMap["Unmapped"].placed += unattributedCompanyPlaced;
+            }
 
             res.json({
                 totalStudents,
@@ -487,8 +497,8 @@ exports.getAdminAnalytics = async (req, res) => {
 exports.getApplicationsData = async (req, res) => {
     try {
         let query = {};
-        if (req.session.admin && req.session.admin.role !== "superadmin") {
-            const companyName = (req.session.admin.companyName || "").trim();
+        if (req.admin && req.admin.role !== "superadmin") {
+            const companyName = (req.admin.companyName || "").trim();
             if (companyName) {
                 const regexCompany = new RegExp(`^${companyName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")}$`, "i");
                 const myCompanies = await Company.find({ companyName: regexCompany });
@@ -516,14 +526,16 @@ exports.getProctoringData = async (req, res) => {
     try {
         let filter = {};
 
-        if (!req.session.admin) {
+        const adminObj = (req.session && req.session.admin) || req.admin;
+
+        if (!adminObj) {
             return res.status(401).json({ error: "Unauthorized" });
         }
 
-        const isSuper = req.session.admin.role === "superadmin";
+        const isSuper = adminObj.role === "superadmin";
 
         if (!isSuper) {
-            const compName = (req.session.admin.companyName || "").trim();
+            const compName = (adminObj.companyName || "").trim();
             const isGeneralOrEmpty = !compName || compName.toLowerCase() === "general";
 
             if (compName) {
@@ -632,7 +644,7 @@ exports.updateStatus = async (req, res) => {
             return res.status(400).json({ message: "Application ID and Status are required." });
         }
 
-        if (!req.session.admin) {
+        if (!req.admin) {
             return res.status(401).json({ message: "Admin authentication required." });
         }
 
@@ -641,8 +653,8 @@ exports.updateStatus = async (req, res) => {
             return res.status(404).json({ message: "Application record not found." });
         }
 
-        const adminRole = req.session.admin.role;
-        const adminCompany = (req.session.admin.companyName || "").trim().toLowerCase();
+        const adminRole = req.admin.role;
+        const adminCompany = (req.admin.companyName || "").trim().toLowerCase();
         const appCompany = (
             (application.companyId && application.companyId.companyName) || 
             application.companyName || 
@@ -660,7 +672,7 @@ exports.updateStatus = async (req, res) => {
         if (adminRole === "admin") {
             if (!adminCompany || !appCompany || adminCompany !== appCompany) {
                 return res.status(403).json({ 
-                    message: `Forbidden: As ${req.session.admin.companyName} Recruiter, you can only update status for ${req.session.admin.companyName} applications.` 
+                    message: `Forbidden: As ${req.admin.companyName} Recruiter, you can only update status for ${req.admin.companyName} applications.` 
                 });
             }
         }
@@ -684,50 +696,6 @@ exports.updateStatus = async (req, res) => {
     } catch (err) {
         console.error("updateStatus Error:", err);
         res.status(500).json({ message: "Failed to update status." });
-    }
-};
-
-// Get all student results list
-exports.getResultsData = async (req, res) => {
-    try {
-        let query = {};
-        if (req.session.admin && req.session.admin.role !== "superadmin") {
-            query = { companyName: req.session.admin.companyName };
-        }
-        const results = await Result.find(query)
-            .populate("userId")
-            .sort({ createdAt: -1 });
-        res.json(results);
-    } catch (err) {
-        console.log(err);
-        res.status(500).send("Error");
-    }
-};
-
-// Get recent job applications list
-exports.getRecentActivity = async (req, res) => {
-    try {
-        if (!req.session.admin) {
-            return res.status(401).send("Login First");
-        }
-
-        let query = {};
-        if (req.session.admin.role !== "superadmin") {
-            const companyName = req.session.admin.companyName;
-            const myCompanies = await Company.find({ companyName });
-            const myCompanyIds = myCompanies.map(c => c._id);
-            query = { companyId: { $in: myCompanyIds } };
-        }
-
-        const activities = await Application.find(query)
-            .populate('userId')
-            .populate('companyId')
-            .sort({ appliedAt: -1 })
-            .limit(10);
-        res.json(activities);
-    } catch (err) {
-        console.log(err);
-        res.status(500).send("Error");
     }
 };
 
@@ -791,7 +759,7 @@ exports.adminLogin = async (req, res) => {
         const admin = await Admin.findOne({ username });
         if (!admin) {
             console.log(`[DEBUG - Admin Login] Admin NOT found in DB for: "${username}"`);
-            return res.send("Admin Not Found");
+            return res.json({ message: "Admin Not Found" });
         }
 
         console.log(`[DEBUG - Admin Login] Admin found in DB. Stored hash: ${admin.password}`);
@@ -799,27 +767,46 @@ exports.adminLogin = async (req, res) => {
 
         if (!isMatch) {
             console.log(`[DEBUG - Admin Login] Password mismatch for username: "${username}"`);
-            return res.send("Wrong Password");
+            return res.json({ message: "Wrong Password" });
         }
 
-        req.session.admin = {
+        const adminIdentity = {
             _id: admin._id,
             username: admin.username,
             role: admin.role,
             companyName: admin.companyName || ""
         };
 
+        // Session is kept as a fallback for requests that haven't picked up a
+        // per-tab token yet (e.g. the very first navigation right after login).
+        req.session.admin = adminIdentity;
+
+        // A signed, per-tab token is the real fix for multi-tab admin sessions:
+        // the browser only has ONE session cookie shared by every tab, so if a
+        // second admin account logs in from another tab it would otherwise
+        // overwrite this session for everyone. The token is stored client-side
+        // in sessionStorage (isolated per tab) and sent on every subsequent
+        // request from THIS tab, so this tab's identity can never be clobbered
+        // by another tab logging in as someone else.
+        const token = signAdminToken({
+            type: "admin",
+            id: String(admin._id),
+            username: admin.username,
+            role: admin.role,
+            companyName: admin.companyName || ""
+        });
+
         req.session.save((err) => {
             if (err) {
                 console.error("[DEBUG - Admin Login] Session save failed:", err);
-                return res.status(500).send("Session save failed.");
+                return res.status(500).json({ message: "Session save failed." });
             }
             console.log(`[DEBUG - Admin Login] Session saved successfully for: "${username}"`);
-            res.send("Success");
+            res.json({ message: "Success", token, admin: adminIdentity });
         });
     } catch (err) {
         console.log(err);
-        res.send("Login Failed");
+        res.status(500).json({ message: "Login Failed" });
     }
 };
 
@@ -952,8 +939,8 @@ exports.rejectAdminRequest = async (req, res) => {
 exports.addQuestion = async (req, res) => {
     try {
         const { type, subject, question, options, answer, marks, companyName } = req.body;
-        const adminCompany = req.session.admin.role === "admin" 
-            ? req.session.admin.companyName 
+        const adminCompany = req.admin.role === "admin" 
+            ? req.admin.companyName 
             : (companyName || "General");
 
         if (type === "aptitude") {
@@ -1006,7 +993,7 @@ exports.updateQuestion = async (req, res) => {
         const { question, options, answer, marks } = req.body;
         const q = await Question.findById(req.params.id);
         if (!q) return res.status(404).send("Question not found");
-        if (req.session.admin.role === "admin" && q.companyName !== req.session.admin.companyName) {
+        if (req.admin.role === "admin" && q.companyName !== req.admin.companyName) {
             return res.status(403).send("Unauthorized to modify this question");
         }
 
@@ -1029,7 +1016,7 @@ exports.updateTechnicalQuestion = async (req, res) => {
         const { subject, question, options, answer, marks } = req.body;
         const q = await TechnicalQuestion.findById(req.params.id);
         if (!q) return res.status(404).send("Question not found");
-        if (req.session.admin.role === "admin" && q.companyName !== req.session.admin.companyName) {
+        if (req.admin.role === "admin" && q.companyName !== req.admin.companyName) {
             return res.status(403).send("Unauthorized to modify this question");
         }
 
@@ -1052,7 +1039,7 @@ exports.deleteQuestion = async (req, res) => {
     try {
         const q = await Question.findById(req.params.id);
         if (!q) return res.status(404).send("Question not found");
-        if (req.session.admin.role === "admin" && q.companyName !== req.session.admin.companyName) {
+        if (req.admin.role === "admin" && q.companyName !== req.admin.companyName) {
             return res.status(403).send("Unauthorized to delete this question");
         }
         await Question.findByIdAndDelete(req.params.id);
@@ -1068,7 +1055,7 @@ exports.deleteTechnicalQuestion = async (req, res) => {
     try {
         const q = await TechnicalQuestion.findById(req.params.id);
         if (!q) return res.status(404).send("Question not found");
-        if (req.session.admin.role === "admin" && q.companyName !== req.session.admin.companyName) {
+        if (req.admin.role === "admin" && q.companyName !== req.admin.companyName) {
             return res.status(403).send("Unauthorized to delete this question");
         }
         await TechnicalQuestion.findByIdAndDelete(req.params.id);
@@ -1182,8 +1169,8 @@ exports.importQuestions = async (req, res) => {
         }
 
         let targetCompany = (req.body.companyName || "").trim();
-        if (req.session.admin && req.session.admin.role === "admin" && req.session.admin.companyName) {
-            targetCompany = req.session.admin.companyName.trim();
+        if (req.admin && req.admin.role === "admin" && req.admin.companyName) {
+            targetCompany = req.admin.companyName.trim();
         } else if (!targetCompany) {
             targetCompany = "General";
         }
@@ -1319,165 +1306,6 @@ exports.importQuestions = async (req, res) => {
     }
 };
 
-// Download sample Excel template
-exports.downloadQuestionTemplate = (req, res) => {
-    try {
-        const XLSX = require("xlsx");
-        const sampleData = [
-            {
-                "Question": "What is the time complexity of searching in a balanced Binary Search Tree (BST)?",
-                "Option A": "O(1)",
-                "Option B": "O(log n)",
-                "Option C": "O(n)",
-                "Option D": "O(n log n)",
-                "Answer": "O(log n)",
-                "Explanation": "Balanced BST search takes O(log n) time.",
-                "Topic": "Data Structures",
-                "Difficulty": "Easy"
-            },
-            {
-                "Question": "Which SQL statement is used to extract data from a database?",
-                "Option A": "EXTRACT",
-                "Option B": "GET",
-                "Option C": "SELECT",
-                "Option D": "OPEN",
-                "Answer": "SELECT",
-                "Explanation": "The SELECT statement is used to query database records.",
-                "Topic": "Database",
-                "Difficulty": "Easy"
-            }
-        ];
-        const workbook = XLSX.utils.book_new();
-        const sheet = XLSX.utils.json_to_sheet(sampleData);
-        XLSX.utils.book_append_sheet(workbook, sheet, "Questions");
-        const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
-
-        res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        res.setHeader("Content-Disposition", "attachment; filename=Question_Import_Template.xlsx");
-        res.send(buffer);
-    } catch (e) {
-        console.error("Template download error:", e);
-        res.status(500).send("Could not generate template");
-    }
-};
-
-// Add new placement drive target profile details
-exports.addCompany = async (req, res) => {
-    try {
-        const {
-            companyName,
-            jobRole,
-            package,
-            location,
-            eligibility,
-            deadline
-        } = req.body;
-
-        let finalCompanyName = companyName;
-        // Enforce company name if not superadmin
-        if (req.session.admin && req.session.admin.role !== "superadmin") {
-            finalCompanyName = req.session.admin.companyName;
-        }
-
-        const company = new Company({
-            companyName: finalCompanyName,
-            jobRole,
-            package,
-            location,
-            eligibility,
-            deadline
-        });
-
-        await company.save();
-        res.send("Success");
-    } catch (err) {
-        console.log(err);
-        res.status(500).send("Error Adding Company");
-    }
-};
-
-// Update drive application status logs and trigger student notifications
-exports.updateStatus = async (req, res) => {
-    try {
-        const appId = req.body.id || req.params.id || req.body.appId;
-        const status = req.body.status;
-
-        if (!appId || !status) {
-            return res.status(400).json({ message: "Missing application ID or status parameter" });
-        }
-
-        const app = await Application.findById(appId).populate('companyId');
-        if (!app) {
-            return res.status(404).json({ message: "Application not found" });
-        }
-
-        // Verify ownership if company admin (not superadmin)
-        if (req.session.admin && req.session.admin.role !== "superadmin") {
-            if (!app.companyId || app.companyId.companyName !== req.session.admin.companyName) {
-                return res.status(403).json({ message: "Forbidden: You cannot modify this application." });
-            }
-        }
-
-        app.status = status;
-        await app.save();
-
-        await Notification.create({
-            userId: app.userId,
-            title: "Application Status Updated",
-            message: `Your application status for ${app.companyId ? app.companyId.companyName : "company"} has been changed to "${status}".`
-        });
-
-        res.json({ message: "Status Updated Successfully ✅", status });
-    } catch (err) {
-        console.error("Error Updating Status:", err);
-        res.status(500).json({ message: "Error Updating Status: " + err.message });
-    }
-};
-
-// Delete existing administrator (superadmin only)
-exports.deleteAdmin = async (req, res) => {
-    try {
-        const { id } = req.params;
-        // Don't let superadmin delete themselves
-        if (req.session.admin._id === id) {
-            return res.status(400).send("You cannot delete your own account.");
-        }
-        const adminToDelete = await Admin.findById(id);
-        if (!adminToDelete) {
-            return res.status(404).send("Admin not found.");
-        }
-        if (adminToDelete.username === "superadmin") {
-            return res.status(400).send("The main superadmin account cannot be deleted.");
-        }
-        await Admin.findByIdAndDelete(id);
-        res.send("Administrator account deleted successfully.");
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Error deleting administrator.");
-    }
-};
-
-exports.showProctoring = (req, res) => {
-    renderView(res, "proctoring.html");
-};
-
-exports.getProctoringData = async (req, res) => {
-    try {
-        let query = {};
-        if (req.session.admin && req.session.admin.role !== "superadmin") {
-            query = { companyName: req.session.admin.companyName };
-        }
-        const logs = await CheatingLog.find(query)
-            .populate("userId", "name email branch semester")
-            .sort({ createdAt: -1 });
-        res.json(logs);
-    } catch (err) {
-        console.error("Error fetching proctoring data:", err);
-        res.status(500).json({ error: "Failed to load proctoring data" });
-    }
-};
-
-
 exports.exportResultPDF = async (req, res) => {
     try {
         const { resultId } = req.params;
@@ -1486,7 +1314,7 @@ exports.exportResultPDF = async (req, res) => {
             return res.status(404).send("Result not found");
         }
         
-        if (req.session.admin.role !== "superadmin" && result.companyName !== req.session.admin.companyName) {
+        if (req.admin.role !== "superadmin" && result.companyName !== req.admin.companyName) {
             return res.status(403).send("Unauthorized to export this candidate's report");
         }
         
@@ -1621,37 +1449,6 @@ exports.exportResultPDF = async (req, res) => {
     }
 };
 
-exports.getCompaniesList = async (req, res) => {
-    try {
-        const companyDrives = await Company.find({}, { companyName: 1, jobRole: 1 });
-        const adminAccounts = await Admin.find({ role: "admin" }, { companyName: 1 });
-
-        const set = new Map();
-
-        // 1. Include registered placement drives
-        companyDrives.forEach(c => {
-            if (c.companyName && c.companyName.trim()) {
-                set.set(c.companyName.trim().toLowerCase(), { companyName: c.companyName.trim(), jobRole: c.jobRole || "Hiring Drive" });
-            }
-        });
-
-        // 2. Include registered company administrator accounts
-        adminAccounts.forEach(a => {
-            if (a.companyName && a.companyName.trim()) {
-                const key = a.companyName.trim().toLowerCase();
-                if (!set.has(key)) {
-                    set.set(key, { companyName: a.companyName.trim(), jobRole: "Company Account" });
-                }
-            }
-        });
-
-        res.json(Array.from(set.values()));
-    } catch (err) {
-        console.error("Error fetching companies:", err);
-        res.status(500).json({ error: "Failed to load companies" });
-    }
-};
-
 // Export Official Cheating Incident Report PDF (Admin Only)
 exports.exportCheatingReportPDF = async (req, res) => {
     try {
@@ -1742,8 +1539,8 @@ exports.deleteCompany = async (req, res) => {
         }
 
         // Company Admins can only delete their own company drive
-        if (req.session.admin && req.session.admin.role === "admin") {
-            if (req.session.admin.companyName && req.session.admin.companyName.trim().toLowerCase() !== company.companyName.trim().toLowerCase()) {
+        if (req.admin && req.admin.role === "admin") {
+            if (req.admin.companyName && req.admin.companyName.trim().toLowerCase() !== company.companyName.trim().toLowerCase()) {
                 return res.status(403).json({ message: "Unauthorized: You can only delete placement drives for your assigned company." });
             }
         }
@@ -1807,53 +1604,32 @@ exports.deleteStudent = async (req, res) => {
     }
 };
 
-// Export student records & ATS Scores to CSV / Excel
-exports.exportStudents = async (req, res) => {
-    try {
-        const students = await User.find();
-        let csv = "Name,Email,Branch,Semester,CGPA,Skills,ATS Score Rating\n";
-        students.forEach(s => {
-            let atsScoreText = "Not Scanned";
-            if (s.resumeBuffer || s.resume) {
-                const text = `${s.name || ''} ${s.email || ''} ${s.branch || ''} ${s.skills || ''}`.toLowerCase();
-                const keywords = ["react", "node", "javascript", "python", "sql", "mongodb", "git", "rest api", "html", "css", "data structures", "oops", "dbms"];
-                let count = 0;
-                keywords.forEach(k => { if (text.includes(k)) count++; });
-                const matchPct = Math.round((count / keywords.length) * 100);
-                let bonus = 0;
-                if (s.linkedin) bonus += 5;
-                if (s.github) bonus += 5;
-                if (s.cgpa && Number(s.cgpa) >= 7.5) bonus += 10;
-                const score = Math.min(100, Math.max(35, matchPct + bonus + 30));
-                let grade = "B";
-                if (score >= 85) grade = "A+";
-                else if (score >= 75) grade = "A";
-                else if (score >= 60) grade = "B";
-                atsScoreText = `${score}% (Grade ${grade})`;
-            }
-
-            const cleanName = (s.name || '').replace(/,/g, ' ');
-            const cleanSkills = (s.skills || '').replace(/,/g, ' ');
-            csv += `"${cleanName}","${s.email || ''}","${s.branch || ''}","${s.semester || ''}","${s.cgpa || ''}","${cleanSkills}","${atsScoreText}"\n`;
-        });
-
-        res.setHeader("Content-Type", "text/csv");
-        res.setHeader("Content-Disposition", 'attachment; filename="Students_List_ATS.csv"');
-        res.send(csv);
-    } catch (err) {
-        console.error("Export Students Error:", err);
-        res.status(500).send("Error exporting students list.");
-    }
-};
-
 // Get list of all company placement drives
 exports.getCompaniesList = async (req, res) => {
     try {
-        let filter = {};
-        if (req.session.admin && req.session.admin.role === "admin" && req.session.admin.companyName) {
-            filter = { companyName: req.session.admin.companyName };
+        const isCompanyAdmin = req.admin && req.admin.role === "admin" && req.admin.companyName;
+
+        if (isCompanyAdmin) {
+            const compName = req.admin.companyName.trim();
+            const regexComp = new RegExp(`^${compName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")}$`, "i");
+            const companies = await Company.find({ companyName: regexComp });
+            return res.json(companies);
         }
-        const companies = await Company.find(filter);
+
+        // Superadmin: return every registered placement drive, plus any company
+        // that only exists as an admin account (no formal drive created yet) so
+        // it still appears in company-selection dropdowns (e.g. Add/Import Questions).
+        const companies = await Company.find({});
+        const seen = new Set(companies.map(c => (c.companyName || "").trim().toLowerCase()));
+        const adminAccounts = await Admin.find({ role: "admin" }, { companyName: 1 });
+        adminAccounts.forEach(a => {
+            const key = (a.companyName || "").trim().toLowerCase();
+            if (key && !seen.has(key)) {
+                seen.add(key);
+                companies.push({ companyName: a.companyName.trim(), jobRole: "Company Account" });
+            }
+        });
+
         res.json(companies);
     } catch (err) {
         console.error("Error fetching companies list:", err);
@@ -1865,8 +1641,9 @@ exports.getCompaniesList = async (req, res) => {
 exports.getResultsData = async (req, res) => {
     try {
         let filter = {};
-        if (req.session.admin && req.session.admin.role === "admin" && req.session.admin.companyName) {
-            filter = { companyName: req.session.admin.companyName };
+        if (req.admin && req.admin.role === "admin" && req.admin.companyName) {
+            const compName = req.admin.companyName.trim();
+            filter = { companyName: new RegExp(`^${compName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")}$`, "i") };
         }
         const results = await Result.find(filter)
             .populate("userId", "name email branch semester rollNo")
@@ -1960,63 +1737,13 @@ exports.downloadQuestionTemplate = (req, res) => {
     }
 };
 
-// Export Student Test Result PDF Document
-exports.exportResultPDF = async (req, res) => {
-    try {
-        const { resultId } = req.params;
-        const resultDoc = await Result.findById(resultId).populate("userId");
-        if (!resultDoc) {
-            return res.status(404).send("Result record not found.");
-        }
-
-        const PDFDocument = require("pdfkit");
-        const doc = new PDFDocument({ margin: 40 });
-
-        res.setHeader("Content-Type", "application/pdf");
-        res.setHeader("Content-Disposition", `attachment; filename="Result_Report_${resultId}.pdf"`);
-        doc.pipe(res);
-
-        const studentName = resultDoc.userId ? resultDoc.userId.name : "Student Candidate";
-        const email = resultDoc.userId ? resultDoc.userId.email : "N/A";
-        const branch = resultDoc.userId ? resultDoc.userId.branch : "N/A";
-        const pct = resultDoc.percentage !== undefined ? resultDoc.percentage : (resultDoc.totalQuestions ? Math.round((resultDoc.score / resultDoc.totalQuestions) * 100) : 0);
-
-        doc.fillColor("#1e293b").fontSize(22).text("OFFICIAL ASSESSMENT RESULT REPORT", { align: "center" });
-        doc.fontSize(10).fillColor("#64748b").text("Campus Placement & Assessment Portal", { align: "center" });
-        doc.moveDown();
-        doc.strokeColor("#cbd5e1").lineWidth(1).moveTo(40, doc.y).lineTo(550, doc.y).stroke();
-        doc.moveDown();
-
-        doc.fontSize(12).fillColor("#0f172a").text(`Student Candidate: ${studentName}`);
-        doc.text(`Email Address: ${email}`);
-        doc.text(`Department / Branch: ${branch}`);
-        doc.text(`Assessment Type: ${resultDoc.testType || "General Assessment"}`);
-        doc.text(`Company Context: ${resultDoc.companyName || "General"}`);
-        doc.text(`Completed Timestamp: ${new Date(resultDoc.createdAt).toLocaleString()}`);
-
-        doc.moveDown();
-        doc.strokeColor("#cbd5e1").lineWidth(1).moveTo(40, doc.y).lineTo(550, doc.y).stroke();
-        doc.moveDown();
-
-        doc.fontSize(14).fillColor("#1e3a8a").text("Performance Overview", { underline: true });
-        doc.moveDown(0.5);
-        doc.fontSize(12).fillColor("#0f172a").text(`Total Score: ${resultDoc.score} / ${resultDoc.totalQuestions || 10}`);
-        doc.fontSize(14).fillColor(pct >= 60 ? "#10b981" : "#dc2626").text(`Overall Percentage: ${pct}%`);
-
-        doc.end();
-    } catch (err) {
-        console.error("PDF Result Export Error:", err);
-        res.status(500).send("Error exporting result PDF report.");
-    }
-};
-
 // Add / Register a new Company Placement Drive
 exports.addCompany = async (req, res) => {
     try {
         let { companyName, jobRole, package: pkg, location, eligibility, deadline, lastDate } = req.body;
         
-        if (req.session.admin && req.session.admin.role === "admin" && req.session.admin.companyName) {
-            companyName = req.session.admin.companyName;
+        if (req.admin && req.admin.role === "admin" && req.admin.companyName) {
+            companyName = req.admin.companyName;
         }
 
         if (!companyName || !jobRole || !pkg || !location) {
@@ -2045,9 +1772,9 @@ exports.generateSignedLink = async (req, res) => {
         const crypto = require("crypto");
         const { examType, companyName, expiresMinutes, durationMinutes } = req.body;
         
-        const isCompanyAdmin = req.session.admin && req.session.admin.role === "admin" && req.session.admin.companyName;
+        const isCompanyAdmin = req.admin && req.admin.role === "admin" && req.admin.companyName;
         const targetCompany = isCompanyAdmin 
-            ? req.session.admin.companyName 
+            ? req.admin.companyName 
             : ((companyName || "").trim() || "General");
 
         const minutes = parseInt(expiresMinutes || durationMinutes) || 30;
@@ -2060,7 +1787,7 @@ exports.generateSignedLink = async (req, res) => {
             companyName: targetCompany,
             expiresAt,
             isActive: true,
-            createdById: req.session.admin ? req.session.admin._id : null
+            createdById: req.admin ? req.admin._id : null
         });
 
         const baseUrl = `${req.protocol}://${req.get("host")}`;
@@ -2082,8 +1809,8 @@ exports.generateSignedLink = async (req, res) => {
 exports.getActiveLinks = async (req, res) => {
     try {
         let filter = {};
-        if (req.session.admin && req.session.admin.role === "admin" && req.session.admin.companyName) {
-            const compName = req.session.admin.companyName.trim();
+        if (req.admin && req.admin.role === "admin" && req.admin.companyName) {
+            const compName = req.admin.companyName.trim();
             filter.companyName = new RegExp(`^${compName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")}$`, "i");
         }
 
@@ -2141,7 +1868,6 @@ exports.stopLink = async (req, res) => {
 exports.adminLogout = (req, res) => {
     if (req.session) {
         delete req.session.admin;
-        try { sessionStorage.removeItem("active_page_loaded"); } catch(e) {}
         if (!req.session.user) {
             return req.session.destroy(err => {
                 if (err) console.error(err);

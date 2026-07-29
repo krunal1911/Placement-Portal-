@@ -1,7 +1,45 @@
 const ActiveExamLink = require("../../database/models/ActiveExamLink");
+const { verify } = require("../utils/authToken");
+
+function getAdminTokenFromRequest(req) {
+    const authHeader = req.headers && req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) return authHeader.slice(7).trim();
+    if (req.query && req.query.tk) return req.query.tk;
+    if (req.body && req.body.tk) return req.body.tk;
+    return null;
+}
+
+// Cookie-based sessions are shared by EVERY tab in the same browser. If two
+// different admin accounts log in from two tabs, they'd otherwise stomp on the
+// same `req.session.admin`, which is why refreshing one tab could suddenly show
+// the other tab's admin. To keep each tab's identity independent, each tab keeps
+// its own signed token (see frontend/public/responsive.js) and we trust that
+// token over the shared session whenever it's present.
+function resolveAdmin(req) {
+    const token = getAdminTokenFromRequest(req);
+    if (token) {
+        const payload = verify(token);
+        if (payload && payload.type === "admin") {
+            return {
+                _id: payload.id,
+                username: payload.username,
+                role: payload.role,
+                companyName: payload.companyName || ""
+            };
+        }
+        // A token was supplied but is invalid/expired — don't silently fall back
+        // to the shared session, or a stale/foreign identity could leak into
+        // this tab. Treat it as logged out.
+        return null;
+    }
+    // No tab-specific token supplied at all (e.g. this request pre-dates the
+    // per-tab token being issued) — fall back to the cookie session.
+    return req.session.admin || null;
+}
 
 const requireUserOrAdmin = (req, res, next) => {
-    if (!req.session.user && !req.session.admin) {
+    req.admin = resolveAdmin(req);
+    if (!req.session.user && !req.admin) {
         if (req.xhr || (req.headers.accept && req.headers.accept.indexOf('json') > -1)) {
             return res.status(401).json({ error: "Authentication required" });
         }
@@ -22,7 +60,8 @@ const requireUser = (req, res, next) => {
 };
 
 const requireAdmin = (req, res, next) => {
-    if (!req.session.admin) {
+    req.admin = resolveAdmin(req);
+    if (!req.admin) {
         if (req.xhr || (req.headers.accept && req.headers.accept.indexOf('json') > -1)) {
             return res.status(401).json({ error: "Admin authentication required" });
         }
@@ -32,13 +71,14 @@ const requireAdmin = (req, res, next) => {
 };
 
 const requireSuperAdmin = (req, res, next) => {
-    if (!req.session.admin) {
+    req.admin = resolveAdmin(req);
+    if (!req.admin) {
         if (req.xhr || (req.headers.accept && req.headers.accept.indexOf('json') > -1)) {
             return res.status(401).json({ error: "Admin authentication required" });
         }
         return res.redirect('/admin-login');
     }
-    if (req.session.admin.role !== "superadmin") {
+    if (req.admin.role !== "superadmin") {
         if (req.xhr || (req.headers.accept && req.headers.accept.indexOf('json') > -1)) {
             return res.status(403).json({ error: "Forbidden: Super Admin access required" });
         }
