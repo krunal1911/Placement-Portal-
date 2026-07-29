@@ -702,6 +702,21 @@ function setupProctoring() {
         }
     });
 
+    document.addEventListener("keydown", (e) => {
+        if (isExamActive) {
+            if (e.key === "Escape" || e.keyCode === 27) {
+                e.preventDefault();
+                triggerCheatingWarning("ESC Key Pressed", "User pressed ESC key to exit exam mode.");
+            } else if ((e.ctrlKey || e.metaKey) && (e.key === "c" || e.key === "C" || e.key === "v" || e.key === "V")) {
+                e.preventDefault();
+                triggerCheatingWarning("Copy/Paste Shortcut", "User attempted copy/paste keyboard shortcut.");
+            } else if (e.key === "F12" || (e.ctrlKey && e.shiftKey && e.key === "I")) {
+                e.preventDefault();
+                triggerCheatingWarning("Developer Tools", "User attempted to open developer tools.");
+            }
+        }
+    });
+
     document.addEventListener("contextmenu", (e) => {
         if (isExamActive) {
             e.preventDefault();
