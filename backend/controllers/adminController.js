@@ -1839,15 +1839,19 @@ exports.getActiveLinks = async (req, res) => {
 exports.extendLink = async (req, res) => {
     try {
         const { id } = req.params;
-        const minutes = parseInt(req.body.minutes || req.body.durationMinutes) || 15;
         const link = await ActiveExamLink.findById(id);
         if (!link) {
             return res.status(404).json({ success: false, message: "Exam link not found." });
         }
 
-        const currentExp = new Date(link.expiresAt > new Date() ? link.expiresAt : new Date());
+        // Refuse extension if link has already expired or been revoked
+        if (!link.isActive || new Date(link.expiresAt) <= new Date()) {
+            return res.status(400).json({ success: false, message: "Expired or stopped exam links cannot be extended." });
+        }
+
+        const minutes = parseInt(req.body.minutes || req.body.durationMinutes) || 15;
+        const currentExp = new Date(link.expiresAt);
         link.expiresAt = new Date(currentExp.getTime() + minutes * 60 * 1000);
-        link.isActive = true;
         await link.save();
 
         res.json({ success: true, message: `Exam time extended by +${minutes} minutes!`, expiresAt: link.expiresAt });
