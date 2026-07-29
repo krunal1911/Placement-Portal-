@@ -573,7 +573,34 @@ async function logCheatingIncident(incidentType, details) {
 }
 
 function triggerCheatingWarning(incidentType, details) {
-    return;
+    if (!isExamActive) return;
+    
+    warningCount++;
+    
+    if (warningCount >= MAX_WARNINGS) {
+        isExamActive = false;
+        Swal.fire({
+            icon: "error",
+            title: "Test Disqualified & Submitted",
+            html: `⚠️ <b>3 Warning Limit Exceeded!</b><br><br>You have reached <b>${warningCount} out of ${MAX_WARNINGS}</b> warnings due to tab switching / security violations.<br><br>Your assessment is being automatically submitted now.`,
+            confirmButtonText: "Submit Test Now",
+            confirmButtonColor: "#ef4444",
+            allowOutsideClick: false,
+            allowEscapeKey: false
+        }).then(() => {
+            submitTest(true);
+        });
+    } else {
+        Swal.fire({
+            icon: "warning",
+            title: "⚠️ Security Warning Alert",
+            html: `<b>${incidentType} Detected!</b><br><br>Do not switch tabs, exit fullscreen, or leave the assessment window.<br><br><span style="color:#ef4444; font-size:16px; font-weight:bold;">Warning ${warningCount} of ${MAX_WARNINGS}</span><br><small style="color:#64748b;">(Exceeding 3 warnings will automatically submit your test)</small>`,
+            confirmButtonText: "Return to Exam",
+            confirmButtonColor: "#2563eb",
+            allowOutsideClick: false,
+            allowEscapeKey: false
+        });
+    }
 }
 
 function enterFullscreenMode() {
