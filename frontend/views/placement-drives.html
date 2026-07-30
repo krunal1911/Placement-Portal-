@@ -156,12 +156,12 @@ async function applyCompany(id){
     if (!userRes.ok) {
         Swal.fire({
             icon: "info",
-            title: "Login Required",
-            text: "Please login or register to apply for placement drives.",
+            title: "Student Login Required",
+            text: "Please log in as a student to apply for placement drives.",
             showCancelButton: true,
             confirmButtonText: "Login Now",
             cancelButtonText: "Cancel",
-            confirmButtonColor: "#3b82f6"
+            confirmButtonColor: "#2563eb"
         }).then((result) => {
             if (result.isConfirmed) {
                 window.location.href = "/login";
@@ -180,7 +180,35 @@ async function applyCompany(id){
         })
     });
 
+    if (response.status === 401 || response.redirected) {
+        Swal.fire({
+            icon: "warning",
+            title: "Student Session Expired",
+            text: "Your session has expired. Please log in to complete your application.",
+            showCancelButton: true,
+            confirmButtonText: "Login Now",
+            confirmButtonColor: "#2563eb"
+        }).then((res) => {
+            if (res.isConfirmed) window.location.href = "/login";
+        });
+        return;
+    }
+
     const msg = await response.text();
+    if (msg.includes("<!DOCTYPE") || msg.includes("<html")) {
+        Swal.fire({
+            icon: "warning",
+            title: "Student Session Expired",
+            text: "Please log in to complete your application.",
+            showCancelButton: true,
+            confirmButtonText: "Login Now",
+            confirmButtonColor: "#2563eb"
+        }).then((res) => {
+            if (res.isConfirmed) window.location.href = "/login";
+        });
+        return;
+    }
+
     Swal.fire({
         icon: response.ok ? "success" : "warning",
         title: response.ok ? "Application Saved!" : "Application Blocked",

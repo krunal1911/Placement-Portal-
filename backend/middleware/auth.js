@@ -50,8 +50,13 @@ const requireUserOrAdmin = (req, res, next) => {
 
 const requireUser = (req, res, next) => {
     if (!req.session.user) {
-        if (req.xhr || (req.headers.accept && req.headers.accept.indexOf('json') > -1)) {
-            return res.status(401).json({ error: "Authentication required" });
+        const isJsonRequest = req.xhr || 
+            (req.headers.accept && req.headers.accept.indexOf('json') > -1) ||
+            (req.headers['content-type'] && req.headers['content-type'].indexOf('json') > -1) ||
+            req.method === 'POST' || req.method === 'PUT' || req.method === 'DELETE';
+
+        if (isJsonRequest) {
+            return res.status(401).json({ error: "Authentication required. Please log in as a student." });
         }
         const redirectParam = req.query.token ? `?redirect=${encodeURIComponent(req.originalUrl)}` : '';
         return res.redirect(`/login${redirectParam}`);
