@@ -1211,7 +1211,7 @@ textarea {
     }
     nav ul {
         flex-wrap: nowrap !important;
-        flex-direction: column !important;
+        flex-direction: row !important;
     }
 }
 
