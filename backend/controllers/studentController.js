@@ -80,10 +80,11 @@ exports.showMyApplications = (req, res) => {
 // Get Current User Profile details (with profileImage & resume fields)
 exports.getCurrentUser = async (req, res) => {
     try {
-        if (!req.session.user) {
+        const activeUser = req.user || req.session.user;
+        if (!activeUser) {
             return res.status(401).send("Not Logged In");
         }
-        const user = await User.findById(req.session.user._id);
+        const user = await User.findById(activeUser._id || activeUser.id);
         if (!user) {
             return res.status(404).send("User not found");
         }

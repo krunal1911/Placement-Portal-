@@ -27,19 +27,33 @@ function resolveAdmin(req) {
                 companyName: payload.companyName || ""
             };
         }
-        // A token was supplied but is invalid/expired — don't silently fall back
-        // to the shared session, or a stale/foreign identity could leak into
-        // this tab. Treat it as logged out.
         return null;
     }
-    // No tab-specific token supplied at all (e.g. this request pre-dates the
-    // per-tab token being issued) — fall back to the cookie session.
     return req.session.admin || null;
+}
+
+function resolveUser(req) {
+    const token = getAdminTokenFromRequest(req);
+    if (token) {
+        const payload = verify(token);
+        if (payload && payload.type === "user") {
+            return {
+                id: payload.id,
+                _id: payload._id || payload.id,
+                name: payload.name,
+                email: payload.email,
+                branch: payload.branch,
+                semester: payload.semester
+            };
+        }
+    }
+    return req.session.user || null;
 }
 
 const requireUserOrAdmin = (req, res, next) => {
     req.admin = resolveAdmin(req);
-    if (!req.session.user && !req.admin) {
+    req.user = resolveUser(req);
+    if (!req.user && !req.admin) {
         if (req.xhr || (req.headers.accept && req.headers.accept.indexOf('json') > -1)) {
             return res.status(401).json({ error: "Authentication required" });
         }
@@ -49,7 +63,8 @@ const requireUserOrAdmin = (req, res, next) => {
 };
 
 const requireUser = (req, res, next) => {
-    if (!req.session.user) {
+    req.user = resolveUser(req);
+    if (!req.user) {
         const isJsonRequest = req.xhr || 
             (req.headers.accept && req.headers.accept.indexOf('json') > -1) ||
             (req.headers['content-type'] && req.headers['content-type'].indexOf('json') > -1) ||

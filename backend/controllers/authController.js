@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 
 const User = require("../../database/models/User");
 const renderView = require("../utils/renderView");
+const { sign } = require("../utils/authToken");
 
 exports.showRegister = (req, res) => {
     renderView(res, "register.html");
@@ -99,6 +100,16 @@ exports.login = async (req, res) => {
             return res.status(400).send("Invalid Email or Password.");
         }
 
+        const token = sign({
+            type: "user",
+            id: String(user._id),
+            _id: String(user._id),
+            name: user.name,
+            email: user.email,
+            branch: user.branch,
+            semester: user.semester
+        });
+
         req.session.user = {
             id: user._id,
             _id: user._id,
@@ -112,6 +123,9 @@ exports.login = async (req, res) => {
             if (err) {
                 console.error("Session save error:", err);
                 return res.status(500).send("Session save failed. Please try again.");
+            }
+            if (req.xhr || (req.headers.accept && req.headers.accept.indexOf('json') > -1)) {
+                return res.json({ success: true, message: "Login Successful", token });
             }
             res.send("Login Successful");
         });
