@@ -1,8 +1,5 @@
-const mongoose = require('mongoose');
-const TechnicalQuestion = require('./database/models/TechnicalQuestion');
-
-const dbUri = process.env.MONGODB_URI || 'mongodb+srv://desaikrunal2005_db_user:XIdzUVr0oiicYkYl@cluster0.jketbal.mongodb.net/placementPortal';
-mongoose.connect(dbUri);
+const connectDB = require('../config/db');
+const TechnicalQuestion = require('../models/TechnicalQuestion');
 
 async function addQuestions() {
 

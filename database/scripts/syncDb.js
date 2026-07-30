@@ -8,16 +8,16 @@ const CLOUD_URI = process.env.MONGODB_URI || 'mongodb+srv://desaikrunal2005_db_u
 const LOCAL_URI = 'mongodb://127.0.0.1:27017/placementPortal';
 
 // Database Models
-const Admin = require('./database/models/Admin');
-const Company = require('./database/models/company');
-const Question = require('./database/models/Question');
-const TechnicalQuestion = require('./database/models/TechnicalQuestion');
-const ActiveExamLink = require('./database/models/ActiveExamLink');
-const CheatingLog = require('./database/models/CheatingLog');
-const Result = require('./database/models/result');
-const User = require('./database/models/user');
-const Application = require('./database/models/Application');
-const ExamSetting = require('./database/models/ExamSettings');
+const Admin = require('../models/Admin');
+const Company = require('../models/Company');
+const Question = require('../models/Question');
+const TechnicalQuestion = require('../models/TechnicalQuestion');
+const ActiveExamLink = require('../models/ActiveExamLink');
+const CheatingLog = require('../models/CheatingLog');
+const Result = require('../models/result');
+const User = require('../models/User');
+const Application = require('../models/Application');
+const ExamSetting = require('../models/ExamSettings');
 
 async function syncAllData() {
     console.log("==================================================");

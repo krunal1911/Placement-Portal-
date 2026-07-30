@@ -6,6 +6,9 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
+    "seed": "node database/scripts/seedQuestions.js",
+    "sync-db": "node database/scripts/syncDb.js",
+    "add-admin": "node database/scripts/addAdmin.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

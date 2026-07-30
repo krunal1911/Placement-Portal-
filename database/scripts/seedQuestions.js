@@ -1,7 +1,7 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
-const Question = require('./database/models/Question');
-const TechnicalQuestion = require('./database/models/TechnicalQuestion');
+const Question = require('../models/Question');
+const TechnicalQuestion = require('../models/TechnicalQuestion');
 
 const mongoUri = process.env.MONGODB_URI || 'mongodb+srv://desaikrunal2005_db_user:XIdzUVr0oiicYkYl@cluster0.jketbal.mongodb.net/placementPortal';
 

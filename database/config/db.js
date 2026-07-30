@@ -36,7 +36,7 @@ const connectDB = async () => {
                 console.log('✅ MongoDB Connected successfully!');
 
                 try {
-                    const { seedIfEmpty } = require('../../seedQuestions');
+                    const { seedIfEmpty } = require('../scripts/seedQuestions');
                     await seedIfEmpty();
                 } catch (sErr) {}
 
