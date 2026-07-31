@@ -389,6 +389,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     `;
                     ul.insertBefore(closeBtn, ul.firstChild);
                     closeBtn.querySelector(".nav-close-btn").addEventListener("click", closeMenu);
+                    closeBtn.querySelector(".nav-close-btn").addEventListener("touchend", (e) => { e.preventDefault(); closeMenu(); });
                 }
 
                 ul.querySelectorAll("a").forEach(a => {
@@ -403,12 +404,21 @@ document.addEventListener("DOMContentLoaded", () => {
                 document.body.style.overflow = "";
             }
 
+            const toggleHandler = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                ul.classList.contains("open") ? closeMenu() : openMenu();
+            };
+
             hamburger.addEventListener("click", (e) => {
                 e.stopPropagation();
                 ul.classList.contains("open") ? closeMenu() : openMenu();
             });
 
+            hamburger.addEventListener("touchend", toggleHandler);
             overlay.addEventListener("click", closeMenu);
+            overlay.addEventListener("touchend", (e) => { e.preventDefault(); closeMenu(); });
+        }
         }
     }
 });
