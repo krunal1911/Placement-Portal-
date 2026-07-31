@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Login</title>
-
+    <title>Student Login | Placement Portal</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
     <link rel="stylesheet" href="/login.css">
     <link rel="stylesheet" href="/responsive.css?v=103.0">
 </head>
@@ -31,12 +31,19 @@
             </div>
 
             <div class="input-group">
-                <label>Password</label>
-                <input
-                    type="password"
-                    id="password"
-                    placeholder="Enter Password"
-                    required>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <label style="margin-bottom:0;">Password</label>
+                    <button type="button" id="forgotPwdBtn" style="background:none;border:none;color:#2563eb;font-size:13px;font-weight:600;cursor:pointer;padding:0;font-family:inherit;">Forgot Password?</button>
+                </div>
+                <div style="position:relative;">
+                    <input
+                        type="password"
+                        id="password"
+                        placeholder="Enter Password"
+                        required
+                        style="padding-right:44px;">
+                    <button type="button" id="togglePwd" onclick="togglePasswordVisibility()" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:#94a3b8;line-height:1;">👁️</button>
+                </div>
             </div>
 
             <button type="submit" class="login-btn">
@@ -61,6 +68,36 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
+function togglePasswordVisibility() {
+    const pwd = document.getElementById('password');
+    const btn = document.getElementById('togglePwd');
+    if (pwd.type === 'password') {
+        pwd.type = 'text';
+        btn.textContent = '🙈';
+    } else {
+        pwd.type = 'password';
+        btn.textContent = '👁️';
+    }
+}
+
+document.getElementById('forgotPwdBtn').addEventListener('click', function() {
+    Swal.fire({
+        icon: 'info',
+        title: '🔑 Forgot Password?',
+        html: `
+            <div style="text-align:left;font-size:14px;line-height:1.7;">
+                <p style="margin-bottom:12px;">To reset your password, please contact your <strong>Placement Admin</strong> with:</p>
+                <ul style="padding-left:20px;margin-bottom:16px;">
+                    <li>Your registered email address</li>
+                    <li>Your full name & branch</li>
+                </ul>
+                <p style="color:#64748b;font-size:13px;">The admin will reset your password and notify you via email.</p>
+            </div>
+        `,
+        confirmButtonText: 'Got it',
+        confirmButtonColor: '#2563eb',
+    });
+});
 
 document.getElementById("loginForm").addEventListener("submit", async function(e){
 
