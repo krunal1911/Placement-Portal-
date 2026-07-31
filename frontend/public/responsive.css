@@ -568,7 +568,7 @@ textarea {
         background: rgba(255, 255, 255, 0.08) !important;
     }
 
-    nav, header, .navbar, .admin-navbar {
+    nav, header:not(.tcs-header), .navbar, .admin-navbar {
         display: flex !important;
         flex-direction: row !important;
         justify-content: space-between !important;
@@ -587,7 +587,7 @@ textarea {
     }
 
     [data-theme="dark"] nav,
-    [data-theme="dark"] header,
+    [data-theme="dark"] header:not(.tcs-header),
     [data-theme="dark"] .navbar,
     [data-theme="dark"] .admin-navbar {
         background: #0f172a !important;
