@@ -549,23 +549,61 @@ textarea {
     /* Show hamburger, hide desktop nav list */
     .hamburger {
         display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
+        width: 40px !important;
+        height: 40px !important;
+        padding: 0 !important;
+        background: rgba(37, 99, 235, 0.1) !important;
+        border: 1px solid var(--border, #cbd5e1) !important;
+        border-radius: 8px !important;
+        cursor: pointer !important;
+        flex-shrink: 0 !important;
+        margin-left: auto !important;
     }
 
-    nav {
+    [data-theme="dark"] .hamburger {
+        border-color: #334155 !important;
+        background: rgba(255, 255, 255, 0.08) !important;
+    }
+
+    nav, header, .navbar, .admin-navbar {
         display: flex !important;
         flex-direction: row !important;
         justify-content: space-between !important;
         align-items: center !important;
-        padding: 12px 5% !important;
-        flex-wrap: nowrap !important;
+        padding: 12px 16px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
         position: sticky !important;
         top: 0 !important;
         z-index: 1050 !important;
-        gap: 0 !important;
+        gap: 8px !important;
         backdrop-filter: blur(12px) !important;
         -webkit-backdrop-filter: blur(12px) !important;
-        background: var(--bg-nav, var(--bg-card, #ffffff)) !important;
-        border-bottom: 1px solid var(--border) !important;
+        background: var(--bg-nav, #ffffff) !important;
+        border-bottom: 1px solid var(--border, #e2e8f0) !important;
+    }
+
+    [data-theme="dark"] nav,
+    [data-theme="dark"] header,
+    [data-theme="dark"] .navbar,
+    [data-theme="dark"] .admin-navbar {
+        background: #0f172a !important;
+        border-bottom-color: #1e293b !important;
+    }
+
+    .logo, nav .logo, .navbar-brand {
+        font-size: 18px !important;
+        font-weight: 700 !important;
+        white-space: nowrap !important;
+        max-width: calc(100% - 60px) !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        line-height: 1.2 !important;
+        display: flex !important;
+        align-items: center !important;
     }
 
     /* Hide the normal nav list — override ALL per-page CSS */
