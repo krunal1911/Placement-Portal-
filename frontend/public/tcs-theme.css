@@ -12,7 +12,8 @@
     --color-marked-answered: #9b59b6; /* Purple with border/badge */
 }
 
-body.tcs-exam-body {
+body.tcs-exam-body,
+body.tcs-exam-body * {
     margin: 0;
     padding: 0;
     font-family: Arial, sans-serif;
@@ -20,6 +21,12 @@ body.tcs-exam-body {
     color: var(--tcs-text-main);
     overflow: hidden;
     height: 100vh;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
+    -webkit-user-drag: none !important;
+    -webkit-touch-callout: none !important;
 }
 
 /* ================= TCS EXAM HEADER ================= */

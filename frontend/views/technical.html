@@ -11,7 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/responsive.css?v=100.0">
+    <link rel="stylesheet" href="/responsive.css?v=101.0">
 </head>
 <body class="tcs-exam-body">
 
@@ -658,6 +658,23 @@ function setupProctoring() {
             triggerCheatingWarning("Copy Action", "User attempted to cut text.");
         }
     });
+    document.addEventListener("paste", (e) => {
+        if (isExamActive) {
+            e.preventDefault();
+            triggerCheatingWarning("Paste Action", "User attempted to paste content.");
+        }
+    });
+    document.addEventListener("selectstart", (e) => {
+        if (isExamActive) {
+            e.preventDefault();
+            triggerCheatingWarning("Text Selection", "User attempted to select question text.");
+        }
+    });
+    window.addEventListener("pagehide", () => {
+        if (isExamActive) {
+            triggerCheatingWarning("App Switch / Background", "Candidate navigated away or minimized exam window.");
+        }
+    });
 
     const handleScreenshotKey = (e) => {
         if (!isExamActive) return;
@@ -727,6 +744,6 @@ function setupProctoring() {
 
 loadQuestions();
 </script>
-    <script src="/responsive.js?v=100.0"></script>
+    <script src="/responsive.js?v=101.0"></script>
 </body>
 </html>

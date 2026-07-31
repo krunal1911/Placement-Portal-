@@ -48,7 +48,7 @@
             background: #dc2626;
         }
     </style>
-    <link rel="stylesheet" href="/responsive.css?v=100.0">
+    <link rel="stylesheet" href="/responsive.css?v=101.0">
 </head>
 <body>
 
@@ -268,11 +268,11 @@
                     </tr>
             </table>
             <!-- Pagination Controls -->
-            <div id="paginationControls" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: #f8fafc; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 10px;">
+            <div id="paginationControls" style="display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; background: #f8fafc; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 10px;">
                 <div style="font-size: 13px; color: var(--text-muted);" id="paginationInfo">
                     Showing 0 to 0 of 0 questions
                 </div>
-                <div style="display: flex; gap: 6px;" id="paginationButtons">
+                <div style="display: flex; gap: 6px; overflow-x: auto; max-width: 100%; padding-bottom: 4px; -webkit-overflow-scrolling: touch;" id="paginationButtons">
                     <!-- Dynamic buttons will be created here -->
                 </div>
             </div>
@@ -305,7 +305,7 @@
     </div>
 </div>
 
-<script src="/responsive.js?v=100.0"></script>
+<script src="/responsive.js?v=101.0"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 let examQuestions = [];
@@ -443,63 +443,66 @@ function buildPaginationButtons(totalPages) {
     container.innerHTML = "";
     
     if (totalPages <= 1) return;
+
+    function createPageBtn(label, pageNum, isActive = false, isDisabled = false) {
+        const btn = document.createElement("button");
+        btn.innerText = label;
+        btn.style.padding = "6px 12px";
+        btn.style.minWidth = "36px";
+        btn.style.background = isActive ? "var(--primary)" : (isDisabled ? "#e2e8f0" : "var(--primary-light)");
+        btn.style.color = isActive ? "white" : (isDisabled ? "var(--text-muted)" : "var(--primary)");
+        btn.style.border = "none";
+        btn.style.borderRadius = "6px";
+        btn.style.fontWeight = "600";
+        btn.style.fontSize = "13px";
+        btn.style.cursor = isDisabled || isActive ? "default" : "pointer";
+        btn.style.flexShrink = "0";
+        if (!isDisabled && !isActive && pageNum) {
+            btn.onclick = () => {
+                currentPage = pageNum;
+                const type = document.getElementById("type").value;
+                displayQuestions(examQuestions, type);
+            };
+        }
+        return btn;
+    }
     
     // Previous Button
-    const prevBtn = document.createElement("button");
-    prevBtn.innerText = "‹";
-    prevBtn.style.padding = "4px 10px";
-    prevBtn.style.background = currentPage === 1 ? "#e2e8f0" : "var(--primary-light)";
-    prevBtn.style.color = currentPage === 1 ? "var(--text-muted)" : "var(--primary)";
-    prevBtn.style.border = "none";
-    prevBtn.style.borderRadius = "4px";
-    prevBtn.style.fontWeight = "600";
-    prevBtn.style.cursor = currentPage === 1 ? "not-allowed" : "pointer";
-    if (currentPage > 1) {
-        prevBtn.onclick = () => {
-            currentPage--;
-            const type = document.getElementById("type").value;
-            displayQuestions(examQuestions, type);
-        };
+    container.appendChild(createPageBtn("‹ Prev", currentPage - 1, false, currentPage === 1));
+
+    // Smart Page Numbers
+    let pages = [];
+    if (totalPages <= 7) {
+        for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+        pages.push(1);
+        if (currentPage > 3) pages.push("...");
+        const start = Math.max(2, currentPage - 1);
+        const end = Math.min(totalPages - 1, currentPage + 1);
+        for (let i = start; i <= end; i++) {
+            if (!pages.includes(i)) pages.push(i);
+        }
+        if (currentPage < totalPages - 2) pages.push("...");
+        pages.push(totalPages);
     }
-    container.appendChild(prevBtn);
-    
-    // Page Numbers
-    for (let i = 1; i <= totalPages; i++) {
-        const pageBtn = document.createElement("button");
-        pageBtn.innerText = i;
-        pageBtn.style.padding = "4px 10px";
-        pageBtn.style.background = i === currentPage ? "var(--primary)" : "var(--primary-light)";
-        pageBtn.style.color = i === currentPage ? "white" : "var(--primary)";
-        pageBtn.style.border = "none";
-        pageBtn.style.borderRadius = "4px";
-        pageBtn.style.fontWeight = "600";
-        pageBtn.style.cursor = "pointer";
-        pageBtn.onclick = () => {
-            currentPage = i;
-            const type = document.getElementById("type").value;
-            displayQuestions(examQuestions, type);
-        };
-        container.appendChild(pageBtn);
-    }
-    
+
+    pages.forEach(p => {
+        if (p === "...") {
+            const dots = document.createElement("span");
+            dots.innerText = "...";
+            dots.style.padding = "6px 4px";
+            dots.style.color = "var(--text-muted)";
+            dots.style.fontWeight = "600";
+            dots.style.alignSelf = "center";
+            dots.style.flexShrink = "0";
+            container.appendChild(dots);
+        } else {
+            container.appendChild(createPageBtn(p, p, p === currentPage, false));
+        }
+    });
+
     // Next Button
-    const nextBtn = document.createElement("button");
-    nextBtn.innerText = "›";
-    nextBtn.style.padding = "4px 10px";
-    nextBtn.style.background = currentPage === totalPages ? "#e2e8f0" : "var(--primary-light)";
-    nextBtn.style.color = currentPage === totalPages ? "var(--text-muted)" : "var(--primary)";
-    nextBtn.style.border = "none";
-    nextBtn.style.borderRadius = "4px";
-    nextBtn.style.fontWeight = "600";
-    nextBtn.style.cursor = currentPage === totalPages ? "not-allowed" : "pointer";
-    if (currentPage < totalPages) {
-        nextBtn.onclick = () => {
-            currentPage++;
-            const type = document.getElementById("type").value;
-            displayQuestions(examQuestions, type);
-        };
-    }
-    container.appendChild(nextBtn);
+    container.appendChild(createPageBtn("Next ›", currentPage + 1, false, currentPage === totalPages));
 }
 
 // ---------------- EXAM SETTINGS FORM ----------------
