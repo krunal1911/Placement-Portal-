@@ -627,6 +627,25 @@ body.tcs-exam-body {
         padding: 16px !important;
     }
 
+    .tcs-candidate-info {
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 12px !important;
+        padding: 10px 14px !important;
+    }
+    .tcs-candidate-img {
+        width: 50px !important;
+        height: 50px !important;
+    }
+    .tcs-candidate-details h4 {
+        font-size: 14px !important;
+        margin-bottom: 2px !important;
+    }
+    .tcs-candidate-details p {
+        font-size: 11px !important;
+        margin-top: 2px !important;
+    }
+
     .tcs-palette-grid {
         grid-template-columns: repeat(5, 1fr) !important;
         gap: 8px !important;

@@ -1437,4 +1437,30 @@ textarea {
     .btn-group .btn, .actions-row .btn, .card-actions .btn {
         width: 100% !important;
     }
+
+    .filter-bar-card {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+        padding: 16px 14px !important;
+    }
+
+    .filter-bar-card > div {
+        width: 100% !important;
+        margin-top: 0 !important;
+    }
+
+    .filter-bar-card > div[style*="margin-top"] {
+        margin-top: 0 !important;
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 8px !important;
+    }
+
+    .filter-bar-card .btn {
+        flex: 1 !important;
+        width: 100% !important;
+        text-align: center !important;
+        justify-content: center !important;
+    }
 }
