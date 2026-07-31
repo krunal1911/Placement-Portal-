@@ -263,7 +263,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const isAuthPage = path === "/login" || path === "/register" || path === "/admin-login";
         const isExplicitAdminPage = path.startsWith("/admin") || 
                                     path.startsWith("/students") || 
-                                    path.startsWith("/applications") || 
                                     path.startsWith("/proctoring") || 
                                     path.startsWith("/results") || 
                                     path.startsWith("/manage") || 
@@ -301,21 +300,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     ul.appendChild(logoutLi);
                 })
                 .catch(() => {
-                    ul.innerHTML = `
-                        <li><a href="/admin-dashboard" class="${path === '/admin-dashboard' ? 'active' : ''}">Dashboard</a></li>
-                        <li><a href="/applications" class="${path === '/applications' ? 'active' : ''}">Applications</a></li>
-                        <li><a href="/placement-drives" class="${path === '/placement-drives' ? 'active' : ''}">Drives</a></li>
-                        <li><a href="/add-company" class="${path === '/add-company' ? 'active' : ''}">Add Drive</a></li>
-                        <li><a href="/results" class="${path === '/results' ? 'active' : ''}">Results</a></li>
-                    `;
-                    ul.appendChild(themeLi);
-                    ul.appendChild(logoutLi);
+                    // Fallback to student navbar if admin check fails!
+                    renderStudentNavbar();
                 });
         }
 
         function renderStudentNavbar() {
             const logoutLi = document.createElement("li");
-            logoutLi.innerHTML = `<a href="/logout">Logout</a>`;
+            logoutLi.innerHTML = `<a href="/logout">Logout 🚪</a>`;
 
             ul.innerHTML = `
                 <li><a href="/dashboard" ${path === '/dashboard' ? 'class="active"' : ''}>Dashboard</a></li>
@@ -333,17 +325,34 @@ document.addEventListener("DOMContentLoaded", () => {
         } else if (isAuthPage) {
             ul.innerHTML = "";
             ul.appendChild(themeLi);
-        } else if (isExplicitAdminPage) {
-            renderAdminNavbar();
-        } else if (path === "/placement-drives") {
+        } else {
+            // First check if current session is an admin
             fetch("/current-admin")
                 .then(res => {
-                    if (res.ok) renderAdminNavbar();
-                    else renderStudentNavbar();
+                    if (res.ok) {
+                        // Logged in as Admin
+                        if (path === "/applications" || path === "/admin-dashboard" || isExplicitAdminPage || path === "/placement-drives") {
+                            renderAdminNavbar();
+                        } else if (path === "/my-applications") {
+                            window.location.href = "/applications";
+                        } else {
+                            renderAdminNavbar();
+                        }
+                    } else {
+                        // Not an admin -> check student session
+                        if (path === "/applications") {
+                            // Student accidentally visited admin /applications route -> redirect to student applications
+                            window.location.href = "/my-applications";
+                        } else if (isExplicitAdminPage) {
+                            window.location.href = "/admin-login";
+                        } else {
+                            renderStudentNavbar();
+                        }
+                    }
                 })
-                .catch(() => renderStudentNavbar());
-        } else {
-            renderStudentNavbar();
+                .catch(() => {
+                    renderStudentNavbar();
+                });
         }
 
         // Mobile Hamburger Setup
