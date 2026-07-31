@@ -1209,9 +1209,20 @@ textarea {
         flex-direction: row !important;
         padding: 12px 5% !important;
     }
-    nav ul {
-        flex-wrap: nowrap !important;
-        flex-direction: row !important;
+    nav ul.open {
+        display: flex !important;
+        flex-direction: column !important;
+        right: 0 !important;
+        top: 0 !important;
+        height: 100vh !important;
+        width: 280px !important;
+        max-width: 85vw !important;
+        position: fixed !important;
+        background: var(--bg-card, #0f172a) !important;
+        z-index: 10000 !important;
+        padding: 70px 20px 30px !important;
+        gap: 12px !important;
+        box-shadow: -10px 0 30px rgba(0,0,0,0.5) !important;
     }
 }
 

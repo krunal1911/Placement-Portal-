@@ -671,6 +671,17 @@ function enterFullscreenMode() {
 }
 
 function setupProctoring() {
+    try {
+        history.pushState(null, document.title, location.href);
+    } catch (e) {}
+
+    window.addEventListener("popstate", (e) => {
+        if (isExamActive) {
+            history.pushState(null, document.title, location.href);
+            triggerCheatingWarning("Browser Back Button", "Candidate attempted to leave the assessment using browser back button.");
+        }
+    });
+
     document.addEventListener("fullscreenchange", () => {
         if (isExamActive && !document.fullscreenElement) {
             triggerCheatingWarning("Exit Fullscreen", "User exited fullscreen mode.");
@@ -702,20 +713,33 @@ function setupProctoring() {
         }
     });
 
+    const handleScreenshotKey = (e) => {
+        if (!isExamActive) return;
+        if (e.key === "PrintScreen" || e.keyCode === 44 || e.code === "PrintScreen" || (e.metaKey && e.shiftKey && (e.key === "S" || e.key === "s" || e.key === "4" || e.key === "3"))) {
+            if (e.preventDefault) e.preventDefault();
+            try { navigator.clipboard.writeText(""); } catch (err) {}
+            triggerCheatingWarning("Screenshot Attempt", "Candidate attempted screen capture / PrintScreen shortcut.");
+        }
+    };
+
     document.addEventListener("keydown", (e) => {
         if (isExamActive) {
-            if (e.key === "Escape" || e.keyCode === 27) {
+            if (e.key === "PrintScreen" || e.keyCode === 44 || e.code === "PrintScreen") {
+                handleScreenshotKey(e);
+            } else if (e.key === "Escape" || e.keyCode === 27) {
                 e.preventDefault();
                 triggerCheatingWarning("ESC Key Pressed", "User pressed ESC key to exit exam mode.");
-            } else if ((e.ctrlKey || e.metaKey) && (e.key === "c" || e.key === "C" || e.key === "v" || e.key === "V")) {
+            } else if ((e.ctrlKey || e.metaKey) && (e.key === "c" || e.key === "C" || e.key === "v" || e.key === "V" || e.key === "p" || e.key === "P")) {
                 e.preventDefault();
-                triggerCheatingWarning("Copy/Paste Shortcut", "User attempted copy/paste keyboard shortcut.");
-            } else if (e.key === "F12" || (e.ctrlKey && e.shiftKey && e.key === "I")) {
+                triggerCheatingWarning("Copy/Print Shortcut", "User attempted copy/print keyboard shortcut.");
+            } else if (e.key === "F12" || (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "S" || e.key === "C"))) {
                 e.preventDefault();
-                triggerCheatingWarning("Developer Tools", "User attempted to open developer tools.");
+                triggerCheatingWarning("Developer/Snipping Tools", "User attempted to open developer/snipping tools.");
             }
         }
     });
+
+    window.addEventListener("keyup", handleScreenshotKey);
 
     document.addEventListener("contextmenu", (e) => {
         if (isExamActive) {
