@@ -294,6 +294,21 @@ document.addEventListener("DOMContentLoaded", () => {
                 hamburger.classList.add("active");
                 overlay.style.display = "block";
                 document.body.style.overflow = "hidden";
+
+                if (!ul.querySelector(".nav-close-btn")) {
+                    const closeBtn = document.createElement("li");
+                    closeBtn.style.cssText = "display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.1);";
+                    closeBtn.innerHTML = `
+                        <span style="font-weight:700; color:#ffffff; font-size:15px;">🚀 Menu Navigation</span>
+                        <button class="nav-close-btn" style="background:rgba(255,255,255,0.15); border:none; color:#ffffff; font-size:18px; width:36px; height:36px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
+                    `;
+                    ul.insertBefore(closeBtn, ul.firstChild);
+                    closeBtn.querySelector(".nav-close-btn").addEventListener("click", closeMenu);
+                }
+
+                ul.querySelectorAll("a").forEach(a => {
+                    a.addEventListener("click", closeMenu);
+                });
             }
 
             function closeMenu() {
