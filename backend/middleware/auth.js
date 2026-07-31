@@ -29,6 +29,10 @@ function resolveAdmin(req) {
         }
         return null;
     }
+    // If student session is active, do NOT fall back to cookie session admin
+    if (req.session && req.session.user) {
+        return null;
+    }
     return req.session.admin || null;
 }
 
@@ -46,6 +50,11 @@ function resolveUser(req) {
                 semester: payload.semester
             };
         }
+        return null;
+    }
+    // If admin session is active, do NOT fall back to cookie session user
+    if (req.session && req.session.admin) {
+        return null;
     }
     return req.session.user || null;
 }

@@ -753,6 +753,7 @@ exports.adminLogin = async (req, res) => {
         console.log(`[DEBUG - Admin Login] Attempting login. Username: "${username}", Password: "${password}"`);
 
         delete req.session.admin;
+        delete req.session.user;
 
         const admin = await Admin.findOne({ username });
         if (!admin) {

@@ -100,6 +100,8 @@ exports.login = async (req, res) => {
             return res.status(400).send("Invalid Email or Password.");
         }
 
+        delete req.session.admin;
+
         const token = sign({
             type: "user",
             id: String(user._id),
