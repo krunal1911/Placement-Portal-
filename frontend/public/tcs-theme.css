@@ -12,8 +12,7 @@
     --color-marked-answered: #9b59b6; /* Purple with border/badge */
 }
 
-body.tcs-exam-body,
-body.tcs-exam-body * {
+body.tcs-exam-body {
     margin: 0;
     padding: 0;
     font-family: Arial, sans-serif;
@@ -21,6 +20,10 @@ body.tcs-exam-body * {
     color: var(--tcs-text-main);
     overflow: hidden;
     height: 100vh;
+}
+
+body.tcs-exam-body,
+body.tcs-exam-body * {
     -webkit-user-select: none !important;
     -moz-user-select: none !important;
     -ms-user-select: none !important;
@@ -569,25 +572,39 @@ body.tcs-exam-body * {
     }
 
     .tcs-header {
-        padding: 8px 12px !important;
-        height: auto !important;
-        min-height: 50px !important;
+        padding: 10px 14px !important;
+        height: 56px !important;
+        min-height: 56px !important;
+        max-height: 56px !important;
         flex-direction: row !important;
         justify-content: space-between !important;
+        align-items: center !important;
         gap: 8px !important;
+        box-sizing: border-box !important;
+        width: 100% !important;
     }
 
     .tcs-header-title {
         font-size: 13px !important;
         line-height: 1.2 !important;
-        max-width: 60% !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: 38px !important;
         white-space: normal !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        flex: 1 !important;
+        margin: 0 !important;
     }
 
     .tcs-header-timer {
         font-size: 12px !important;
-        padding: 4px 8px !important;
+        padding: 4px 10px !important;
+        height: auto !important;
+        min-height: 0 !important;
         white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        margin: 0 !important;
     }
 
     .tcs-container {
