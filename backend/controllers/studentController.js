@@ -434,27 +434,28 @@ exports.uploadProfileImage = async (req, res) => {
 };
 
 // Upload custom PDF resume → Cloudinary or Local Fallback
+// Upload custom PDF resume → Cloudinary or Local Fallback
 exports.uploadResume = async (req, res) => {
     try {
-        if (!req.session.user) return res.redirect('/login');
+        if (!req.session.user) return res.status(401).send("Login First");
         if (!req.file) return res.status(400).send("No PDF file received.");
 
         const user = await User.findById(req.session.user._id);
         if (!user) return res.status(404).send("User not found");
 
         user.resumeBuffer = req.file.buffer;
-        user.resume = "attached";
+        user.resume = req.file.originalname || "attached_resume.pdf";
         await user.save();
 
         await Notification.create({
             userId: user._id,
             title: "Resume Uploaded",
-            message: "Your resume has been uploaded successfully."
-        });
+            message: `Your resume (${user.resume}) has been uploaded successfully.`
+        }).catch(() => {});
 
         req.session.user.resume = user.resume;
         if (req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'))) {
-            return res.json({ success: true, message: "Resume Uploaded & Attached Successfully!" });
+            return res.json({ success: true, message: "Resume Uploaded & Attached Successfully!", filename: user.resume });
         }
         res.redirect('/resume');
     } catch (err) {
@@ -463,6 +464,73 @@ exports.uploadResume = async (req, res) => {
             return res.status(500).json({ error: "Resume Upload Failed: " + err.message });
         }
         res.status(500).send("Resume Upload Failed: " + err.message);
+    }
+};
+
+// Delete attached resume
+exports.deleteResume = async (req, res) => {
+    try {
+        if (!req.session.user) return res.status(401).send("Login First");
+
+        const user = await User.findById(req.session.user._id);
+        if (!user) return res.status(404).send("User not found");
+
+        user.resume = null;
+        user.resumeBuffer = null;
+        await user.save();
+
+        req.session.user.resume = null;
+
+        await Notification.create({
+            userId: user._id,
+            title: "Resume Deleted",
+            message: "Your active resume has been removed."
+        }).catch(() => {});
+
+        if (req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'))) {
+            return res.json({ success: true, message: "Resume deleted successfully." });
+        }
+        res.status(200).send("Resume deleted successfully.");
+    } catch (err) {
+        console.error("Resume delete error:", err);
+        res.status(500).send("Failed to delete resume: " + err.message);
+    }
+};
+
+// View own uploaded PDF resume
+exports.viewOwnResume = async (req, res) => {
+    try {
+        if (!req.session.user) return res.redirect('/login');
+
+        const user = await User.findById(req.session.user._id);
+        if (!user || !user.resumeBuffer) {
+            return res.status(404).send("No resume PDF found for your account.");
+        }
+
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("Content-Disposition", `inline; filename="${user.resume || 'resume.pdf'}"`);
+        return res.send(user.resumeBuffer);
+    } catch (err) {
+        console.error("View own resume error:", err);
+        return res.status(500).send("Error fetching resume PDF: " + err.message);
+    }
+};
+
+// View student PDF resume (for Admins)
+exports.viewStudentResume = async (req, res) => {
+    try {
+        const { studentId } = req.params;
+        const user = await User.findById(studentId);
+        if (!user || !user.resumeBuffer) {
+            return res.status(404).send("No resume PDF found for this student.");
+        }
+
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("Content-Disposition", `inline; filename="${user.name || 'Student'}_Resume.pdf"`);
+        return res.send(user.resumeBuffer);
+    } catch (err) {
+        console.error("View student resume error:", err);
+        return res.status(500).send("Error fetching student resume PDF: " + err.message);
     }
 };
 

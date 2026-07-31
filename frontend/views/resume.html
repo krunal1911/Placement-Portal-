@@ -688,17 +688,27 @@ async function removeResume() {
     if (result.isConfirmed) {
         try {
             const res = await fetch("/delete-resume", {
-                method: "POST"
+                method: "POST",
+                headers: { "Accept": "application/json" }
             });
             if (res.ok) {
-                showToast("Resume deleted successfully.", "success");
-                loadResume();
+                Swal.fire({
+                    icon: "success",
+                    title: "Resume Deleted",
+                    text: "Your active resume has been removed.",
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+                await loadResume();
+                const atsBox = document.getElementById("atsResultsBox");
+                if (atsBox) atsBox.style.display = "none";
             } else {
-                showToast("Failed to delete resume.", "error");
+                const errText = await res.text();
+                Swal.fire("Error", errText || "Failed to delete resume.", "error");
             }
         } catch (e) {
             console.error(e);
-            showToast("Network error.", "error");
+            Swal.fire("Error", "Network connection error.", "error");
         }
     }
 }
