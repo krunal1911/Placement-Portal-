@@ -166,7 +166,7 @@ exports.getLeaderboardData = async (req, res) => {
             name: 1,
             testsTaken: 1,
             averageScore: 1
-        }).sort({ averageScore: -1 });
+        }).sort({ averageScore: -1, testsTaken: -1 });
         res.json(students);
     } catch (err) {
         console.log(err);

@@ -2,241 +2,175 @@
 <html lang="en">
 
 <head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Leaderboard | Placement Portal</title>
-
-<link rel="icon" type="image/png" href="/favicon.png">
-    <link rel="stylesheet" href="/leaderboard.css">
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard | Placement Portal</title>
     <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="stylesheet" href="/leaderboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="/responsive.css?v=103.0">
 </head>
 
 <body>
 
 <!-- Navigation -->
-
 <nav>
-
-<div class="logo">
-
-?? Placement Portal
-
-</div>
-
-<ul>
-
-<li><a href="/dashboard">Dashboard</a></li>
-<li><a href="/profile">Profile</a></li>
-<li><a href="/placement-drives">Companies</a></li>
+    <div class="logo">
+        🚀 Placement Portal
+    </div>
+    <ul>
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/profile">Profile</a></li>
+        <li><a href="/placement-drives">Companies</a></li>
         <li><a href="/my-applications">Applications</a></li>
-<li><a href="/logout">Logout</a></li>
-
-</ul>
-
+        <li><a href="/leaderboard" class="active">Leaderboard</a></li>
+        <li><a href="/logout">Logout</a></li>
+    </ul>
 </nav>
 
 <!-- Hero -->
-
 <section class="hero">
-
-<h1>?? Student Leaderboard</h1>
-
-<p>
-
-Compete with your classmates and improve your ranking by completing more tests.
-
-</p>
-
+    <h1>🏆 Student Leaderboard</h1>
+    <p>
+        Compete with your classmates and improve your ranking by completing more assessment tests.
+    </p>
 </section>
 
 <!-- Search -->
-
 <section class="search-box">
-
-<input
-type="text"
-id="search"
-placeholder="?? Search Student...">
-
+    <input
+        type="text"
+        id="search"
+        placeholder="🔍 Search Student Name...">
 </section>
 
-<!-- Top 3 -->
-
+<!-- Top 3 Podium -->
 <section id="topThree" class="top-three">
-
 </section>
 
-<!-- Leaderboard -->
-
+<!-- Leaderboard Table -->
 <div class="table-card">
-
-<table>
-
-<thead>
-
-<tr>
-
-<th>Rank</th>
-
-<th>Name</th>
-
-<th>Tests</th>
-
-<th>Average</th>
-
-</tr>
-
-</thead>
-
-<tbody id="leaderboardTable">
-
-</tbody>
-
-</table>
-
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Student Name</th>
+                <th>Tests Completed</th>
+                <th>Average Score</th>
+            </tr>
+        </thead>
+        <tbody id="leaderboardTable">
+        </tbody>
+    </table>
 </div>
 
 <div class="back">
-
-<a href="/dashboard">
-
-? Back to Dashboard
-
-</a>
-
+    <a href="/dashboard">
+        ← Back to Dashboard
+    </a>
 </div>
 
 <script>
+let students = [];
 
-let students=[];
+async function loadLeaderboard() {
+    try {
+        const userRes = await fetch("/current-user");
+        if (!userRes.ok) {
+            document.body.innerHTML = '';
+            Swal.fire({
+                icon: "info",
+                title: "Login Required",
+                text: "Please login or register to view the student leaderboard.",
+                showCancelButton: true,
+                confirmButtonText: "Login Now",
+                cancelButtonText: "Go Back",
+                confirmButtonColor: "#3b82f6"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "/login";
+                } else {
+                    window.location.href = "/";
+                }
+            });
+            return;
+        }
 
-async function loadLeaderboard(){
-    const userRes = await fetch("/current-user");
-    if (!userRes.ok) {
-        document.body.innerHTML = '';
-        Swal.fire({
-            icon: "info",
-            title: "Login Required",
-            text: "Please login or register to view the student leaderboard.",
-            showCancelButton: true,
-            confirmButtonText: "Login Now",
-            cancelButtonText: "Go Back",
-            confirmButtonColor: "#3b82f6"
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = "/login";
-            } else {
-                window.location.href = "/";
-            }
-        });
+        const response = await fetch("/leaderboard-data");
+        if (response.ok) {
+            students = await response.json();
+            displayLeaderboard(students);
+        } else {
+            console.error("Failed to fetch leaderboard data");
+        }
+    } catch (err) {
+        console.error("Error loading leaderboard:", err);
+    }
+}
+
+function displayLeaderboard(data) {
+    let table = "";
+    let top = "";
+
+    if (!data || data.length === 0) {
+        document.getElementById("leaderboardTable").innerHTML = `
+            <tr>
+                <td colspan="4" style="text-align: center; padding: 40px; color: var(--text-muted, #64748b);">
+                    No student rankings found. Be the first to take a test!
+                </td>
+            </tr>
+        `;
+        document.getElementById("topThree").innerHTML = "";
         return;
     }
 
-    const response=await fetch("/leaderboard-data");
+    data.forEach((student, index) => {
+        const medal = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : "#" + (index + 1);
+        const avgScore = Math.round((student.averageScore || 0) * 10) / 10;
+        const testsCount = student.testsTaken || 0;
 
-    students=await response.json();
+        if (index < 3) {
+            top += `
+                <div class="winner">
+                    <div class="medal">${medal}</div>
+                    <h2>${student.name || 'Anonymous Student'}</h2>
+                    <p>${avgScore}% Average Score</p>
+                    <span>${testsCount} Tests Completed</span>
+                </div>
+            `;
+        }
 
-    displayLeaderboard(students);
+        table += `
+            <tr>
+                <td><strong>${medal}</strong></td>
+                <td>${student.name || 'Anonymous Student'}</td>
+                <td>${testsCount}</td>
+                <td>
+                    <div class="progress">
+                        <div class="fill" style="width: ${Math.max(avgScore, 5)}%">
+                            ${avgScore}%
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
 
+    document.getElementById("leaderboardTable").innerHTML = table;
+    document.getElementById("topThree").innerHTML = top;
 }
 
-function displayLeaderboard(data){
-
-let table="";
-
-let top="";
-
-data.forEach((student,index)=>{
-
-const medal=
-
-index==0?"??":
-
-index==1?"??":
-
-index==2?"??":"#"+(index+1);
-
-if(index<3){
-
-top+=`
-
-<div class="winner">
-
-<div class="medal">${medal}</div>
-
-<h2>${student.name}</h2>
-
-<p>${student.averageScore}% Average</p>
-
-<span>${student.testsTaken} Tests</span>
-
-</div>
-
-`;
-
-}
-
-table+=`
-
-<tr>
-
-<td>${medal}</td>
-
-<td>${student.name}</td>
-
-<td>${student.testsTaken}</td>
-
-<td>
-
-<div class="progress">
-
-<div class="fill"
-
-style="width:${student.averageScore}%">
-
-${student.averageScore}%
-
-</div>
-
-</div>
-
-</td>
-
-</tr>
-
-`;
-
-});
-
-document.getElementById("leaderboardTable").innerHTML=table;
-
-document.getElementById("topThree").innerHTML=top;
-
-}
-
-document.getElementById("search").addEventListener("keyup",function(){
-
-const key=this.value.toLowerCase();
-
-const filtered=students.filter(s=>
-
-s.name.toLowerCase().includes(key)
-
-);
-
-displayLeaderboard(filtered);
-
+document.getElementById("search")?.addEventListener("keyup", function () {
+    const key = this.value.toLowerCase().trim();
+    const filtered = students.filter(s =>
+        (s.name || "").toLowerCase().includes(key)
+    );
+    displayLeaderboard(filtered);
 });
 
 loadLeaderboard();
-
 </script>
 
     <script src="/responsive.js?v=103.0"></script>
 </body>
-
 </html>

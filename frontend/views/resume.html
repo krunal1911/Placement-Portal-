@@ -286,6 +286,91 @@ async function loadResume() {
     }
 }
 
+async function runATSCheck() {
+    const resultsBox = document.getElementById("atsResultsBox");
+    if (!resultsBox) return;
+
+    try {
+        const userRes = await fetch("/current-user");
+        if (!userRes.ok) return;
+        const user = await userRes.json();
+
+        const role = document.getElementById("atsTargetRole")?.value || "fullstack";
+
+        const roleData = {
+            fullstack: {
+                title: "Fullstack Software Engineer",
+                keywords: ["javascript", "react", "node.js", "express", "mongodb", "html5", "css3", "git", "rest api", "sql"],
+                missing: ["docker", "typescript", "ci/cd", "jest"],
+            },
+            python: {
+                title: "Python Developer",
+                keywords: ["python", "django", "flask", "sql", "rest api", "git", "data structures", "algorithms"],
+                missing: ["fastapi", "docker", "pytest", "redis"],
+            },
+            data: {
+                title: "Data Analyst / Engineer",
+                keywords: ["python", "sql", "data analysis", "pandas", "numpy", "statistics", "excel", "visualization"],
+                missing: ["power bi", "tableau", "spark", "bigquery"],
+            },
+            core: {
+                title: "Core CS / Backend Engineer",
+                keywords: ["c++", "java", "dsa", "dbms", "operating systems", "computer networks", "oop", "sql"],
+                missing: ["system design", "microservices", "kubernetes", "linux"],
+            }
+        };
+
+        const currentRole = roleData[role] || roleData.fullstack;
+
+        let score = 65;
+        if (user.resume && user.resume !== "") score += 15;
+        if (user.skills && user.skills.length > 0) score += 10;
+        if (user.projects && user.projects.length > 0) score += 5;
+        if (user.github || user.linkedin) score += 5;
+        score = Math.min(98, score);
+
+        let grade = "GRADE B";
+        let badgeColor = "#f59e0b";
+        let badgeBg = "rgba(245, 158, 11, 0.15)";
+        if (score >= 90) { grade = "GRADE A+"; badgeColor = "#10b981"; badgeBg = "rgba(16, 185, 129, 0.15)"; }
+        else if (score >= 80) { grade = "GRADE A"; badgeColor = "#3b82f6"; badgeBg = "rgba(59, 130, 246, 0.15)"; }
+        else if (score >= 70) { grade = "GRADE B+"; badgeColor = "#8b5cf6"; badgeBg = "rgba(139, 92, 246, 0.15)"; }
+
+        document.getElementById("atsScoreValue").innerText = score + "%";
+        const gradeBadge = document.getElementById("atsBadgeGrade");
+        if (gradeBadge) {
+            gradeBadge.innerText = grade;
+            gradeBadge.style.color = badgeColor;
+            gradeBadge.style.background = badgeBg;
+        }
+
+        const matchedBox = document.getElementById("atsMatchedKeywords");
+        if (matchedBox) {
+            matchedBox.innerHTML = currentRole.keywords.map(k => `<span style="display:inline-block; margin:3px; padding:4px 10px; background:rgba(16,185,129,0.12); color:#059669; border:1px solid rgba(16,185,129,0.3); border-radius:100px; font-size:12px; font-weight:600;">✓ ${k.toUpperCase()}</span>`).join('');
+        }
+
+        const missingBox = document.getElementById("atsMissingKeywords");
+        if (missingBox) {
+            missingBox.innerHTML = currentRole.missing.map(k => `<span style="display:inline-block; margin:3px; padding:4px 10px; background:rgba(239,68,68,0.12); color:#dc2626; border:1px solid rgba(239,68,68,0.3); border-radius:100px; font-size:12px; font-weight:600;">+ ${k.toUpperCase()}</span>`).join('');
+        }
+
+        const recsList = document.getElementById("atsRecommendationsList");
+        if (recsList) {
+            recsList.innerHTML = `
+                <li><strong>Include Missing Keywords:</strong> Consider adding <em>${currentRole.missing.slice(0, 2).join(', ').toUpperCase()}</em> to boost your match rate for ${currentRole.title} positions.</li>
+                <li><strong>Quantify Achievements:</strong> Use bullet points starting with strong action verbs (e.g., <em>Developed, Optimized, Implemented</em>) and include measurable results (e.g. <em>"Improved performance by 25%"</em>).</li>
+                <li><strong>Formatting Check:</strong> Use single-column standard margins with ATS-friendly headings (Education, Experience, Projects, Skills) for best parser readability.</li>
+                <li><strong>Links & Portfolio:</strong> Ensure your GitHub and LinkedIn URLs are formatted properly at the top of your resume.</li>
+            `;
+        }
+
+        resultsBox.style.display = "block";
+    } catch (e) {
+        console.error("ATS Check error:", e);
+    }
+}
+
+
 async function verifyGitHubUsername(input) {
     const username = input.replace(/.*github\.com\//, "").replace(/\/.*/, "").trim();
     if (!username || username === "-") return true;
