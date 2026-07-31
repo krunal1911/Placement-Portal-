@@ -1,124 +1,382 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login | Placement Portal</title>
     <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/login.css">
-    <link rel="icon" type="image/png" href="/favicon.png">
     <link rel="stylesheet" href="/responsive.css?v=103.0">
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --primary-glow: rgba(37, 99, 235, 0.15);
+            --secondary: #6366f1;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --bg-glass: rgba(255, 255, 255, 0.95);
+            --shadow-premium: 0 20px 40px -15px rgba(15, 23, 42, 0.12), 0 0 50px -10px rgba(99, 102, 241, 0.05);
+        }
+
+        [data-theme="dark"] {
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --bg-glass: rgba(15, 23, 42, 0.95);
+            --shadow-premium: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
+        }
+
+        [data-theme="dark"] body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%) !important;
+            color: #f8fafc !important;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7ff 0%, #e0e7ff 50%, #e8eaff 100%);
+            background-attachment: fixed;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before, body::after {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            z-index: -1;
+            filter: blur(80px);
+            opacity: 0.6;
+        }
+
+        body::before {
+            background: radial-gradient(circle, #c7d2fe 0%, rgba(199, 210, 254, 0) 70%);
+            top: 10%;
+            left: 15%;
+        }
+
+        body::after {
+            background: radial-gradient(circle, #bfdbfe 0%, rgba(191, 219, 254, 0) 70%);
+            bottom: 10%;
+            right: 15%;
+        }
+
+        .container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-box {
+            width: 100%;
+            max-width: 440px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 40px 32px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: var(--shadow-premium);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .login-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.15), 0 0 60px -5px rgba(99, 102, 241, 0.08);
+        }
+
+        .card-header-switch {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            gap: 12px;
+        }
+
+        .card-header-switch h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: -0.5px;
+            margin-bottom: 0;
+        }
+
+        .switch-portal-btn {
+            font-size: 12px;
+            padding: 8px 14px;
+            background: #eff6ff;
+            color: #2563eb !important;
+            border: 1px solid #bfdbfe;
+            border-radius: 10px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        .switch-portal-btn:hover {
+            background: #dbeafe;
+            border-color: #3b82f6;
+            transform: translateY(-1px);
+        }
+
+        .input-group {
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #cbd5e1;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            font-size: 15px;
+            color: var(--text-main);
+            transition: all 0.2s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #ffffff;
+            box-shadow: 0 0 0 4px var(--primary-glow);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
+            background: linear-gradient(135deg, var(--primary-hover) 0%, #4f46e5 100%);
+        }
+
+        .login-box p {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .login-box a {
+            text-decoration: none;
+            color: var(--primary);
+            font-weight: 600;
+            transition: color 0.15s ease;
+        }
+
+        .request-access-link {
+            font-size: 13px;
+            color: #2563eb !important;
+            font-weight: 600;
+            text-decoration: none;
+            padding: 10px 18px;
+            background: rgba(37, 99, 235, 0.08);
+            border: 1px solid rgba(37, 99, 235, 0.15);
+            border-radius: 10px;
+            display: inline-block;
+            transition: all 0.2s;
+        }
+
+        .request-access-link:hover {
+            background: rgba(37, 99, 235, 0.15);
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 480px) {
+            .login-box {
+                padding: 32px 20px;
+                border-radius: 20px;
+            }
+            .card-header-switch h1 {
+                font-size: 20px;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
 <div class="container">
 
-<div class="login-box">
+    <div class="login-box">
 
-<div class="card-header-switch">
-    <h1>Admin Login</h1>
-    <a href="/login" class="switch-portal-btn">Student Portal ??</a>
-</div>
+        <div class="card-header-switch">
+            <div>
+                <h1>Admin Login</h1>
+                <span style="font-size:12px; color:var(--text-muted, #64748b); font-weight:500;">Secure Portal Access</span>
+            </div>
+            <a href="/login" class="switch-portal-btn">Student Portal 🎓</a>
+        </div>
 
-<form id="adminLoginForm">
+        <form id="adminLoginForm">
 
-<div class="input-group">
+            <div class="input-group">
+                <label for="username">Username / Admin ID</label>
+                <input
+                    type="text"
+                    id="username"
+                    placeholder="Enter Admin Username"
+                    required>
+            </div>
 
-<label>Username</label>
+            <div class="input-group">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <label for="password" style="margin-bottom:0;">Password</label>
+                    <button type="button" id="adminForgotPwdBtn" style="background:none;border:none;color:#2563eb;font-size:13px;font-weight:600;cursor:pointer;padding:0;font-family:inherit;">Forgot Password?</button>
+                </div>
+                <div style="position:relative;">
+                    <input
+                        type="password"
+                        id="password"
+                        placeholder="Enter Password"
+                        required
+                        style="padding-right:44px;">
+                    <button type="button" id="toggleAdminPwd" onclick="toggleAdminPasswordVisibility()" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:#94a3b8;line-height:1;" aria-label="Toggle password visibility">👁️</button>
+                </div>
+            </div>
 
-<input
-type="text"
-id="username"
-placeholder="Enter Username"
-required>
+            <button type="submit" class="login-btn">
+                🔐 Login to Admin Panel
+            </button>
 
-</div>
+        </form>
 
-<div class="input-group">
+        <div style="margin-top: 24px; text-align: center;">
+            <a href="#" id="requestAccessBtn" class="request-access-link">➕ Request Admin Access</a>
+        </div>
 
-<label>Password</label>
+        <p style="margin-top: 20px; text-align: center;">
+            <a href="/" style="color: var(--text-muted); font-size: 13px; text-decoration: none;">← Back to Home</a>
+        </p>
 
-<input
-type="password"
-id="password"
-placeholder="Enter Password"
-required>
-
-</div>
-
-<button class="login-btn">
-
-Login
-
-</button>
-
-</form>
-
-<br>
-<div style="margin-top: 15px; text-align: center;">
-    <a href="#" id="requestAccessBtn" style="font-size: 14px; color: #1e3a8a; text-decoration: underline;">Request Access to Admin Panel</a>
-</div>
-<br>
-
-<a href="/">? Back to Home</a>
-
-</div>
+    </div>
 
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+function toggleAdminPasswordVisibility() {
+    const pwd = document.getElementById('password');
+    const btn = document.getElementById('toggleAdminPwd');
+    if (pwd.type === 'password') {
+        pwd.type = 'text';
+        btn.textContent = '🙈';
+    } else {
+        pwd.type = 'password';
+        btn.textContent = '👁️';
+    }
+}
 
-document.getElementById("adminLoginForm").addEventListener("submit",async(e)=>{
-
-e.preventDefault();
-
-const response=await fetch("/admin-login",{
-
-method:"POST",
-
-headers:{
-
-"Content-Type":"application/json"
-
-},
-
-body:JSON.stringify({
-
-username:document.getElementById("username").value,
-
-password:document.getElementById("password").value
-
-})
-
+document.getElementById('adminForgotPwdBtn').addEventListener('click', function() {
+    Swal.fire({
+        icon: 'info',
+        title: '🔑 Admin Password Reset',
+        html: `
+            <div style="text-align:left;font-size:14px;line-height:1.7;">
+                <p style="margin-bottom:12px;">To reset administrator or recruiter credentials, please contact the <strong>System SuperAdmin</strong>:</p>
+                <ul style="padding-left:20px;margin-bottom:16px;">
+                    <li><strong>SuperAdmin Email:</strong> superadmin@placementportal.edu</li>
+                    <li>Or submit a request via the <em>"Request Access to Admin Panel"</em> form.</li>
+                </ul>
+                <p style="color:#64748b;font-size:13px;">Credentials will be reset after identity verification.</p>
+            </div>
+        `,
+        confirmButtonText: 'Got it',
+        confirmButtonColor: '#2563eb',
+    });
 });
 
-let data;
-try {
-    data = await response.json();
-} catch (e) {
-    alert("Login failed. Please try again.");
-    return;
-}
+document.getElementById("adminLoginForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-if (data.message !== "Success") {
+    const response = await fetch("/admin-login", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            username: document.getElementById("username").value,
+            password: document.getElementById("password").value
+        })
+    });
 
-alert(data.message || "Login failed. Please try again.");
+    let data;
+    try {
+        data = await response.json();
+    } catch (e) {
+        Swal.fire({
+            icon: "error",
+            title: "Login Failed",
+            text: "Server error. Please try again.",
+            confirmButtonColor: "#2563eb"
+        });
+        return;
+    }
 
-return;
+    if (data.message !== "Success") {
+        Swal.fire({
+            icon: "error",
+            title: "Login Failed",
+            text: data.message || "Invalid username or password.",
+            confirmButtonColor: "#2563eb"
+        });
+        return;
+    }
 
-}
+    try {
+        if (data.token) sessionStorage.setItem("portalAuthToken", data.token);
+    } catch (e) {}
 
-// Store this tab's own identity token (sessionStorage is isolated per tab,
-// unlike the shared login cookie) so this tab keeps its own admin identity
-// even if another tab logs in as a different admin.
-try {
-    if (data.token) sessionStorage.setItem("portalAuthToken", data.token);
-} catch (e) {}
-
-window.location.href = "/admin-dashboard" + (data.token ? ("?tk=" + encodeURIComponent(data.token)) : "");
-
+    window.location.href = "/admin-dashboard" + (data.token ? ("?tk=" + encodeURIComponent(data.token)) : "");
 });
 
 document.getElementById("requestAccessBtn").addEventListener("click", (e) => {
@@ -142,7 +400,7 @@ document.getElementById("requestAccessBtn").addEventListener("click", (e) => {
         `,
         showCancelButton: true,
         confirmButtonText: "Submit Request",
-        confirmButtonColor: "#1e3a8a",
+        confirmButtonColor: "#2563eb",
         preConfirm: () => {
             const username = document.getElementById("swal-username").value.trim();
             const password = document.getElementById("swal-password").value.trim();
@@ -169,7 +427,7 @@ document.getElementById("requestAccessBtn").addEventListener("click", (e) => {
                         icon: "success",
                         title: "Request Submitted!",
                         text: "Your admin access request has been sent. The main administrator will review it.",
-                        confirmButtonColor: "#1e3a8a"
+                        confirmButtonColor: "#2563eb"
                     });
                 } else {
                     const err = await response.text();
@@ -177,7 +435,7 @@ document.getElementById("requestAccessBtn").addEventListener("click", (e) => {
                         icon: "error",
                         title: "Submission Failed",
                         text: err || "Could not submit your request.",
-                        confirmButtonColor: "#1e3a8a"
+                        confirmButtonColor: "#2563eb"
                     });
                 }
             } catch (err) {
@@ -186,7 +444,7 @@ document.getElementById("requestAccessBtn").addEventListener("click", (e) => {
                     icon: "error",
                     title: "Network Error",
                     text: "Failed to connect to the server.",
-                    confirmButtonColor: "#1e3a8a"
+                    confirmButtonColor: "#2563eb"
                 });
             }
         }
@@ -198,4 +456,3 @@ document.getElementById("requestAccessBtn").addEventListener("click", (e) => {
 </body>
 
 </html>
-
