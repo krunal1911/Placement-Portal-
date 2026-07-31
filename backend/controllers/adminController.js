@@ -1618,6 +1618,40 @@ exports.deleteStudent = async (req, res) => {
     }
 };
 
+// Reset Student Account Password (Admin / SuperAdmin Only)
+exports.resetStudentPassword = async (req, res) => {
+    try {
+        const { studentId, newPassword } = req.body;
+        if (!studentId || !newPassword || newPassword.trim().length < 4) {
+            return res.status(400).json({ message: "Student ID and a new password (min 4 characters) are required." });
+        }
+
+        const student = await User.findById(studentId);
+        if (!student) {
+            return res.status(404).json({ message: "Student account record not found." });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword.trim(), 10);
+        student.password = hashedPassword;
+        await student.save();
+
+        await Notification.create({
+            userId: student._id,
+            title: "Password Reset by Admin",
+            message: `Your account password has been updated by the Placement Admin to: ${newPassword.trim()}`
+        }).catch(() => {});
+
+        res.json({
+            success: true,
+            message: `Password for "${student.name}" (${student.email}) has been successfully updated to: ${newPassword.trim()}`,
+            newPassword: newPassword.trim()
+        });
+    } catch (err) {
+        console.error("Error resetting student password:", err);
+        res.status(500).json({ message: "Failed to reset student password: " + err.message });
+    }
+};
+
 // Get list of all company placement drives
 exports.getCompaniesList = async (req, res) => {
     try {

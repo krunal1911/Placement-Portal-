@@ -98,6 +98,7 @@ router.delete("/reject-request/:id", requireSuperAdmin, adminController.rejectAd
 // ==========================================
 router.post("/admin-login", adminController.adminLogin);
 router.post("/add-admin", requireSuperAdmin, adminController.addAdmin);
+router.post("/reset-student-password", requireAdmin, adminController.resetStudentPassword);
 router.post("/add-question", requireAdmin, adminController.addQuestion);
 router.post("/exam-settings/:type", requireAdmin, adminController.updateExamSettings);
 router.post("/update-question/:id", requireAdmin, adminController.updateQuestion);
