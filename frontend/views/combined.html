@@ -248,6 +248,10 @@ async function loadQuestions() {
         buildNavigator();
         showQuestion();
         
+        // Activate proctoring immediately on load
+        isExamActive = true;
+        setupProctoring();
+        
         Swal.fire({
             icon: "info",
             title: "Security Proctoring System Active",
@@ -270,8 +274,6 @@ async function loadQuestions() {
         }).then((result) => {
             if (result.isConfirmed) {
                 enterFullscreenMode();
-                isExamActive = true;
-                setupProctoring();
                 startTimer();
             }
         });
