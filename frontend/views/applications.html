@@ -94,8 +94,9 @@
             <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">Search Applications</label>
             <input type="text" id="search" placeholder="🔍 Search by student name, company, or job role..." onkeyup="searchApplications()" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: var(--bg-card); color: var(--text-main);">
         </div>
-        <div style="margin-top: 20px;">
+        <div style="margin-top: 20px; display: flex; gap: 8px;">
             <button class="btn btn-secondary" onclick="resetSearch()" style="padding: 11px 20px; font-size: 13px;">Clear Filter</button>
+            <button class="btn btn-primary" onclick="exportApplicationsCSV()" style="padding: 11px 20px; font-size: 13px; background: #059669; border-color: #059669;">📥 Export to Excel</button>
         </div>
     </div>
 
@@ -311,6 +312,32 @@ async function updateStatus(appId, isMobile = false) {
         console.error(e);
         Swal.fire("Error", "Server connection error", "error");
     }
+}
+
+function exportApplicationsCSV() {
+    if (!allApplications || allApplications.length === 0) {
+        Swal.fire("No Data", "No applications available to export.", "info");
+        return;
+    }
+    let csv = "Student Name,Email,Company,Job Role,CGPA Cutoff,Status,Applied Date\n";
+    allApplications.forEach(app => {
+        const uName = `"${(app.userId?.name || 'N/A').replace(/"/g, '""')}"`;
+        const uEmail = `"${(app.userId?.email || 'N/A').replace(/"/g, '""')}"`;
+        const cName = `"${(app.companyId?.companyName || app.companyName || 'N/A').replace(/"/g, '""')}"`;
+        const cRole = `"${(app.companyId?.jobRole || 'General').replace(/"/g, '""')}"`;
+        const cgpa = app.companyId?.minCGPA || 'N/A';
+        const status = `"${app.status || 'Pending'}"`;
+        const date = `"${new Date(app.appliedAt || app.createdAt || Date.now()).toLocaleDateString()}"`;
+        csv += `${uName},${uEmail},${cName},${cRole},${cgpa},${status},${date}\n`;
+    });
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Placement_Applications_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 
 loadApplications();
