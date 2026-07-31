@@ -30,7 +30,6 @@ nav{
     border-bottom: 1px solid var(--border, #e2e8f0);
     box-shadow:0 2px 20px rgba(0,0,0,.08);
     z-index:1000;
-    backdrop-filter: blur(10px);
 }
 
 .logo{

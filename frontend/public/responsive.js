@@ -290,6 +290,9 @@ document.addEventListener("DOMContentLoaded", () => {
             nav.appendChild(hamburger);
 
             function openMenu() {
+                if (ul.parentNode !== document.body) {
+                    document.body.appendChild(ul);
+                }
                 ul.classList.add("open");
                 hamburger.classList.add("active");
                 overlay.style.display = "block";
