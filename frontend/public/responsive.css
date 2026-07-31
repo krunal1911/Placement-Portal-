@@ -607,7 +607,7 @@ textarea {
     }
 
     /* Hide the normal nav list — override ALL per-page CSS */
-    nav ul {
+    nav ul, ul.nav-drawer {
         display: none !important;
         position: fixed !important;
         top: 0 !important;
@@ -632,18 +632,18 @@ textarea {
         margin: 0 !important;
     }
 
-    nav ul.open {
+    nav ul.open, ul.nav-drawer.open, ul.open {
         display: flex !important;
         right: 0 !important;
     }
 
-    nav ul li {
+    nav ul li, ul.nav-drawer li, ul.open li {
         width: 100% !important;
         margin: 0 !important;
     }
 
-    nav ul li a,
-    nav ul li > a {
+    nav ul li a, ul.nav-drawer li a, ul.open li a,
+    nav ul li > a, ul.nav-drawer li > a, ul.open li > a {
         display: flex !important;
         align-items: center !important;
         padding: 14px 18px !important;
@@ -659,8 +659,8 @@ textarea {
         box-sizing: border-box !important;
     }
 
-    nav ul li a:hover,
-    nav ul li a.active {
+    nav ul li a:hover, ul.nav-drawer li a:hover, ul.open li a:hover,
+    nav ul li a.active, ul.nav-drawer li a.active, ul.open li a.active {
         background: #2563eb !important;
         color: #ffffff !important;
     }

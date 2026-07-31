@@ -180,6 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
             ul = document.createElement("ul");
             nav.appendChild(ul);
         }
+        ul.classList.add("nav-drawer");
 
         const themeLi = document.createElement("li");
         themeLi.className = "nav-theme-toggle";
