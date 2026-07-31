@@ -113,52 +113,24 @@ alt="Profile">
 
 <section class="stats">
 
-<div class="stat-card">
-
+<div class="stat-card animate-in delay-1">
 <h3>📘 Tests Taken</h3>
-
-<h2 id="testsTaken">
-
-0
-
-</h2>
-
+<h2 id="testsTaken"><span class="skeleton skeleton-number" id="skelTestsTaken">&nbsp;</span></h2>
 </div>
 
-<div class="stat-card">
-
+<div class="stat-card animate-in delay-2">
 <h3>🎯 Average Score</h3>
-
-<h2 id="averageScore">
-
-0%
-
-</h2>
-
+<h2 id="averageScore"><span class="skeleton skeleton-number" id="skelAvgScore">&nbsp;</span></h2>
 </div>
 
-<a href="/resume" class="stat-card" style="text-decoration: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-
+<a href="/resume" class="stat-card animate-in delay-3" style="text-decoration: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center;">
 <h3>📑 Resume</h3>
-
-<h2 id="resumeStatus">
-
-Uploaded
-
-</h2>
-
+<h2 id="resumeStatus"><span class="skeleton skeleton-number" id="skelResume">&nbsp;</span></h2>
 </a>
 
-<a href="/my-applications" class="stat-card" style="text-decoration: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-
+<a href="/my-applications" class="stat-card animate-in delay-4" style="text-decoration: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center;">
 <h3>🏢 Companies Applied</h3>
-
-<h2 id="companiesApplied">
-
-0
-
-</h2>
-
+<h2 id="companiesApplied"><span class="skeleton skeleton-number" id="skelCompanies">&nbsp;</span></h2>
 </a>
 
 </section>
@@ -166,43 +138,43 @@ Uploaded
 
 <section class="quick-actions">
 
-    <a href="/aptitude" class="action-card">
+    <a href="/aptitude" class="action-card animate-in delay-1">
         <div class="action-icon">📝</div>
         <h3>Aptitude Test</h3>
         <p>Practice quantitative aptitude questions.</p>
     </a>
 
-    <a href="/technical" class="action-card">
+    <a href="/technical" class="action-card animate-in delay-2">
         <div class="action-icon">💻</div>
         <h3>Technical MCQs</h3>
         <p>Programming, DBMS, OS and CN questions.</p>
     </a>
 
-    <a href="/placement-drives" class="action-card">
+    <a href="/placement-drives" class="action-card animate-in delay-3">
         <div class="action-icon">🏢</div>
         <h3>Placement Drives</h3>
         <p>Apply to available companies.</p>
     </a>
 
-    <a href="/leaderboard" class="action-card">
+    <a href="/leaderboard" class="action-card animate-in delay-4">
         <div class="action-icon">🏆</div>
         <h3>Leaderboard</h3>
         <p>Compare your performance with others.</p>
     </a>
 
-    <a href="/career-guide" class="action-card">
+    <a href="/career-guide" class="action-card animate-in delay-5">
         <div class="action-icon">🧭</div>
         <h3>Career Guide</h3>
         <p>Explore roadmaps and engineering branch guides.</p>
     </a>
 
-    <a href="/mock-interview" class="action-card">
+    <a href="/mock-interview" class="action-card animate-in delay-6">
         <div class="action-icon">🤖</div>
         <h3>AI Mock Interview</h3>
         <p>Live HR & Technical speech/text interview simulator.</p>
     </a>
 
-    <a href="/resume" class="action-card">
+    <a href="/resume" class="action-card animate-in delay-7">
         <div class="action-icon">📑</div>
         <h3>Resume & ATS Scanner</h3>
         <p>Upload your PDF resume & scan your ATS Readability Score.</p>
@@ -313,32 +285,33 @@ async function loadDashboard() {
         document.getElementById("heroProfile").src = profileSrc + "?t=" + Date.now();
 
         // Statistics
-        document.getElementById("testsTaken").innerHTML =
-            user.testsTaken || 0;
+        // Remove skeletons and fill real values
+        function fillStat(id, skelId, value) {
+            const skelEl = document.getElementById(skelId);
+            const el = document.getElementById(id);
+            if (skelEl) skelEl.remove();
+            el.textContent = value;
+        }
 
-        document.getElementById("averageScore").innerHTML =
-            (user.averageScore || 0) + "%";
+        fillStat("testsTaken", "skelTestsTaken", user.testsTaken || 0);
+        fillStat("averageScore", "skelAvgScore", (user.averageScore || 0) + "%");
+        fillStat("resumeStatus", "skelResume", user.resume && user.resume !== "" ? "✅ Uploaded" : "❌ Not Uploaded");
+        fillStat("companiesApplied", "skelCompanies", user.companiesApplied || 0);
 
-        document.getElementById("resumeStatus").innerHTML =
-            user.resume && user.resume !== ""
-            ? "Uploaded"
-            : "Not Uploaded";
-
-        // Company count (if you add later)
-        document.getElementById("companiesApplied").innerHTML =
-            user.companiesApplied || 0;
-
-        
         loadChart(
             user.testsTaken || 0,
             user.averageScore || 0
         );
+
+        // Hide global loader early since data is ready
+        if (typeof window.hidePageLoader === 'function') window.hidePageLoader();
 
     }
 
     catch(err){
 
         console.log(err);
+        if (typeof window.hidePageLoader === 'function') window.hidePageLoader();
 
     }
 

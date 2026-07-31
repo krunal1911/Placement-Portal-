@@ -81,11 +81,83 @@
     }, true);
 })();
 
+// ─── Global Page Loader (Server Warm-Up) ───────────────────────────────────────
+(function injectPageLoader() {
+    const path = window.location.pathname;
+    // Skip loader on exam pages (they have their own loading UI)
+    const skipPages = ['/aptitude', '/technical', '/combined'];
+    if (skipPages.some(p => path.startsWith(p))) return;
+
+    const loader = document.createElement('div');
+    loader.id = 'global-page-loader';
+    loader.innerHTML = `
+        <div class="gpl-card">
+            <div class="gpl-logo">🚀</div>
+            <div class="gpl-title">Placement Portal</div>
+            <div class="gpl-spinner">
+                <div class="gpl-ring"></div>
+            </div>
+            <div class="gpl-text">Loading your dashboard...</div>
+            <div class="gpl-progress"><div class="gpl-bar"></div></div>
+        </div>
+    `;
+
+    const style = document.createElement('style');
+    style.textContent = `
+        #global-page-loader {
+            position: fixed; inset: 0; z-index: 99999;
+            background: var(--bg-main, #f8fafc);
+            display: flex; align-items: center; justify-content: center;
+            transition: opacity 0.4s ease;
+        }
+        [data-theme="dark"] #global-page-loader { background: #0f172a; }
+        .gpl-card { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+        .gpl-logo { font-size: 48px; animation: gplBounce 1s ease-in-out infinite alternate; }
+        @keyframes gplBounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
+        .gpl-title { font-size: 20px; font-weight: 700; color: #2563eb; font-family: 'Inter','Poppins',sans-serif; }
+        .gpl-spinner { width: 48px; height: 48px; position: relative; margin: 8px 0; }
+        .gpl-ring {
+            width: 48px; height: 48px; border-radius: 50%;
+            border: 3px solid rgba(37,99,235,0.15);
+            border-top-color: #2563eb;
+            animation: gplSpin 0.8s linear infinite;
+        }
+        @keyframes gplSpin { to { transform: rotate(360deg); } }
+        .gpl-text { font-size: 13px; color: #64748b; font-family: 'Inter','Poppins',sans-serif; }
+        .gpl-progress { width: 180px; height: 3px; background: rgba(37,99,235,0.1); border-radius: 100px; overflow: hidden; }
+        .gpl-bar { height: 100%; background: linear-gradient(90deg,#2563eb,#6366f1); border-radius: 100px; animation: gplProgress 1.5s ease-in-out infinite; }
+        @keyframes gplProgress { 0%{width:0;margin-left:0} 50%{width:70%;margin-left:0} 100%{width:100%;margin-left:0} }
+        #global-page-loader.gpl-hide { opacity: 0; pointer-events: none; }
+    `;
+    document.head.appendChild(style);
+    document.documentElement.appendChild(loader);
+
+    function hideLoader() {
+        const l = document.getElementById('global-page-loader');
+        if (l) {
+            l.classList.add('gpl-hide');
+            setTimeout(() => { try { l.remove(); } catch(e){} }, 450);
+        }
+    }
+
+    // Hide after max 3s regardless
+    const maxTimer = setTimeout(hideLoader, 3000);
+
+    window.addEventListener('load', () => {
+        clearTimeout(maxTimer);
+        setTimeout(hideLoader, 300);
+    });
+
+    // Expose globally so pages can call it early
+    window.hidePageLoader = hideLoader;
+})();
+
 // ─── Immediate Theme Application (Prevents White/Dark Flicker) ────────────────
 (function applyInitialTheme() {
     const savedTheme = localStorage.getItem("theme") || "light";
     document.documentElement.setAttribute("data-theme", savedTheme);
 })();
+
 
 // ─── Auto Logout on Admin Page Refresh / Reload ───────────────────────────────────
 (function handleAdminRefreshLogout() {

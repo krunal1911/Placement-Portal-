@@ -19,6 +19,62 @@
     --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
+/* ── DARK MODE ── */
+[data-theme="dark"] {
+    --bg-main: #0f172a;
+    --bg-card: #1e293b;
+    --border: #334155;
+    --text-main: #f1f5f9;
+    --text-muted: #94a3b8;
+    --primary-light: rgba(37, 99, 235, 0.15);
+    --shadow-sm: 0 1px 3px 0 rgba(0,0,0,0.4);
+    --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.4);
+    --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.5);
+}
+[data-theme="dark"] body { background: #0f172a; color: #f1f5f9; }
+[data-theme="dark"] nav { background: rgba(15, 23, 42, 0.9) !important; border-color: #334155 !important; }
+[data-theme="dark"] .stat-card { background: #1e293b !important; border-color: #334155 !important; }
+[data-theme="dark"] .action-card { background: #1e293b !important; border-color: #334155 !important; color: #f1f5f9 !important; }
+[data-theme="dark"] .action-card p { color: #94a3b8 !important; }
+[data-theme="dark"] .chart-card,
+[data-theme="dark"] .activity-card { background: #1e293b !important; border-color: #334155 !important; }
+[data-theme="dark"] .notification-panel { background: #1e293b !important; border-color: #334155 !important; }
+[data-theme="dark"] .notification-panel h3 { background: rgba(37,99,235,0.1) !important; }
+[data-theme="dark"] .motivation { background: linear-gradient(135deg, #1e1b4b, #1e3a8a) !important; }
+
+/* ── SKELETON LOADERS ── */
+@keyframes shimmer {
+    0% { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+}
+.skeleton {
+    background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+    background-size: 400px 100%;
+    animation: shimmer 1.4s ease-in-out infinite;
+    border-radius: 8px;
+}
+[data-theme="dark"] .skeleton {
+    background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+    background-size: 400px 100%;
+}
+.skeleton-text { height: 20px; margin-bottom: 8px; }
+.skeleton-number { height: 40px; width: 80px; margin: 8px auto; }
+.skeleton-circle { width: 80px; height: 80px; border-radius: 50%; margin: 0 auto; }
+
+/* ── ENTRANCE ANIMATIONS ── */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.animate-in { animation: fadeInUp 0.5s ease forwards; }
+.delay-1 { animation-delay: 0.1s; opacity: 0; }
+.delay-2 { animation-delay: 0.2s; opacity: 0; }
+.delay-3 { animation-delay: 0.3s; opacity: 0; }
+.delay-4 { animation-delay: 0.4s; opacity: 0; }
+.delay-5 { animation-delay: 0.5s; opacity: 0; }
+.delay-6 { animation-delay: 0.6s; opacity: 0; }
+.delay-7 { animation-delay: 0.7s; opacity: 0; }
+
 * {
     margin: 0;
     padding: 0;
@@ -31,7 +87,9 @@ body {
     color: var(--text-main);
     line-height: 1.5;
     min-height: 100vh;
+    transition: background 0.3s, color 0.3s;
 }
+
 
 /* ================= NAVBAR ================= */
 nav {

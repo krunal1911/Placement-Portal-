@@ -98,6 +98,15 @@
     </div>
 </div>
 
+<!-- Mobile Sticky Bottom Bar -->
+<div class="tcs-mobile-bottom-bar" id="mobileBottomBar" style="display:none;">
+    <button id="mobPrevBtn" onclick="document.getElementById('prevBtn').click()">← Prev</button>
+    <button id="mobClearBtn" onclick="document.getElementById('clearBtn').click()">Clear</button>
+    <button id="mobMarkBtn" onclick="document.getElementById('markBtn').click()" style="background:rgba(243,156,18,0.7)!important;">🔖 Mark</button>
+    <button class="mob-next-btn" id="mobNextBtn" onclick="document.getElementById('nextBtn').click()">Save & Next →</button>
+    <button class="mob-submit-btn" id="mobSubmitBtn" style="display:none;" onclick="document.getElementById('submitBtn').click()">✅ Submit</button>
+</div>
+
 <!-- Results Panel (Unified Center CSS Layout) -->
 <div class="test-container" id="resultsContainer" style="display: none; max-width: 900px; text-align: center; margin: 40px auto;">
     <h1 style="font-size: 28px; color: #059669; font-weight: 700; margin-bottom: 8px;">🎉 Test Completed</h1>
@@ -296,10 +305,23 @@ function showQuestion() {
     if (currentQuestion === questions.length - 1) {
         document.getElementById("nextBtn").style.display = "none";
         document.getElementById("submitBtn").style.display = "inline-flex";
+        // Mobile bottom bar
+        const mobNext = document.getElementById("mobNextBtn");
+        const mobSubmit = document.getElementById("mobSubmitBtn");
+        if (mobNext) mobNext.style.display = "none";
+        if (mobSubmit) mobSubmit.style.display = "flex";
     } else {
         document.getElementById("nextBtn").style.display = "inline-flex";
         document.getElementById("submitBtn").style.display = "none";
+        // Mobile bottom bar
+        const mobNext = document.getElementById("mobNextBtn");
+        const mobSubmit = document.getElementById("mobSubmitBtn");
+        if (mobNext) mobNext.style.display = "flex";
+        if (mobSubmit) mobSubmit.style.display = "none";
     }
+    // Show mobile bottom bar
+    const mbb = document.getElementById("mobileBottomBar");
+    if (mbb) mbb.style.display = "flex";
     
     updateNavigator();
 }

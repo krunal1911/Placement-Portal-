@@ -690,3 +690,99 @@ header.tcs-header .tcs-header-timer {
         gap: 8px !important;
     }
 }
+
+/* ── MOBILE STICKY BOTTOM ACTION BAR ── */
+@media (max-width: 768px) {
+    /* Hide the regular actions bar on mobile */
+    .tcs-actions-bar {
+        display: none !important;
+    }
+
+    /* Add padding so content isn't hidden behind the bottom bar */
+    .tcs-question-area {
+        padding-bottom: 80px !important;
+    }
+
+    /* Sticky bottom nav bar */
+    .tcs-mobile-bottom-bar {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        background: var(--tcs-header-bg, #0f2c59) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 10px 16px !important;
+        z-index: 9000 !important;
+        gap: 8px !important;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.3) !important;
+        border-top: 2px solid #f39c12 !important;
+    }
+
+    .tcs-mobile-bottom-bar button {
+        flex: 1 !important;
+        padding: 10px 8px !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        border-radius: 8px !important;
+        border: 1px solid rgba(255,255,255,0.2) !important;
+        background: rgba(255,255,255,0.1) !important;
+        color: white !important;
+        cursor: pointer !important;
+        transition: background 0.2s !important;
+        min-height: 44px !important;
+    }
+
+    .tcs-mobile-bottom-bar button:hover,
+    .tcs-mobile-bottom-bar button:active {
+        background: rgba(255,255,255,0.2) !important;
+    }
+
+    .tcs-mobile-bottom-bar .mob-next-btn {
+        background: #2563eb !important;
+        border-color: #1d4ed8 !important;
+        flex: 1.5 !important;
+    }
+
+    .tcs-mobile-bottom-bar .mob-submit-btn {
+        background: #10b981 !important;
+        border-color: #059669 !important;
+        flex: 1.5 !important;
+    }
+
+    /* Compact question palette on mobile */
+    .tcs-palette-btn {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 12px !important;
+    }
+
+    /* Make exam body scrollable on mobile */
+    body.tcs-exam-body {
+        overflow: auto !important;
+        height: auto !important;
+    }
+
+    .tcs-container {
+        flex-direction: column !important;
+        overflow: auto !important;
+        height: auto !important;
+    }
+
+    .tcs-left-panel {
+        height: auto !important;
+        overflow: visible !important;
+    }
+}
+
+/* Desktop: always show actions bar, never show mobile bar */
+@media (min-width: 769px) {
+    .tcs-mobile-bottom-bar {
+        display: none !important;
+    }
+    .tcs-actions-bar {
+        display: flex !important;
+    }
+}
+

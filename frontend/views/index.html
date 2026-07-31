@@ -1,219 +1,553 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Placement Preparation Portal</title>
-
-    <link rel="stylesheet" href="/style.css">
+    <title>Placement Portal — Prepare Smarter. Get Placed Faster.</title>
+    <meta name="description" content="AI-powered placement preparation portal with aptitude tests, technical MCQs, resume management, mock interviews, leaderboards and career guidance.">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://kit.fontawesome.com/6d2ea823d0.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="/responsive.css?v=103.0">
-</head>
+    <link rel="stylesheet" href="/style.css?v=10.0">
+    <link rel="stylesheet" href="/responsive.css?v=104.0">
 
+    <style>
+        /* ── LANDING PAGE PREMIUM STYLES ── */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --accent: #6366f1;
+            --accent2: #8b5cf6;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --bg-main: #f8fafc;
+            --bg-card: #ffffff;
+            --border: #e2e8f0;
+        }
+        [data-theme="dark"] {
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --border: #334155;
+        }
+        [data-theme="dark"] body { background: #0f172a; color: #f1f5f9; }
+        [data-theme="dark"] .hero-badge { background: rgba(99,102,241,0.15); color: #a5b4fc; border-color: rgba(99,102,241,0.3); }
+        [data-theme="dark"] .feature-card { background: #1e293b; border-color: #334155; }
+        [data-theme="dark"] .feature-card:hover { border-color: var(--primary); }
+        [data-theme="dark"] .stat-box { background: #1e293b; border-color: #334155; }
+        [data-theme="dark"] .testimonial-card { background: #1e293b; border-color: #334155; }
+        [data-theme="dark"] .cta-section { background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%); }
+        [data-theme="dark"] footer { background: #020617; }
+        [data-theme="dark"] .hero-floating-card { background: #1e293b; border-color: #334155; }
+        [data-theme="dark"] .floating-pill { background: #1e293b; border-color: #334155; color: #f1f5f9; }
+
+        html { scroll-behavior: smooth; }
+        body { background: var(--bg-main); color: var(--text-main); overflow-x: hidden; transition: background 0.3s, color 0.3s; }
+
+        /* ── NAVBAR ── */
+        nav {
+            width: 100%; display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 6%; position: fixed; top: 0; left: 0; z-index: 1000;
+            background: rgba(248,250,252,0.85); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border); transition: all 0.3s ease;
+        }
+        nav.scrolled { box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+        [data-theme="dark"] nav { background: rgba(15,23,42,0.85); }
+        .logo { font-size: 22px; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+        .logo span { background: linear-gradient(135deg, #2563eb, #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        nav ul { list-style: none; display: flex; align-items: center; gap: 8px; }
+        nav ul a { text-decoration: none; color: var(--text-muted); font-weight: 500; font-size: 14px; padding: 8px 14px; border-radius: 8px; transition: all 0.2s; }
+        nav ul a:hover { color: var(--primary); background: rgba(37,99,235,0.08); }
+        .nav-cta { background: var(--primary) !important; color: white !important; border-radius: 10px !important; padding: 8px 18px !important; font-weight: 600 !important; }
+        .nav-cta:hover { background: var(--primary-hover) !important; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37,99,235,0.3) !important; }
+
+        /* ── HERO ── */
+        .hero {
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            padding: 100px 6% 60px; position: relative; overflow: hidden;
+            background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(99,102,241,0.12) 0%, transparent 60%),
+                        radial-gradient(ellipse 60% 50% at 80% 60%, rgba(37,99,235,0.08) 0%, transparent 50%),
+                        var(--bg-main);
+        }
+        [data-theme="dark"] .hero {
+            background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(99,102,241,0.2) 0%, transparent 60%),
+                        radial-gradient(ellipse 60% 50% at 80% 60%, rgba(37,99,235,0.12) 0%, transparent 50%),
+                        #0f172a;
+        }
+        .hero-blob { position: absolute; border-radius: 50%; filter: blur(80px); animation: floatBlob 8s ease-in-out infinite; pointer-events: none; z-index: 0; }
+        .blob1 { width: 500px; height: 500px; background: rgba(99,102,241,0.08); top: -100px; right: -100px; animation-delay: 0s; }
+        .blob2 { width: 400px; height: 400px; background: rgba(37,99,235,0.06); bottom: -50px; left: -80px; animation-delay: 3s; }
+        @keyframes floatBlob { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(20px,-20px) scale(1.05); } }
+
+        .hero-content { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; max-width: 1200px; width: 100%; position: relative; z-index: 1; }
+        .hero-left { display: flex; flex-direction: column; gap: 24px; }
+
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px;
+            background: rgba(37,99,235,0.08); border: 1px solid rgba(37,99,235,0.2);
+            border-radius: 100px; font-size: 13px; font-weight: 600; color: var(--primary);
+            width: fit-content; animation: fadeInUp 0.6s ease;
+        }
+        .hero-badge .dot { width: 6px; height: 6px; background: #10b981; border-radius: 50%; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        .hero-title {
+            font-size: clamp(40px, 6vw, 68px); font-weight: 900; line-height: 1.1;
+            letter-spacing: -2px; color: var(--text-main); animation: fadeInUp 0.7s ease;
+        }
+        .hero-title .gradient-text {
+            background: linear-gradient(135deg, #2563eb 0%, #6366f1 50%, #8b5cf6 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .hero-desc { font-size: 18px; color: var(--text-muted); line-height: 1.7; max-width: 520px; animation: fadeInUp 0.8s ease; }
+        .hero-actions { display: flex; gap: 16px; flex-wrap: wrap; animation: fadeInUp 0.9s ease; }
+        .btn-primary {
+            display: inline-flex; align-items: center; gap: 8px; padding: 16px 32px;
+            background: linear-gradient(135deg, #2563eb, #6366f1); color: white; text-decoration: none;
+            border-radius: 14px; font-weight: 700; font-size: 16px; transition: all 0.3s;
+            box-shadow: 0 4px 20px rgba(37,99,235,0.35);
+        }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(37,99,235,0.45); }
+        .btn-secondary {
+            display: inline-flex; align-items: center; gap: 8px; padding: 16px 32px;
+            background: var(--bg-card); color: var(--text-main); text-decoration: none;
+            border-radius: 14px; font-weight: 600; font-size: 16px; transition: all 0.3s;
+            border: 1.5px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .btn-secondary:hover { transform: translateY(-3px); border-color: var(--primary); color: var(--primary); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+
+        .hero-trust { display: flex; align-items: center; gap: 16px; animation: fadeInUp 1s ease; }
+        .trust-avatars { display: flex; }
+        .trust-avatars span { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #2563eb, #6366f1); border: 2px solid white; display: flex; align-items: center; justify-content: center; font-size: 14px; margin-left: -10px; color: white; font-weight: 700; }
+        .trust-avatars span:first-child { margin-left: 0; }
+        .trust-text { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+        .trust-text strong { color: var(--text-main); }
+
+        /* Hero Right - Floating Card */
+        .hero-right { position: relative; display: flex; justify-content: center; align-items: center; animation: fadeInRight 1s ease; }
+        .hero-floating-card {
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 24px;
+            padding: 32px; box-shadow: 0 25px 60px rgba(0,0,0,0.12); width: 100%; max-width: 380px;
+            position: relative; z-index: 2;
+        }
+        .hero-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+        .hero-card-logo { width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #2563eb, #6366f1); display: flex; align-items: center; justify-content: center; font-size: 22px; }
+        .hero-card-title { font-size: 18px; font-weight: 700; color: var(--text-main); }
+        .hero-card-sub { font-size: 12px; color: var(--text-muted); }
+        .hero-card-features { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+        .hero-feature-row { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg-main); border-radius: 12px; }
+        [data-theme="dark"] .hero-feature-row { background: #0f172a; }
+        .hf-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+        .hf-text { font-size: 13px; font-weight: 600; color: var(--text-main); }
+        .hf-sub { font-size: 11px; color: var(--text-muted); }
+        .hero-card-score { background: linear-gradient(135deg, #10b981, #059669); border-radius: 12px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; }
+        .score-label { font-size: 12px; color: rgba(255,255,255,0.8); font-weight: 500; }
+        .score-value { font-size: 28px; font-weight: 800; color: white; }
+
+        /* Floating pills around card */
+        .floating-pill {
+            position: absolute; background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 100px; padding: 8px 16px; font-size: 12px; font-weight: 600;
+            color: var(--text-main); box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            display: flex; align-items: center; gap: 6px; white-space: nowrap;
+            animation: floatPill 4s ease-in-out infinite;
+        }
+        .pill1 { top: 5%; right: -5%; animation-delay: 0s; }
+        .pill2 { bottom: 15%; left: -8%; animation-delay: 1.5s; }
+        .pill3 { top: 55%; right: -10%; animation-delay: 0.8s; }
+        @keyframes floatPill { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInRight { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+
+        /* ── STATS ── */
+        .stats-section { padding: 80px 6%; background: var(--bg-card); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+        [data-theme="dark"] .stats-section { background: #1e293b; border-color: #334155; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; max-width: 900px; margin: 0 auto; }
+        .stat-box { text-align: center; }
+        .stat-number { font-size: 48px; font-weight: 900; background: linear-gradient(135deg, #2563eb, #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; letter-spacing: -2px; }
+        .stat-label { font-size: 14px; color: var(--text-muted); font-weight: 500; margin-top: 8px; }
+
+        /* ── FEATURES ── */
+        .features-section { padding: 100px 6%; }
+        .section-tag { display: inline-block; padding: 6px 16px; background: rgba(37,99,235,0.08); color: var(--primary); border-radius: 100px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+        .section-title { font-size: clamp(32px, 4vw, 48px); font-weight: 800; color: var(--text-main); letter-spacing: -1px; margin-bottom: 16px; }
+        .section-desc { font-size: 18px; color: var(--text-muted); max-width: 580px; line-height: 1.7; }
+        .section-header { margin-bottom: 60px; }
+
+        .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        .feature-card {
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px;
+            padding: 32px; transition: all 0.3s ease; text-decoration: none; color: inherit;
+            display: block; position: relative; overflow: hidden;
+        }
+        .feature-card::before {
+            content: ''; position: absolute; inset: 0; opacity: 0; transition: opacity 0.3s;
+            background: linear-gradient(135deg, rgba(37,99,235,0.03), rgba(99,102,241,0.03));
+        }
+        .feature-card:hover { transform: translateY(-6px); border-color: rgba(37,99,235,0.3); box-shadow: 0 20px 40px rgba(37,99,235,0.1); }
+        .feature-card:hover::before { opacity: 1; }
+        .feature-icon-wrap { width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 20px; }
+        .feature-card h3 { font-size: 18px; font-weight: 700; color: var(--text-main); margin-bottom: 10px; }
+        .feature-card p { font-size: 14px; color: var(--text-muted); line-height: 1.7; margin-bottom: 16px; }
+        .feature-link-text { font-size: 13px; font-weight: 600; color: var(--primary); display: flex; align-items: center; gap: 4px; transition: gap 0.2s; }
+        .feature-card:hover .feature-link-text { gap: 8px; }
+
+        /* ── TESTIMONIALS ── */
+        .testimonials-section { padding: 100px 6%; background: var(--bg-card); border-top: 1px solid var(--border); }
+        [data-theme="dark"] .testimonials-section { background: #1e293b; border-color: #334155; }
+        .testimonials-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 60px; }
+        .testimonial-card { background: var(--bg-main); border: 1px solid var(--border); border-radius: 20px; padding: 28px; transition: all 0.3s; }
+        [data-theme="dark"] .testimonial-card { background: #0f172a; border-color: #334155; }
+        .testimonial-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,0.08); }
+        .stars { color: #f59e0b; font-size: 16px; margin-bottom: 16px; }
+        .testimonial-text { font-size: 14px; color: var(--text-muted); line-height: 1.8; margin-bottom: 20px; font-style: italic; }
+        .testimonial-author { display: flex; align-items: center; gap: 12px; }
+        .author-avatar { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: white; flex-shrink: 0; }
+        .author-name { font-size: 14px; font-weight: 700; color: var(--text-main); }
+        .author-detail { font-size: 12px; color: var(--text-muted); }
+
+        /* ── CTA SECTION ── */
+        .cta-section { padding: 100px 6%; background: linear-gradient(135deg, #1e1b4b 0%, #1e3a8a 50%, #0f172a 100%); text-align: center; position: relative; overflow: hidden; }
+        .cta-blob { position: absolute; border-radius: 50%; filter: blur(100px); pointer-events: none; }
+        .cta-blob1 { width: 400px; height: 400px; background: rgba(99,102,241,0.3); top: -100px; left: -100px; }
+        .cta-blob2 { width: 300px; height: 300px; background: rgba(37,99,235,0.25); bottom: -80px; right: -80px; }
+        .cta-section h2 { font-size: clamp(32px, 5vw, 56px); font-weight: 800; color: white; margin-bottom: 16px; letter-spacing: -1.5px; position: relative; z-index: 1; }
+        .cta-section p { font-size: 18px; color: rgba(255,255,255,0.7); margin-bottom: 40px; position: relative; z-index: 1; }
+        .cta-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; position: relative; z-index: 1; }
+        .btn-white { display: inline-flex; align-items: center; gap: 8px; padding: 16px 36px; background: white; color: #1e1b4b; text-decoration: none; border-radius: 14px; font-weight: 700; font-size: 16px; transition: all 0.3s; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+        .btn-white:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
+        .btn-outline-white { display: inline-flex; align-items: center; gap: 8px; padding: 16px 36px; background: rgba(255,255,255,0.1); color: white; text-decoration: none; border-radius: 14px; font-weight: 600; font-size: 16px; transition: all 0.3s; border: 1.5px solid rgba(255,255,255,0.3); }
+        .btn-outline-white:hover { background: rgba(255,255,255,0.2); transform: translateY(-3px); }
+
+        /* ── FOOTER ── */
+        footer { background: #020617; color: rgba(255,255,255,0.6); padding: 60px 6% 30px; }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 48px; }
+        .footer-brand .logo { font-size: 20px; color: white; margin-bottom: 16px; }
+        .footer-brand p { font-size: 14px; line-height: 1.8; max-width: 280px; }
+        .footer-col h4 { font-size: 13px; font-weight: 700; color: white; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; }
+        .footer-col a { display: block; font-size: 14px; color: rgba(255,255,255,0.55); text-decoration: none; margin-bottom: 10px; transition: color 0.2s; }
+        .footer-col a:hover { color: white; }
+        .footer-bottom { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: gap; gap: 16px; }
+        .footer-bottom p { font-size: 13px; }
+        .tech-stack { display: flex; gap: 8px; flex-wrap: wrap; }
+        .tech-tag { padding: 4px 10px; background: rgba(255,255,255,0.08); border-radius: 6px; font-size: 11px; color: rgba(255,255,255,0.5); font-weight: 500; }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 1024px) {
+            .hero-content { grid-template-columns: 1fr; text-align: center; gap: 60px; }
+            .hero-left { align-items: center; }
+            .hero-desc { max-width: 100%; }
+            .floating-pill { display: none; }
+            .features-grid { grid-template-columns: repeat(2, 1fr); }
+            .footer-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 768px) {
+            .hero { padding: 100px 5% 60px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 30px; }
+            .features-grid { grid-template-columns: 1fr; }
+            .testimonials-grid { grid-template-columns: 1fr; }
+            .hero-actions { justify-content: center; }
+            .hero-trust { justify-content: center; }
+            .footer-grid { grid-template-columns: 1fr; gap: 32px; }
+            .footer-bottom { flex-direction: column; text-align: center; }
+        }
+        @media (max-width: 480px) {
+            .hero-title { font-size: 36px; letter-spacing: -1px; }
+            .btn-primary, .btn-secondary { padding: 14px 24px; font-size: 15px; }
+            .stat-number { font-size: 38px; }
+        }
+    </style>
+</head>
 <body>
 
-<nav>
-
-    <div class="logo">
-        🚀 Placement Portal
-    </div>
-
+<nav id="mainNav">
+    <div class="logo">🚀 <span>Placement Portal</span></div>
     <ul>
-
-        <li><a href="#">Home</a></li>
         <li><a href="#features">Features</a></li>
-        <li><a href="#stats">Statistics</a></li>
-        <li><a href="#contact">Contact</a></li>
-
+        <li><a href="#stats">Stats</a></li>
+        <li><a href="#testimonials">Reviews</a></li>
+        <li><a href="/login" class="nav-cta">Get Started →</a></li>
     </ul>
-
 </nav>
 
-<section class="hero">
-
-    <div class="hero-left">
-
-        <h1>
-            Prepare Smarter.<br>
-            Get Placed Faster.
-        </h1>
-
-        <p>
-
-            AI-powered placement preparation portal with aptitude tests,
-            technical MCQs, resume management, placement drives,
-            progress analytics and career guidance.
-
-        </p>
-
-        <div class="buttons">
-
-            <a href="/register" class="register-btn">
-
-                Get Started
-
-            </a>
-
-            <a href="/login" class="login-btn">
-
-                Login
-
-            </a>
-
+<!-- ── HERO ── -->
+<section class="hero" id="home">
+    <div class="hero-blob blob1"></div>
+    <div class="hero-blob blob2"></div>
+    <div class="hero-content">
+        <div class="hero-left">
+            <div class="hero-badge">
+                <span class="dot"></span>
+                AI-Powered Placement Platform
+            </div>
+            <h1 class="hero-title">
+                Prepare Smarter.<br>
+                <span class="gradient-text">Get Placed Faster.</span>
+            </h1>
+            <p class="hero-desc">
+                The all-in-one platform for placement preparation — aptitude tests, technical MCQs, 
+                AI mock interviews, resume builder, live leaderboards and company drives. All in one place.
+            </p>
+            <div class="hero-actions">
+                <a href="/register" class="btn-primary">🚀 Start Free &nbsp;→</a>
+                <a href="/login" class="btn-secondary">Login to Dashboard</a>
+            </div>
+            <div class="hero-trust">
+                <div class="trust-avatars">
+                    <span>K</span><span>P</span><span>R</span><span>A</span><span>+</span>
+                </div>
+                <div class="trust-text">
+                    Trusted by <strong>500+</strong> students preparing for placements
+                </div>
+            </div>
         </div>
-
-    </div>
-
-    <div class="hero-right">
-
-        <div class="hero-card">
-
-            <h2>📊 Student Dashboard</h2>
-
-            <p>Track Scores</p>
-
-            <p>Apply Companies</p>
-
-            <p>Upload Resume</p>
-
-            <p>Leaderboards</p>
-
-            <p>AI Career Guidance</p>
-
+        <div class="hero-right">
+            <div class="floating-pill pill1">✅ TCS iON Exam Console</div>
+            <div class="floating-pill pill2">📊 Live Leaderboard</div>
+            <div class="floating-pill pill3">🤖 AI Mock Interview</div>
+            <div class="hero-floating-card">
+                <div class="hero-card-header">
+                    <div class="hero-card-logo">📊</div>
+                    <div>
+                        <div class="hero-card-title">Student Dashboard</div>
+                        <div class="hero-card-sub">Your placement journey at a glance</div>
+                    </div>
+                </div>
+                <div class="hero-card-features">
+                    <div class="hero-feature-row">
+                        <div class="hf-icon" style="background:rgba(37,99,235,0.1)">📝</div>
+                        <div><div class="hf-text">Aptitude Practice</div><div class="hf-sub">1000+ questions</div></div>
+                    </div>
+                    <div class="hero-feature-row">
+                        <div class="hf-icon" style="background:rgba(99,102,241,0.1)">💻</div>
+                        <div><div class="hf-text">Technical MCQs</div><div class="hf-sub">C, Java, DBMS, OS, CN</div></div>
+                    </div>
+                    <div class="hero-feature-row">
+                        <div class="hf-icon" style="background:rgba(16,185,129,0.1)">🏢</div>
+                        <div><div class="hf-text">Company Drives</div><div class="hf-sub">50+ companies listed</div></div>
+                    </div>
+                    <div class="hero-feature-row">
+                        <div class="hf-icon" style="background:rgba(245,158,11,0.1)">🤖</div>
+                        <div><div class="hf-text">AI Mock Interview</div><div class="hf-sub">HR + Technical simulator</div></div>
+                    </div>
+                </div>
+                <div class="hero-card-score">
+                    <div><div class="score-label">Average Student Score</div><div style="font-size:11px;color:rgba(255,255,255,0.7);margin-top:2px;">After 30 days of practice</div></div>
+                    <div class="score-value">87%</div>
+                </div>
+            </div>
         </div>
-
     </div>
-
 </section>
 
-<section id="stats" class="stats">
-
-    <div class="stat">
-        <h2>1000+</h2>
-        <p>Questions</p>
+<!-- ── STATS ── -->
+<section class="stats-section" id="stats">
+    <div class="stats-grid">
+        <div class="stat-box">
+            <div class="stat-number" data-target="1000">0</div>
+            <div class="stat-label">Practice Questions</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-number" data-target="500">0</div>
+            <div class="stat-label">Registered Students</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-number" data-target="50">0</div>
+            <div class="stat-label">Companies Listed</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-number" data-target="95">0</div>
+            <div class="stat-label">Success Rate %</div>
+        </div>
     </div>
-
-    <div class="stat">
-        <h2>500+</h2>
-        <p>Students</p>
-    </div>
-
-    <div class="stat">
-        <h2>50+</h2>
-        <p>Companies</p>
-    </div>
-
-    <div class="stat">
-        <h2>95%</h2>
-        <p>Success Rate</p>
-    </div>
-
 </section>
 
-<section id="features" class="features">
-
-<h2>Everything You Need For Placements</h2>
-
-<div class="cards">
-
-<a href="/aptitude" class="feature-link">
-
-<div class="card">
-
-<h3>📝 Aptitude Practice</h3>
-
-<p>Practice quantitative, logical reasoning and verbal ability questions.</p>
-
-<span>Explore →</span>
-
-</div>
-
-</a>
-<a href="/technical" class="feature-link">
-
-<div class="card">
-
-<h3>💻 Technical MCQs</h3>
-
-<p>C, C++, Java, DBMS, Operating System, Networks and more.</p>
-
-<span>Explore →</span>
-
-</div>
-
-</a>
-
-<a href="/placement-drives" class="feature-link">
-
-<div class="card">
-
-<h3>🏢 Placement Drives</h3>
-
-<p>Browse placement drives, eligibility criteria, packages and apply online.</p>
-
-<span>Explore →</span>
-
-</div>
-
-</a>
-
-<a href="/resume" class="feature-link">
-
-<div class="card">
-
-<h3>📄 Resume Upload</h3>
-
-<p>Upload resumes and apply directly to placement drives.</p>
-
-<span>Explore →</span>
-
-</div>
-
-</a>
-
-<a href="/leaderboard" class="feature-link">
-
-<div class="card">
-
-<h3>🏆 Leaderboard</h3>
-
-<p>Compete with friends and improve your ranking.</p>
-
-<span>Explore →</span>
-
-</div>
-
-</a>
-
-<a href="/career-guide" class="feature-link">
-
-<div class="card">
-
-<h3>🤖 AI Career Guidance</h3>
-
-<p>Get personalized career suggestions and learning roadmap.</p>
-
-<span>Explore →</span>
-
-</div>
-
-</a>
-
-</div>
-
+<!-- ── FEATURES ── -->
+<section class="features-section" id="features">
+    <div class="section-header">
+        <span class="section-tag">Features</span>
+        <h2 class="section-title">Everything you need<br>for placements</h2>
+        <p class="section-desc">From practice tests to company applications — we've got your entire placement journey covered.</p>
+    </div>
+    <div class="features-grid">
+        <a href="/aptitude" class="feature-card">
+            <div class="feature-icon-wrap" style="background:rgba(37,99,235,0.1)">📝</div>
+            <h3>Aptitude Practice</h3>
+            <p>1000+ curated quantitative, logical reasoning and verbal ability questions with explanations and timed tests.</p>
+            <div class="feature-link-text">Start Practicing →</div>
+        </a>
+        <a href="/technical" class="feature-card">
+            <div class="feature-icon-wrap" style="background:rgba(99,102,241,0.1)">💻</div>
+            <h3>Technical MCQs</h3>
+            <p>Deep dive into C, C++, Java, Python, DBMS, Operating Systems, Computer Networks and Data Structures.</p>
+            <div class="feature-link-text">Start Practicing →</div>
+        </a>
+        <a href="/placement-drives" class="feature-card">
+            <div class="feature-icon-wrap" style="background:rgba(16,185,129,0.1)">🏢</div>
+            <h3>Placement Drives</h3>
+            <p>Browse 50+ company drives, check eligibility, salary packages and apply directly with your uploaded resume.</p>
+            <div class="feature-link-text">View Companies →</div>
+        </a>
+        <a href="/mock-interview" class="feature-card">
+            <div class="feature-icon-wrap" style="background:rgba(245,158,11,0.1)">🤖</div>
+            <h3>AI Mock Interview</h3>
+            <p>Real-time AI-powered HR and technical interview simulator. Practice with voice or text in a realistic environment.</p>
+            <div class="feature-link-text">Start Interview →</div>
+        </a>
+        <a href="/resume" class="feature-card">
+            <div class="feature-icon-wrap" style="background:rgba(239,68,68,0.1)">📄</div>
+            <h3>Resume & ATS Scanner</h3>
+            <p>Upload your PDF resume, get an instant ATS Readability Score and apply to placement drives in one click.</p>
+            <div class="feature-link-text">Upload Resume →</div>
+        </a>
+        <a href="/leaderboard" class="feature-card">
+            <div class="feature-icon-wrap" style="background:rgba(251,191,36,0.1)">🏆</div>
+            <h3>Live Leaderboard</h3>
+            <p>See where you rank among peers. Compete, improve and climb the leaderboard with every test you take.</p>
+            <div class="feature-link-text">View Rankings →</div>
+        </a>
+    </div>
 </section>
 
+<!-- ── TESTIMONIALS ── -->
+<section class="testimonials-section" id="testimonials">
+    <div class="section-header">
+        <span class="section-tag">Student Reviews</span>
+        <h2 class="section-title">What students say</h2>
+        <p class="section-desc">Real feedback from students who used this portal to crack their placements.</p>
+    </div>
+    <div class="testimonials-grid">
+        <div class="testimonial-card">
+            <div class="stars">★★★★★</div>
+            <p class="testimonial-text">"The TCS iON exam console is incredibly realistic. I practiced on this portal every day and cracked TCS NQT on my first attempt. The proctoring system kept me disciplined!"</p>
+            <div class="testimonial-author">
+                <div class="author-avatar" style="background:linear-gradient(135deg,#2563eb,#6366f1)">K</div>
+                <div>
+                    <div class="author-name">Krunal D.</div>
+                    <div class="author-detail">Computer Engineering, Placed at TCS</div>
+                </div>
+            </div>
+        </div>
+        <div class="testimonial-card">
+            <div class="stars">★★★★★</div>
+            <p class="testimonial-text">"The AI mock interview feature is a game changer. I practiced HR questions 50+ times. When the real interview came, I wasn't nervous at all. Got placed at Infosys!"</p>
+            <div class="testimonial-author">
+                <div class="author-avatar" style="background:linear-gradient(135deg,#10b981,#059669)">P</div>
+                <div>
+                    <div class="author-name">Priya M.</div>
+                    <div class="author-detail">IT Engineering, Placed at Infosys</div>
+                </div>
+            </div>
+        </div>
+        <div class="testimonial-card">
+            <div class="stars">★★★★★</div>
+            <p class="testimonial-text">"The leaderboard kept me competitive! I started at rank 45 and worked my way to top 5. The company-wise exam questions were perfectly tailored. Highly recommend!"</p>
+            <div class="testimonial-author">
+                <div class="author-avatar" style="background:linear-gradient(135deg,#f59e0b,#d97706)">R</div>
+                <div>
+                    <div class="author-name">Rahul S.</div>
+                    <div class="author-detail">Mechanical Engg, Placed at L&T</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── CTA ── -->
+<section class="cta-section">
+    <div class="cta-blob cta-blob1"></div>
+    <div class="cta-blob cta-blob2"></div>
+    <h2>Ready to get placed? 🚀</h2>
+    <p>Join 500+ students who are already preparing smarter with our platform.</p>
+    <div class="cta-actions">
+        <a href="/register" class="btn-white">Create Free Account</a>
+        <a href="/login" class="btn-outline-white">Already have account? Login</a>
+    </div>
+</section>
+
+<!-- ── FOOTER ── -->
 <footer id="contact">
-
-<p>© 2026 AI Placement Preparation Portal | Built using HTML, CSS, JavaScript, Node.js, Express & MongoDB</p>
-
+    <div class="footer-grid">
+        <div class="footer-brand">
+            <div class="logo">🚀 Placement Portal</div>
+            <p>AI-powered placement preparation platform helping engineering students land their dream jobs.</p>
+        </div>
+        <div class="footer-col">
+            <h4>Practice</h4>
+            <a href="/aptitude">Aptitude Tests</a>
+            <a href="/technical">Technical MCQs</a>
+            <a href="/mock-interview">Mock Interview</a>
+            <a href="/career-guide">Career Guide</a>
+        </div>
+        <div class="footer-col">
+            <h4>Portal</h4>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/leaderboard">Leaderboard</a>
+            <a href="/placement-drives">Companies</a>
+            <a href="/resume">Resume</a>
+        </div>
+        <div class="footer-col">
+            <h4>Account</h4>
+            <a href="/register">Register</a>
+            <a href="/login">Student Login</a>
+            <a href="/admin-login">Admin Login</a>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>© 2026 Placement Portal. All rights reserved.</p>
+        <div class="tech-stack">
+            <span class="tech-tag">HTML</span>
+            <span class="tech-tag">CSS</span>
+            <span class="tech-tag">JavaScript</span>
+            <span class="tech-tag">Node.js</span>
+            <span class="tech-tag">Express</span>
+            <span class="tech-tag">MongoDB</span>
+        </div>
+    </div>
 </footer>
 
-    <script src="/responsive.js?v=103.0"></script>
-</body>
+<script src="/responsive.js?v=104.0"></script>
+<script>
+// Navbar scroll effect
+const nav = document.getElementById('mainNav');
+window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 20);
+});
 
+// Animated stats counter
+function animateCounter(el, target, suffix = '') {
+    let current = 0;
+    const duration = 2000;
+    const step = target / (duration / 16);
+    const timer = setInterval(() => {
+        current += step;
+        if (current >= target) { current = target; clearInterval(timer); }
+        el.textContent = Math.floor(current) + suffix;
+    }, 16);
+}
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            const nums = entry.target.querySelectorAll('.stat-number[data-target]');
+            nums.forEach(el => {
+                const target = parseInt(el.dataset.target);
+                const suffix = el.dataset.target === '95' ? '%' : '+';
+                animateCounter(el, target, suffix);
+                delete el.dataset.target;
+            });
+            observer.unobserve(entry.target);
+        }
+    });
+}, { threshold: 0.3 });
+
+const statsSection = document.querySelector('.stats-section');
+if (statsSection) observer.observe(statsSection);
+</script>
+</body>
 </html>
