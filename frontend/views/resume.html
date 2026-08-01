@@ -136,21 +136,22 @@
         </div>
         <form id="uploadResumeForm" onsubmit="triggerUploadResume(event)" style="width: 100%; max-width: 600px;">
             <div class="file-input-wrapper" style="margin-bottom: 16px;">
-                <span class="file-input-btn" id="fileLabel">Choose PDF File</span>
-                <input type="file" id="resumeFileInput" name="resume" accept=".pdf" required onchange="updateFileLabel(this)">
+                <span class="file-input-btn" id="fileLabel">📁 Choose PDF File</span>
+                <input type="file" id="resumeFileInput" name="resume" accept=".pdf,application/pdf,application/x-pdf,document/*" onchange="updateFileLabel(this)">
             </div>
-            <button type="submit" class="btn btn-primary" style="padding: 12px 28px; font-weight: 600;">📤 Upload & Scan ATS Score</button>
+            <button type="submit" class="btn btn-primary" style="padding: 12px 28px; font-weight: 600; width: 100%;">📤 Upload & Scan ATS Score</button>
         </form>
     </div>
 
-    <div class="status-container" id="statusContainer" style="display: none;">
-        <h3 style="font-size: 18px; font-weight: 600; color: #059669; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
-            <span>✅</span> Active Resume Attached
+    <!-- Always Visible Resume Status & Action Bar -->
+    <div class="status-container" id="statusContainer" style="display: block; margin-bottom: 24px;">
+        <h3 id="statusTitle" style="font-size: 18px; font-weight: 600; color: #059669; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <span>ℹ️</span> Checking Resume Status...
         </h3>
-        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;" id="resumeFilenameText">Filename: </p>
+        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;" id="resumeFilenameText">Loading resume attachment...</p>
         <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
-            <a id="viewResumeLink" href="/view-resume" target="_blank" class="btn btn-primary" style="padding: 10px 20px; font-weight: 600; text-decoration: none;">👁 View PDF</a>
-            <button type="button" onclick="removeResume()" class="btn btn-danger" style="background-color: #ef4444; border-color: #ef4444; color: white; border-radius: 8px; padding: 10px 20px; font-weight: 600; cursor: pointer;">🗑 Delete Resume</button>
+            <button type="button" id="viewResumeBtn" onclick="viewMyResume()" class="btn" style="padding: 10px 22px; font-weight: 600; background: #94a3b8; color: #ffffff; border: none; border-radius: 8px; cursor: pointer;">👁 View PDF</button>
+            <button type="button" id="deleteResumeBtn" onclick="removeResume()" class="btn" style="padding: 10px 22px; font-weight: 600; background: #94a3b8; color: #ffffff; border: none; border-radius: 8px; cursor: pointer;">🗑 Delete Resume</button>
         </div>
     </div>
 
@@ -202,16 +203,42 @@
 </div>
 
 <script>
+let currentActiveUser = null;
+
 function updateFileLabel(input) {
-    const filename = input.files[0] ? input.files[0].name : "Choose PDF File";
-    document.getElementById("fileLabel").innerText = filename;
+    if (input.files && input.files[0]) {
+        const filename = input.files[0].name;
+        document.getElementById("fileLabel").innerText = `✅ Attached: ${filename} (Click 'Upload & Scan' below)`;
+        document.getElementById("fileLabel").style.borderColor = "#10b981";
+        document.getElementById("fileLabel").style.color = "#047857";
+        document.getElementById("fileLabel").style.background = "#ecfdf5";
+    } else {
+        document.getElementById("fileLabel").innerText = "📁 Choose PDF File";
+        document.getElementById("fileLabel").style.borderColor = "var(--primary)";
+        document.getElementById("fileLabel").style.color = "var(--primary)";
+        document.getElementById("fileLabel").style.background = "var(--bg-card)";
+    }
+}
+
+function viewMyResume() {
+    if (currentActiveUser && currentActiveUser.resume) {
+        window.open("/view-resume", "_blank");
+    } else {
+        Swal.fire({
+            icon: "info",
+            title: "No Resume Attached",
+            text: "Please click 'Choose PDF File' above to select your PDF resume, then click 'Upload & Scan ATS Score'.",
+            confirmButtonColor: "#2563eb"
+        });
+    }
 }
 
 async function triggerUploadResume(e) {
     if (e) e.preventDefault();
     const fileInput = document.getElementById("resumeFileInput");
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-        Swal.fire("Error", "Please click 'Choose PDF File' to select a PDF resume first.", "error");
+        // Automatically open file picker if user clicks Upload without choosing a file first
+        document.getElementById("resumeFileInput").click();
         return;
     }
 
@@ -275,21 +302,43 @@ async function loadResume() {
             });
             return;
         }
-        const user = await response.json();
-        if (user.resume) {
-            document.getElementById("statusContainer").style.display = "block";
-            document.getElementById("resumeFilenameText").innerText = `Filename: ${user.resume}`;
-            const viewLink = document.getElementById("viewResumeLink");
-            if (viewLink) {
-                viewLink.href = "/view-resume";
-                viewLink.onclick = function(e) {
-                    e.preventDefault();
-                    window.open("/view-resume", "_blank");
-                };
+        currentActiveUser = await response.json();
+        
+        const titleElem = document.getElementById("statusTitle");
+        const textElem = document.getElementById("resumeFilenameText");
+        const viewBtn = document.getElementById("viewResumeBtn");
+        const deleteBtn = document.getElementById("deleteResumeBtn");
+
+        if (currentActiveUser.resume) {
+            if (titleElem) titleElem.innerHTML = `<span>✅</span> Active Resume Attached`;
+            if (textElem) textElem.innerText = `Filename: ${currentActiveUser.resume}`;
+            
+            if (viewBtn) {
+                viewBtn.style.background = "#2563eb";
+                viewBtn.style.opacity = "1";
+                viewBtn.style.cursor = "pointer";
             }
+            if (deleteBtn) {
+                deleteBtn.style.background = "#ef4444";
+                deleteBtn.style.opacity = "1";
+                deleteBtn.style.cursor = "pointer";
+            }
+
             runATSCheck();
         } else {
-            document.getElementById("statusContainer").style.display = "none";
+            if (titleElem) titleElem.innerHTML = `<span>ℹ️</span> No Resume Attached Yet`;
+            if (textElem) textElem.innerText = `Choose a PDF file above and click 'Upload & Scan ATS Score' to attach your resume.`;
+            
+            if (viewBtn) {
+                viewBtn.style.background = "#94a3b8";
+                viewBtn.style.opacity = "0.75";
+                viewBtn.style.cursor = "pointer";
+            }
+            if (deleteBtn) {
+                deleteBtn.style.background = "#94a3b8";
+                deleteBtn.style.opacity = "0.75";
+                deleteBtn.style.cursor = "pointer";
+            }
         }
     } catch (e) {
         console.error(e);
