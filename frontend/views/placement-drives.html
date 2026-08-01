@@ -82,15 +82,34 @@ function displayCompanies(companies){
     container.innerHTML = "";
 
     if (!companies || companies.length === 0) {
-        container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px; font-size: 16px;">No active placement drives found.</div>`;
+        container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px; font-size: 16px;">No placement drives found.</div>`;
         return;
     }
 
     companies.forEach(company => {
         const deadlineDate = company.deadline || company.lastDate || "Flexible";
+        
+        let isExpired = false;
+        if (deadlineDate && deadlineDate.trim().toLowerCase() !== "flexible" && deadlineDate.trim().toLowerCase() !== "n/a") {
+            const parsedDate = new Date(deadlineDate);
+            if (!isNaN(parsedDate.getTime())) {
+                parsedDate.setHours(23, 59, 59, 999);
+                if (new Date() > parsedDate) {
+                    isExpired = true;
+                }
+            }
+        }
+
+        const actionButton = isExpired 
+            ? `<button disabled style="background:#94a3b8; width:100%; padding:12px; font-weight:700; cursor:not-allowed; border-radius:8px; color:#ffffff; border:none; opacity:0.85;">⏳ Application Closed</button>`
+            : `<button onclick="applyCompany('${company._id}')" style="background:var(--primary); width:100%; padding:12px; font-weight:600; cursor:pointer; border-radius:8px; color:white; border:none;">Apply Now</button>`;
+
+        const deadlineText = isExpired
+            ? `<span style="color:#ef4444; font-weight:700;">📅 Deadline: ${deadlineDate} (Expired)</span>`
+            : `<span>📅 Deadline: ${deadlineDate}</span>`;
 
         container.innerHTML += `
-        <div class="company-card">
+        <div class="company-card" style="${isExpired ? 'opacity:0.9;' : ''}">
             <div class="top">
                 <div>
                     <h2>${company.companyName}</h2>
@@ -103,10 +122,10 @@ function displayCompanies(companies){
             <div class="details">
                 <p>📍 ${company.location}</p>
                 <p>🎓 Min CGPA: ${company.eligibility}</p>
-                <p>📅 Deadline: ${deadlineDate}</p>
+                <p>${deadlineText}</p>
             </div>
             <div style="margin-top: 14px;">
-                <button onclick="applyCompany('${company._id}')" style="background:var(--primary); width:100%; padding:12px; font-weight:600; cursor:pointer; border-radius:8px; color:white; border:none;">Apply Now</button>
+                ${actionButton}
             </div>
         </div>
         `;

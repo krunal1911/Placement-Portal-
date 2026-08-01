@@ -934,6 +934,18 @@ exports.applyCompany = async (req, res) => {
             return res.status(404).send("User not found");
         }
 
+        // Check if application deadline has passed
+        const deadlineStr = company.deadline || company.lastDate;
+        if (deadlineStr && deadlineStr.trim().toLowerCase() !== "flexible" && deadlineStr.trim().toLowerCase() !== "n/a") {
+            const deadlineDate = new Date(deadlineStr);
+            if (!isNaN(deadlineDate.getTime())) {
+                deadlineDate.setHours(23, 59, 59, 999);
+                if (new Date() > deadlineDate) {
+                    return res.status(400).send(`Application Closed: The application deadline (${deadlineStr}) for ${company.companyName} has passed.`);
+                }
+            }
+        }
+
         const studentCgpa = parseFloat(user.cgpa);
         const requiredCgpa = parseFloat(company.eligibility);
 
