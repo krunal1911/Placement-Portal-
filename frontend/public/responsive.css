@@ -634,6 +634,10 @@ textarea {
 
     nav ul.open, ul.nav-drawer.open, ul.open, body > ul.open, body > ul.open:not(.swal2-container) {
         display: flex !important;
+        flex-direction: column !important;
+        flex-wrap: nowrap !important;
+        justify-content: flex-start !important;
+        align-items: stretch !important;
         position: fixed !important;
         top: 0 !important;
         right: 0 !important;
@@ -641,7 +645,12 @@ textarea {
         width: min(290px, 85vw) !important;
         height: 100vh !important;
         background: #0f172a !important;
+        padding: 80px 20px 32px !important;
+        gap: 12px !important;
         z-index: 10060 !important;
+        overflow-y: auto !important;
+        box-shadow: -10px 0 32px rgba(0,0,0,0.6) !important;
+        border-left: 1px solid #334155 !important;
     }
 
     nav ul li, ul.nav-drawer li, ul.open li, body > ul.open li {
