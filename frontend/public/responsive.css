@@ -607,8 +607,8 @@ textarea {
     }
 
     /* Hide the normal nav list — override ALL per-page CSS */
-    nav ul, ul.nav-drawer, body > ul.open-drawer, body > ul:not(.swal2-container):not(.nav-links-desktop) {
-        display: none;
+    nav ul:not(.open), ul.nav-drawer:not(.open), body > ul:not(.swal2-container):not(.nav-links-desktop):not(.open) {
+        display: none !important;
         position: fixed !important;
         top: 0 !important;
         right: -100% !important;
@@ -632,9 +632,16 @@ textarea {
         margin: 0 !important;
     }
 
-    nav ul.open, ul.nav-drawer.open, ul.open, body > ul.open {
+    nav ul.open, ul.nav-drawer.open, ul.open, body > ul.open, body > ul.open:not(.swal2-container) {
         display: flex !important;
+        position: fixed !important;
+        top: 0 !important;
         right: 0 !important;
+        bottom: 0 !important;
+        width: min(290px, 85vw) !important;
+        height: 100vh !important;
+        background: #0f172a !important;
+        z-index: 10060 !important;
     }
 
     nav ul li, ul.nav-drawer li, ul.open li, body > ul.open li {

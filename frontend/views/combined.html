@@ -331,13 +331,20 @@ function showQuestion() {
     
     document.getElementById("question").innerText = q.question;
     
+    let optionsList = (q.options && Array.isArray(q.options) && q.options.length > 0) 
+        ? q.options 
+        : ["Option A", "Option B", "Option C", "Option D"];
+
     let html = "";
-    q.options.forEach((option) => {
-        const isChecked = userAnswers[currentQuestion] === option ? "checked" : "";
+    optionsList.forEach((option, optIdx) => {
+        const optVal = String(option || `Option ${String.fromCharCode(65 + optIdx)}`).trim();
+        const safeOptVal = optVal.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+        const isChecked = (userAnswers[currentQuestion] === optVal || userAnswers[currentQuestion] === safeOptVal) ? "checked" : "";
+        
         html += `
             <label class="tcs-option-label">
-                <input type="radio" name="option" value="${option}" ${isChecked} onchange="selectOption('${option}')">
-                <span>${option}</span>
+                <input type="radio" name="option" value="${safeOptVal}" ${isChecked} onchange="selectOption(this.value)">
+                <span>${optVal}</span>
             </label>
         `;
     });
@@ -658,7 +665,9 @@ function triggerCheatingWarning(incidentType, details) {
     if (!isExamActive) return;
     
     warningCount++;
-    
+    logCheatingIncident(incidentType, details || "Security policy violation detected during live exam.");
+    try { navigator.clipboard.writeText("Assessment Security Notice: Screenshots are strictly prohibited."); } catch(e) {}
+
     if (warningCount >= MAX_WARNINGS) {
         isExamActive = false;
         Swal.fire({
@@ -676,7 +685,7 @@ function triggerCheatingWarning(incidentType, details) {
         Swal.fire({
             icon: "warning",
             title: "⚠️ Security Warning Alert",
-            html: `<b>${incidentType} Detected!</b><br><br>Do not switch tabs, exit fullscreen, or leave the assessment window.<br><br><span style="color:#ef4444; font-size:16px; font-weight:bold;">Warning ${warningCount} of ${MAX_WARNINGS}</span><br><small style="color:#64748b;">(Exceeding 3 warnings will automatically submit your test)</small>`,
+            html: `<b>${incidentType} Detected!</b><br><br>Do not switch tabs, exit fullscreen, take screenshots, or leave the assessment window.<br><br><span style="color:#ef4444; font-size:16px; font-weight:bold;">Warning ${warningCount} of ${MAX_WARNINGS}</span><br><small style="color:#64748b;">(Exceeding 3 warnings will automatically submit your test)</small>`,
             confirmButtonText: "Return to Exam",
             confirmButtonColor: "#2563eb",
             allowOutsideClick: false,
@@ -716,13 +725,13 @@ function setupProctoring() {
 
     document.addEventListener("visibilitychange", () => {
         if (isExamActive && document.hidden) {
-            triggerCheatingWarning("Tab Switch", "User minimized window or switched browser tabs.");
+            triggerCheatingWarning("Tab Switch / App Switch", "User minimized window, took screenshot, or switched browser tabs.");
         }
     });
     
     window.addEventListener("blur", () => {
         if (isExamActive) {
-            triggerCheatingWarning("Tab Switch", "User clicked outside the exam window or switched applications.");
+            triggerCheatingWarning("Window Focus Lost", "User clicked outside the exam window or switched applications/screenshots.");
         }
     });
 
@@ -758,16 +767,16 @@ function setupProctoring() {
 
     const handleScreenshotKey = (e) => {
         if (!isExamActive) return;
-        if (e.key === "PrintScreen" || e.keyCode === 44 || e.code === "PrintScreen" || (e.metaKey && e.shiftKey && (e.key === "S" || e.key === "s" || e.key === "4" || e.key === "3"))) {
+        if (e.key === "PrintScreen" || e.keyCode === 44 || e.code === "PrintScreen" || e.key === "Snapshot" || (e.metaKey && e.shiftKey && (e.key === "S" || e.key === "s" || e.key === "4" || e.key === "3"))) {
             if (e.preventDefault) e.preventDefault();
             try { navigator.clipboard.writeText(""); } catch (err) {}
-            triggerCheatingWarning("Screenshot Attempt", "Candidate attempted screen capture / PrintScreen shortcut.");
+            triggerCheatingWarning("Screenshot / Snipping Tool Attempt", "Candidate attempted screen capture / PrintScreen shortcut.");
         }
     };
 
     document.addEventListener("keydown", (e) => {
         if (isExamActive) {
-            if (e.key === "PrintScreen" || e.keyCode === 44 || e.code === "PrintScreen") {
+            if (e.key === "PrintScreen" || e.keyCode === 44 || e.code === "PrintScreen" || e.key === "Snapshot") {
                 handleScreenshotKey(e);
             } else if (e.key === "Escape" || e.keyCode === 27) {
                 e.preventDefault();
@@ -781,6 +790,8 @@ function setupProctoring() {
             }
         }
     });
+
+    document.addEventListener("keyup", handleScreenshotKey);
 
     window.addEventListener("keyup", handleScreenshotKey);
 
