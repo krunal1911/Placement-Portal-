@@ -214,17 +214,30 @@ async function resetStudentPassword(id, name, email) {
             });
             const data = await response.json();
             if (response.ok) {
+                const messageText = `Hi ${name},\n\nYour Placement Portal password has been reset by the Admin.\n\n📧 Email: ${email}\n🔑 New Password: ${newPass}\n\n🌐 Login Link: ${window.location.origin}/login`;
+                
                 Swal.fire({
                     icon: "success",
                     title: "Password Reset Successfully! 🔑",
                     html: `
-                        <p style="margin-bottom: 12px; font-size: 14px;">Password for <strong>${name}</strong> updated to:</p>
-                        <div style="background: #f1f5f9; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 18px; font-weight: 700; color: #1e293b; user-select: all; border: 1px solid #cbd5e1;">${newPass}</div>
-                        <p style="font-size: 12px; color: #64748b; margin-top: 12px;">The student can now log in using this password, and will also receive a notification in their portal dashboard.</p>
+                        <p style="margin-bottom: 8px; font-size: 14px;">Password for <strong>${name}</strong> (${email}) updated to:</p>
+                        <div style="background: #f1f5f9; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 18px; font-weight: 700; color: #1e293b; user-select: all; border: 1px solid #cbd5e1; margin-bottom: 14px;">${newPass}</div>
+                        <button id="copyMsgBtn" class="btn" style="background: #2563eb; color: #ffffff; border: none; padding: 10px 16px; font-size: 13px; font-weight: 600; border-radius: 8px; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                            📋 Copy Message to Send to Student
+                        </button>
                     `,
+                    showConfirmButton: true,
                     confirmButtonText: "Done",
-                    confirmButtonColor: "#2563eb"
-                });
+                    confirmButtonColor: "#64748b",
+                    didOpen: () => {
+                        document.getElementById("copyMsgBtn")?.addEventListener("click", () => {
+                            navigator.clipboard.writeText(messageText);
+                            const btn = document.getElementById("copyMsgBtn");
+                            btn.innerText = "✅ Message Copied to Clipboard!";
+                            btn.style.background = "#10b981";
+                        });
+                    }
+                }).then(() => loadStudents());
             } else {
                 Swal.fire("Error", data.message || "Failed to reset password.", "error");
             }
