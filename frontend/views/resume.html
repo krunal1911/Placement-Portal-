@@ -134,12 +134,12 @@
                 <p style="color: var(--text-muted); font-size: 14px;">Upload your designed PDF resume (Max 5MB) to attach to job applications and calculate your ATS Score.</p>
             </div>
         </div>
-        <form id="uploadResumeForm" style="width: 100%; max-width: 600px;">
-            <div class="file-input-wrapper" style="margin-bottom: 16px;">
+        <form id="uploadResumeForm" onsubmit="triggerUploadResume(event)" style="width: 100%; max-width: 600px;">
+            <div class="file-input-wrapper" onclick="document.getElementById('resumeFileInput').click()" style="margin-bottom: 16px;">
                 <span class="file-input-btn" id="fileLabel">Choose PDF File</span>
                 <input type="file" id="resumeFileInput" name="resume" accept=".pdf" required onchange="updateFileLabel(this)">
             </div>
-            <button type="submit" class="btn btn-primary" style="padding: 12px 28px; font-weight: 600;">📤 Upload & Scan ATS Score</button>
+            <button type="button" onclick="triggerUploadResume(event)" class="btn btn-primary" style="padding: 12px 28px; font-weight: 600;">📤 Upload & Scan ATS Score</button>
         </form>
     </div>
 
@@ -148,9 +148,9 @@
             <span>✅</span> Active Resume Attached
         </h3>
         <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;" id="resumeFilenameText">Filename: </p>
-        <div style="display: flex; justify-content: center; gap: 12px;">
-            <a id="viewResumeLink" href="#" target="_blank" class="btn btn-primary">👁 View PDF</a>
-            <button onclick="removeResume()" class="btn btn-danger" style="background-color: #ef4444; border-color: #ef4444; color: white; border-radius: 8px; padding: 10px 20px; font-weight: 500; cursor: pointer;">🗑 Delete Resume</button>
+        <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+            <a id="viewResumeLink" href="/view-resume" target="_blank" class="btn btn-primary" style="padding: 10px 20px; font-weight: 600; text-decoration: none;">👁 View PDF</a>
+            <button type="button" onclick="removeResume()" class="btn btn-danger" style="background-color: #ef4444; border-color: #ef4444; color: white; border-radius: 8px; padding: 10px 20px; font-weight: 600; cursor: pointer;">🗑 Delete Resume</button>
         </div>
     </div>
 
@@ -207,11 +207,11 @@ function updateFileLabel(input) {
     document.getElementById("fileLabel").innerText = filename;
 }
 
-document.getElementById("uploadResumeForm")?.addEventListener("submit", async function(e) {
-    e.preventDefault();
+async function triggerUploadResume(e) {
+    if (e) e.preventDefault();
     const fileInput = document.getElementById("resumeFileInput");
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-        Swal.fire("Error", "Please select a PDF file to upload.", "error");
+        Swal.fire("Error", "Please click 'Choose PDF File' to select a PDF resume first.", "error");
         return;
     }
 
@@ -250,7 +250,7 @@ document.getElementById("uploadResumeForm")?.addEventListener("submit", async fu
         console.error(err);
         Swal.fire("Error", "Server connection error during upload.", "error");
     }
-});
+}
 
 async function loadResume() {
     try {
