@@ -69,8 +69,8 @@ router.get("/api/verify-token", studentController.verifyTokenAPI);
 // POST WRITE ACTIONS
 // ==========================================
 router.post("/update-profile", requireUser, studentController.updateProfile);
-router.post("/upload-profile", profileUpload.single("profileImage"), studentController.uploadProfileImage);
-router.post("/upload-resume", upload.single("resume"), studentController.uploadResume);
+router.post("/upload-profile", requireUser, profileUpload.single("profileImage"), studentController.uploadProfileImage);
+router.post("/upload-resume", requireUser, upload.single("resume"), studentController.uploadResume);
 router.post("/build-resume", requireUser, studentController.buildResume);
 router.post("/delete-resume", requireUser, studentController.deleteResume);
 router.post("/submit-test", requireUser, studentController.submitTest);
