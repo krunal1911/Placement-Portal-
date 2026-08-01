@@ -80,23 +80,59 @@ function togglePasswordVisibility() {
     }
 }
 
-document.getElementById('forgotPwdBtn').addEventListener('click', function() {
-    Swal.fire({
-        icon: 'info',
+document.getElementById('forgotPwdBtn').addEventListener('click', async function() {
+    const currentEmailVal = document.getElementById("email") ? document.getElementById("email").value.trim() : "";
+    
+    const { value: emailInput } = await Swal.fire({
+        icon: 'question',
         title: '🔑 Forgot Password?',
         html: `
-            <div style="text-align:left;font-size:14px;line-height:1.7;">
-                <p style="margin-bottom:12px;">To reset your password, please contact your <strong>Placement Admin</strong> with:</p>
-                <ul style="padding-left:20px;margin-bottom:16px;">
-                    <li>Your registered email address</li>
-                    <li>Your full name & branch</li>
-                </ul>
-                <p style="color:#64748b;font-size:13px;">The admin will reset your password and notify you via email.</p>
+            <div style="text-align:left;font-size:14px;line-height:1.6;margin-bottom:12px;">
+                Enter your registered email address to submit a password reset request directly to your Placement Admin:
             </div>
+            <input id="swal-reset-email" class="swal2-input" placeholder="student@example.com" value="${currentEmailVal}" style="width:85%;font-size:15px;">
         `,
-        confirmButtonText: 'Got it',
+        showCancelButton: true,
+        confirmButtonText: '📩 Submit Request to Admin',
+        cancelButtonText: 'Cancel',
         confirmButtonColor: '#2563eb',
+        preConfirm: () => {
+            const val = document.getElementById("swal-reset-email").value.trim();
+            if (!val || !val.includes("@")) {
+                Swal.showValidationMessage("Please enter a valid email address.");
+                return false;
+            }
+            return val;
+        }
     });
+
+    if (emailInput) {
+        try {
+            Swal.fire({ title: "Submitting Request...", allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            const response = await fetch("/api/request-password-reset", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: emailInput })
+            });
+            const data = await response.json();
+            if (response.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Request Sent! 📩',
+                    html: `
+                        <p style="font-size:14px;margin-bottom:10px;">${data.message}</p>
+                        <p style="font-size:12px;color:#64748b;">Your Placement Admin will review your request and reset your password shortly.</p>
+                    `,
+                    confirmButtonColor: '#2563eb'
+                });
+            } else {
+                Swal.fire("Request Failed", data.error || "Failed to submit request.", "error");
+            }
+        } catch (err) {
+            console.error(err);
+            Swal.fire("Error", "Server connection error while submitting request.", "error");
+        }
+    }
 });
 
 document.getElementById("loginForm").addEventListener("submit", async function(e){

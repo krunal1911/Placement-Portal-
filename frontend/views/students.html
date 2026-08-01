@@ -40,6 +40,18 @@
         </div>
     </div>
 
+    <!-- Password Reset Requests Alert Banner -->
+    <div id="resetRequestsBanner" style="display: none; background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 14px 20px; margin-bottom: 24px; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 22px;">🔑</span>
+            <div>
+                <strong style="color: #92400e; font-size: 15px;" id="resetRequestsCountText">Password Reset Requests Pending</strong>
+                <p style="color: #b45309; font-size: 13px; margin: 2px 0 0 0;">Students listed below have submitted a password reset request. Click 'Reset Password' to set a new password.</p>
+            </div>
+        </div>
+        <button onclick="filterResetRequestsOnly()" class="btn" style="background: #f59e0b; color: #ffffff; border: none; padding: 8px 16px; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer;">🔍 View Reset Requests Only</button>
+    </div>
+
     <!-- Filters Control Bar -->
     <div class="card" style="margin-bottom: 30px; text-align: left; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; padding: 20px;">
         <div style="flex: 2; min-width: 200px;">
@@ -74,7 +86,7 @@
             </select>
         </div>
 
-        <div style="margin-top: 20px;">
+        <div style="margin-top: 20px; display: flex; gap: 8px;">
             <button class="btn btn-secondary" onclick="resetFilters()" style="padding: 11px 20px; font-size: 13px;">Reset Filters</button>
         </div>
     </div>
@@ -107,17 +119,34 @@
 <script src="/responsive.js?v=103.0"></script>
 <script>
 let students = [];
+let showResetOnly = false;
 
 async function loadStudents() {
     try {
         const response = await fetch("/students-data");
         if (!response.ok) throw new Error("Unauthorized");
         students = await response.json();
+        
+        // Update Reset Requests Banner
+        const resetReqs = students.filter(s => s.passwordResetRequested === true);
+        const banner = document.getElementById("resetRequestsBanner");
+        if (resetReqs.length > 0) {
+            banner.style.display = "flex";
+            document.getElementById("resetRequestsCountText").innerText = `🔑 Action Required: ${resetReqs.length} Student(s) Requested Password Reset!`;
+        } else {
+            banner.style.display = "none";
+        }
+
         displayStudents(students);
     } catch (e) {
         console.error(e);
         document.getElementById("studentTable").innerHTML = '<tr><td colspan="8" style="text-align:center; color:red;">Failed to load student records.</td></tr>';
     }
+}
+
+function filterResetRequestsOnly() {
+    showResetOnly = !showResetOnly;
+    filterStudents();
 }
 
 function displayStudents(data) {
@@ -126,9 +155,13 @@ function displayStudents(data) {
         html = `<tr><td colspan="8" style="text-align:center; color:var(--text-muted);">No student records match the filter criteria.</td></tr>`;
     } else {
         data.forEach(student => {
+            const hasResetReq = student.passwordResetRequested === true;
+            const rowStyle = hasResetReq ? 'background: rgba(254, 243, 199, 0.35);' : '';
+            const resetBadge = hasResetReq ? `<span style="background:#fef3c7; color:#b45309; border:1px solid #fde68a; padding:2px 8px; border-radius:12px; font-size:11px; font-weight:700; margin-left:6px;">⚠️ RESET REQUESTED</span>` : '';
+
             html += `
-                <tr>
-                    <td style="font-weight: 500;">${student.name}</td>
+                <tr style="${rowStyle}">
+                    <td style="font-weight: 500;">${student.name}${resetBadge}</td>
                     <td>${student.email}</td>
                     <td>${student.branch}</td>
                     <td style="text-align: center;">${student.semester}</td>
@@ -137,7 +170,7 @@ function displayStudents(data) {
                     <td><span style="font-weight: 700; color: #2563eb; background: var(--primary-light); padding: 4px 8px; border-radius: 6px; font-size: 12px;">${student.atsScore || 'Not Scanned'}</span></td>
                     <td style="text-align: center;">
                         <div style="display: inline-flex; gap: 6px; flex-wrap: wrap; justify-content: center;">
-                            <button onclick="resetStudentPassword('${student._id}', '${student.name.replace(/'/g, "\\'")}', '${student.email.replace(/'/g, "\\'")}')" class="btn" style="padding: 6px 12px; font-size: 11px; background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; font-weight: 600; cursor: pointer; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">🔑 Reset Password</button>
+                            <button onclick="resetStudentPassword('${student._id}', '${student.name.replace(/'/g, "\\'")}', '${student.email.replace(/'/g, "\\'")}')" class="btn" style="padding: 6px 12px; font-size: 11px; background: ${hasResetReq ? '#f59e0b' : '#dbeafe'}; color: ${hasResetReq ? '#ffffff' : '#1e40af'}; border: 1px solid ${hasResetReq ? '#d97706' : '#bfdbfe'}; font-weight: 700; cursor: pointer; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">🔑 Reset Password</button>
                             <button onclick="deleteStudentAccount('${student._id}', '${student.name.replace(/'/g, "\\'")}')" class="btn" style="padding: 6px 12px; font-size: 11px; background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; font-weight: 600; cursor: pointer; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">🗑️ Delete</button>
                         </div>
                     </td>
@@ -237,14 +270,16 @@ function filterStudents() {
                               (student.email && student.email.toLowerCase().includes(searchVal));
         const matchesBranch = !branchVal || student.branch === branchVal;
         const matchesSem = !semVal || String(student.semester) === String(semVal);
+        const matchesResetReq = !showResetOnly || student.passwordResetRequested === true;
 
-        return matchesSearch && matchesBranch && matchesSem;
+        return matchesSearch && matchesBranch && matchesSem && matchesResetReq;
     });
 
     displayStudents(filtered);
 }
 
 function resetFilters() {
+    showResetOnly = false;
     document.getElementById("search").value = "";
     document.getElementById("branch").value = "";
     document.getElementById("semester").value = "";

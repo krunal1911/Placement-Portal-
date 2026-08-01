@@ -152,3 +152,34 @@ exports.logout = (req, res) => {
     }
     res.redirect("/login");
 };
+
+// Student Password Reset Request endpoint
+exports.requestPasswordReset = async (req, res) => {
+    try {
+        let { email } = req.body;
+        if (!email || !email.trim()) {
+            return res.status(400).json({ error: "Please enter your registered email address." });
+        }
+
+        email = email.trim().toLowerCase();
+        const safeEmailRegex = new RegExp("^" + email.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&") + "$", "i");
+        const user = await User.findOne({ email: safeEmailRegex });
+
+        if (!user) {
+            return res.status(404).json({ error: "No student account found with this email address." });
+        }
+
+        user.passwordResetRequested = true;
+        user.passwordResetRequestedAt = new Date();
+        await user.save();
+
+        res.json({
+            success: true,
+            message: `Password reset request submitted for ${user.name} (${user.email}). The Placement Admin has been notified!`,
+            studentName: user.name
+        });
+    } catch (err) {
+        console.error("Password reset request error:", err);
+        res.status(500).json({ error: "Failed to submit password reset request." });
+    }
+};

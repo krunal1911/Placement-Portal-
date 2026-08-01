@@ -66,7 +66,13 @@ github: {
         desc: String
     }],
 
-    resumeBuffer: Buffer
+    resumeBuffer: Buffer,
+
+    passwordResetRequested: {
+        type: Boolean,
+        default: false
+    },
+    passwordResetRequestedAt: Date
 
 });
 

@@ -1633,6 +1633,8 @@ exports.resetStudentPassword = async (req, res) => {
 
         const hashedPassword = await bcrypt.hash(newPassword.trim(), 10);
         student.password = hashedPassword;
+        student.passwordResetRequested = false;
+        student.passwordResetRequestedAt = undefined;
         await student.save();
 
         await Notification.create({
