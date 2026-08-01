@@ -419,6 +419,5 @@ document.addEventListener("DOMContentLoaded", () => {
             overlay.addEventListener("click", closeMenu);
             overlay.addEventListener("touchend", (e) => { e.preventDefault(); closeMenu(); });
         }
-        }
     }
 });
