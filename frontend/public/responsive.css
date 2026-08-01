@@ -1641,10 +1641,18 @@ input, select, textarea {
         font-size: 14px !important;
     }
 
-    .btn, button, input[type="submit"] {
+    .card .btn, .hero .btn, form .btn, button[type="submit"], input[type="submit"], .btn-primary, .btn-secondary {
         width: 100% !important;
         justify-content: center !important;
         text-align: center !important;
+        box-sizing: border-box !important;
+    }
+
+    .btn-group {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        gap: 8px !important;
     }
 
     .nav-links, nav ul {
