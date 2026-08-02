@@ -143,11 +143,13 @@
             </div>
         </div>
         <form id="uploadResumeForm" onsubmit="triggerUploadResume(event)" style="width: 100%; max-width: 600px;">
-            <div class="file-input-wrapper" style="margin-bottom: 16px;">
-                <span class="file-input-btn" id="fileLabel">📁 Choose PDF File</span>
-                <input type="file" id="resumeFileInput" name="resume" accept=".pdf,application/pdf" onchange="updateFileLabel(this)">
-            </div>
-            <button type="submit" class="btn btn-primary" style="padding: 14px 28px; font-weight: 600; width: 100%;">📤 Upload & Scan ATS Score</button>
+            <input type="file" id="resumeFileInput" name="resume" accept=".pdf,application/pdf" style="display: none !important;" onchange="updateFileLabel(this)">
+            
+            <button type="button" id="selectPdfBtn" onclick="triggerPhoneFilePicker()" style="width: 100%; padding: 16px 20px; font-weight: 600; font-size: 15px; border: 2px dashed #2563eb; background: var(--bg-card); color: #2563eb; border-radius: 12px; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; text-align: center; box-sizing: border-box;">
+                <span id="fileLabel">📁 Choose PDF File</span>
+            </button>
+            
+            <button type="submit" class="btn btn-primary" style="padding: 14px 28px; font-weight: 600; width: 100%; border-radius: 12px;">📤 Upload & Scan ATS Score</button>
         </form>
     </div>
 
@@ -213,18 +215,31 @@
 <script>
 let currentActiveUser = null;
 
+function triggerPhoneFilePicker() {
+    const input = document.getElementById("resumeFileInput");
+    if (input) {
+        input.click();
+    }
+}
+
 function updateFileLabel(input) {
+    const label = document.getElementById("fileLabel");
+    const btn = document.getElementById("selectPdfBtn");
     if (input.files && input.files[0]) {
         const filename = input.files[0].name;
-        document.getElementById("fileLabel").innerText = `✅ Attached: ${filename} (Click 'Upload & Scan' below)`;
-        document.getElementById("fileLabel").style.borderColor = "#10b981";
-        document.getElementById("fileLabel").style.color = "#047857";
-        document.getElementById("fileLabel").style.background = "#ecfdf5";
+        if (label) label.innerText = `✅ Attached: ${filename} (Tap 'Upload & Scan' below)`;
+        if (btn) {
+            btn.style.borderColor = "#10b981";
+            btn.style.color = "#047857";
+            btn.style.background = "#ecfdf5";
+        }
     } else {
-        document.getElementById("fileLabel").innerText = "📁 Choose PDF File";
-        document.getElementById("fileLabel").style.borderColor = "var(--primary)";
-        document.getElementById("fileLabel").style.color = "var(--primary)";
-        document.getElementById("fileLabel").style.background = "var(--bg-card)";
+        if (label) label.innerText = "📁 Choose PDF File";
+        if (btn) {
+            btn.style.borderColor = "#2563eb";
+            btn.style.color = "#2563eb";
+            btn.style.background = "var(--bg-card)";
+        }
     }
 }
 
