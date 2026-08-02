@@ -188,18 +188,25 @@ exports.getCompanies = async (req, res) => {
 // Get student submitted drive application statuses
 exports.getMyApplicationsData = async (req, res) => {
     try {
-        const user = req.user || req.session.user;
+        const user = req.user || (req.session && req.session.user);
         if (!user) {
             return res.status(401).json({ error: "Login First" });
         }
-        const userId = user._id || user.id;
+        const userIdStr = String(user._id || user.id);
+        const mongoose = require("mongoose");
+        let queryUserIds = [userIdStr];
+        if (mongoose.Types.ObjectId.isValid(userIdStr)) {
+            queryUserIds.push(new mongoose.Types.ObjectId(userIdStr));
+        }
+
         const applications = await Application.find({
-            userId: userId
-        }).populate('companyId');
-        res.json(applications);
+            userId: { $in: queryUserIds }
+        }).populate('companyId').sort({ appliedAt: -1 });
+
+        res.json(applications || []);
     } catch (err) {
-        console.log(err);
-        res.status(500).json({ error: err.message });
+        console.error("getMyApplicationsData error:", err);
+        res.json([]);
     }
 };
 
