@@ -125,37 +125,49 @@ exports.verifyTokenAPI = async (req, res) => {
 // Get student performance analytics metrics
 exports.getDashboardData = async (req, res) => {
     try {
-        if (!req.session.user) {
-            return res.status(401).send("Login First");
+        const activeUser = req.user || (req.session && req.session.user);
+        if (!activeUser) {
+            return res.status(401).json({ error: "Login First" });
         }
-        const user = await User.findById(req.session.user._id);
+        const userId = activeUser._id || activeUser.id;
+        const user = await User.findById(userId);
         if (!user) {
-            return res.status(404).send("User not found");
+            return res.status(404).json({ error: "User not found" });
         }
         res.json({
             name: user.name,
+            email: user.email,
             testsTaken: user.testsTaken || 0,
-            averageScore: user.averageScore || 0
+            averageScore: user.averageScore || 0,
+            resume: user.resume || null
         });
     } catch (err) {
-        console.error(err);
-        res.status(500).send("Error loading dashboard");
+        console.error("getDashboardData Error:", err);
+        res.status(500).json({ error: "Error loading dashboard data" });
     }
 };
 
-// Get personal quiz score history logs
 exports.getHistoryData = async (req, res) => {
     try {
-        if (!req.session.user) {
-            return res.status(401).send("Login First");
+        const activeUser = req.user || (req.session && req.session.user);
+        if (!activeUser) {
+            return res.status(401).json({ error: "Login First" });
         }
+        const userIdStr = String(activeUser._id || activeUser.id);
+        const mongoose = require("mongoose");
+        let queryUserIds = [userIdStr];
+        if (mongoose.Types.ObjectId.isValid(userIdStr)) {
+            queryUserIds.push(new mongoose.Types.ObjectId(userIdStr));
+        }
+
         const results = await Result.find({
-            userId: req.session.user._id
+            userId: { $in: queryUserIds }
         }).sort({ createdAt: -1 });
-        res.json(results);
+
+        res.json(results || []);
     } catch (err) {
-        console.log(err);
-        res.status(500).send("Error");
+        console.error("getHistoryData Error:", err);
+        res.json([]);
     }
 };
 
@@ -212,19 +224,28 @@ exports.getMyApplicationsData = async (req, res) => {
 
 // Get dynamic list of student notifications
 exports.getNotifications = async (req, res) => {
-    if (!req.session.user) {
-        return res.status(401).send("Login First");
-    }
     try {
+        const activeUser = req.user || (req.session && req.session.user);
+        if (!activeUser) {
+            return res.status(401).json({ error: "Login First" });
+        }
+        const userIdStr = String(activeUser._id || activeUser.id);
+        const mongoose = require("mongoose");
+        let queryUserIds = [userIdStr];
+        if (mongoose.Types.ObjectId.isValid(userIdStr)) {
+            queryUserIds.push(new mongoose.Types.ObjectId(userIdStr));
+        }
+
         const notifications = await Notification.find({
-            userId: req.session.user._id
+            userId: { $in: queryUserIds }
         })
         .sort({ createdAt: -1 })
         .limit(10);
-        res.json(notifications);
+
+        res.json(notifications || []);
     } catch (err) {
-        console.log(err);
-        res.status(500).send("Error");
+        console.error("getNotifications error:", err);
+        res.json([]);
     }
 };
 
@@ -506,42 +527,7 @@ exports.deleteResume = async (req, res) => {
     }
 };
 
-// View own uploaded PDF resume
-exports.viewOwnResume = async (req, res) => {
-    try {
-        if (!req.session.user) return res.redirect('/login');
 
-        const user = await User.findById(req.session.user._id);
-        if (!user || !user.resumeBuffer) {
-            return res.status(404).send("No resume PDF found for your account.");
-        }
-
-        res.setHeader("Content-Type", "application/pdf");
-        res.setHeader("Content-Disposition", `inline; filename="${user.resume || 'resume.pdf'}"`);
-        return res.send(user.resumeBuffer);
-    } catch (err) {
-        console.error("View own resume error:", err);
-        return res.status(500).send("Error fetching resume PDF: " + err.message);
-    }
-};
-
-// View student PDF resume (for Admins)
-exports.viewStudentResume = async (req, res) => {
-    try {
-        const { studentId } = req.params;
-        const user = await User.findById(studentId);
-        if (!user || !user.resumeBuffer) {
-            return res.status(404).send("No resume PDF found for this student.");
-        }
-
-        res.setHeader("Content-Type", "application/pdf");
-        res.setHeader("Content-Disposition", `inline; filename="${user.name || 'Student'}_Resume.pdf"`);
-        return res.send(user.resumeBuffer);
-    } catch (err) {
-        console.error("View student resume error:", err);
-        return res.status(500).send("Error fetching student resume PDF: " + err.message);
-    }
-};
 
 // Helper to get professional brief descriptions for candidate skills
 const getSkillDescription = (skillName) => {
@@ -892,16 +878,21 @@ exports.buildResume = async (req, res) => {
 // Save timed assessment quiz result scores
 exports.submitTest = async (req, res) => {
     try {
-        if (!req.session.user) {
+        const activeUser = req.user || (req.session && req.session.user);
+        if (!activeUser) {
             return res.status(401).send("Login First");
         }
         const { score, total, testType, companyName } = req.body;
-        const percentage = Math.round((score / total) * 100);
+        const totalQs = Number(total) || 1;
+        const scoreNum = Number(score) || 0;
+        const percentage = Math.round((scoreNum / totalQs) * 100);
+
+        const userId = activeUser._id || activeUser.id;
 
         const result = new Result({
-            userId: req.session.user._id,
-            score,
-            totalQuestions: total,
+            userId: userId,
+            score: scoreNum,
+            totalQuestions: totalQs,
             percentage,
             testType: testType || "Aptitude",
             companyName: companyName || "General"
@@ -909,38 +900,50 @@ exports.submitTest = async (req, res) => {
 
         await result.save();
 
-        const user = await User.findById(req.session.user._id);
-        const totalTests = user.testsTaken + 1;
-        const average = ((user.averageScore * user.testsTaken) + percentage) / totalTests;
+        const user = await User.findById(userId);
+        if (user) {
+            const currentTests = user.testsTaken || 0;
+            const currentAvg = user.averageScore || 0;
+            const totalTests = currentTests + 1;
+            const average = ((currentAvg * currentTests) + percentage) / totalTests;
 
-        user.testsTaken = totalTests;
-        user.averageScore = Math.round(average);
-        await user.save();
+            user.testsTaken = totalTests;
+            user.averageScore = Math.round(average);
+            await user.save();
 
-        req.session.user = user;
-        res.send("Saved");
+            if (req.session && req.session.user) {
+                req.session.user = user;
+            }
+        }
+
+        res.json({ success: true, message: "Saved", percentage });
     } catch (err) {
-        console.log(err);
-        res.status(500).send("Error");
+        console.error("submitTest Error:", err);
+        res.status(500).send("Error saving test result: " + err.message);
     }
 };
 
 // Apply for placement drive job roles
 exports.applyCompany = async (req, res) => {
     try {
-        if (!req.session.user) {
+        const activeUser = req.user || (req.session && req.session.user);
+        if (!activeUser) {
             return res.status(401).send("Login First");
         }
         const { companyId } = req.body;
+        if (!companyId) {
+            return res.status(400).send("Company ID is required.");
+        }
 
         const company = await Company.findById(companyId);
         if (!company) {
             return res.status(404).send("Company not found");
         }
 
-        const user = await User.findById(req.session.user._id);
+        const userId = activeUser._id || activeUser.id;
+        const user = await User.findById(userId);
         if (!user) {
-            return res.status(404).send("User not found");
+            return res.status(404).send("User profile not found");
         }
 
         // Check if application deadline has passed
@@ -967,18 +970,33 @@ exports.applyCompany = async (req, res) => {
         }
 
         const alreadyApplied = await Application.findOne({
-            userId: req.session.user._id,
+            userId: user._id,
             companyId: companyId
         });
 
         if (alreadyApplied) {
-            return res.status(400).send("You have already applied.");
+            return res.status(400).send("You have already applied to this company drive.");
         }
 
         const application = new Application({
-            userId: req.session.user._id,
+            userId: user._id,
             companyId: companyId
         });
+
+        await application.save();
+
+        await Notification.create({
+            userId: user._id,
+            title: "Applied to Drive",
+            message: `You successfully applied for ${company.jobRole || 'position'} at ${company.companyName}.`
+        }).catch(() => {});
+
+        res.send("Application Submitted Successfully ✅");
+    } catch (err) {
+        console.error("applyCompany Error:", err);
+        res.status(500).send("Failed to submit application: " + err.message);
+    }
+};
 
         await application.save();
 
@@ -1069,115 +1087,7 @@ exports.getUserCompletionData = async (req, res) => {
     }
 };
 
-// Dynamically build professional PDF resume using student profile details
-exports.buildResume = async (req, res) => {
-    try {
-        if (!req.session.user) {
-            return res.status(401).send("Login First");
-        }
-
-        const user = await User.findById(req.session.user._id);
-        if (!user) {
-            return res.status(404).send("User not found");
-        }
-
-        const PDFDocument = require("pdfkit");
-        const doc = new PDFDocument({ margin: 40, size: "A4" });
-        const buffers = [];
-
-        doc.on("data", (chunk) => buffers.push(chunk));
-        doc.on("end", async () => {
-            try {
-                const pdfBuffer = Buffer.concat(buffers);
-                user.resumeBuffer = pdfBuffer;
-                user.resume = `/view-resume/${user._id}`;
-                await user.save();
-
-                await Notification.create({
-                    userId: user._id,
-                    title: "Resume Generated",
-                    message: "Your AI-formatted PDF resume has been built and saved successfully!"
-                });
-
-                req.session.user.resume = user.resume;
-                res.send("Resume Built Successfully ✅");
-            } catch (saveErr) {
-                console.error("Error saving built resume PDF:", saveErr);
-                res.status(500).send("Failed to save generated resume PDF.");
-            }
-        });
-
-        // ─── RESUME PDF LAYOUT DESIGN ──────────────────────────────────────────
-        // Header Name & Contact Info
-        doc.fillColor("#1e3a8a").fontSize(22).text((user.name || "Student").toUpperCase(), { align: "center" });
-        doc.fontSize(10).fillColor("#475569").text(`${user.email} | Phone: ${user.phone || "N/A"} | ${user.branch || "Engineering"} (Semester ${user.semester || "N/A"})`, { align: "center" });
-        if (user.linkedin || user.github) {
-            doc.fontSize(9).fillColor("#2563eb").text(`LinkedIn: ${user.linkedin || "N/A"} | GitHub: ${user.github || "N/A"}`, { align: "center" });
-        }
-        doc.moveDown();
-        doc.strokeColor("#cbd5e1").lineWidth(1).moveTo(40, doc.y).lineTo(555, doc.y).stroke();
-        doc.moveDown();
-
-        // Academic Profile
-        doc.fillColor("#1e293b").fontSize(14).text("ACADEMIC PROFILE", { underline: true });
-        doc.moveDown(0.5);
-        doc.fontSize(10).fillColor("#334155");
-        doc.text(`Degree & Branch: Bachelor of Technology - ${user.branch || "Engineering"}`);
-        doc.text(`Current Academic Semester: Semester ${user.semester || "N/A"}`);
-        doc.text(`Cumulative CGPA: ${user.cgpa || "N/A"} / 10.0`);
-        doc.moveDown();
-
-        // Technical Skills
-        doc.fillColor("#1e293b").fontSize(14).text("TECHNICAL SKILLS & COMPETENCIES", { underline: true });
-        doc.moveDown(0.5);
-        const skillsList = user.skills ? user.skills.split(",").map(s => s.trim()).join(" • ") : "Programming, Problem Solving, Data Structures, Web Technology";
-        doc.fontSize(10).fillColor("#334155").text(skillsList);
-        doc.moveDown();
-
-        // Projects & Certifications
-        doc.fillColor("#1e293b").fontSize(14).text("PROJECTS & PRACTICAL ASSESSMENTS", { underline: true });
-        doc.moveDown(0.5);
-        doc.fontSize(10).fillColor("#334155");
-        doc.text("• AI Placement Preparation Portal — Full-stack candidate assessment and proctoring suite.");
-        doc.text("• Technical & Aptitude Competency Assessments — Solved quantitative, logical, and core CS evaluations.");
-        doc.moveDown();
-
-        // Footer Note
-        doc.fillColor("#94a3b8").fontSize(8).text("Dynamically generated via Placement Preparation Portal", { align: "center" });
-
-        doc.end();
-    } catch (err) {
-        console.error("buildResume Error:", err);
-        res.status(500).send("Error building PDF resume.");
-    }
-};
-
-// Remove student's resume
-exports.deleteResume = async (req, res) => {
-    try {
-        if (!req.session.user) return res.status(401).send("Login First");
-
-        const user = await User.findById(req.session.user._id);
-        if (!user) return res.status(404).send("User not found");
-
-        user.resume = "";
-        user.resumeBuffer = undefined;
-        await user.save();
-
-        await Notification.create({
-            userId: user._id,
-            title: "Resume Removed",
-            message: "Your resume has been successfully removed."
-        });
-
-        req.session.user.resume = "";
-        res.send("Success");
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Error removing resume");
-    }
-};
-
+// Helper function to stream PDF resume cleanly to response
 const streamResume = async (user, res) => {
     try {
         if (!user) {
