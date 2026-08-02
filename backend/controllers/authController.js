@@ -73,6 +73,14 @@ exports.register = async (req, res) => {
 };
 
 exports.showLogin = (req, res) => {
+    if (req.session && req.session.user) {
+        delete req.session.user;
+        req.session.save(() => {
+            res.clearCookie("connect.sid");
+            renderView(res, "login.html");
+        });
+        return;
+    }
     renderView(res, "login.html");
 };
 
@@ -140,16 +148,14 @@ exports.login = async (req, res) => {
 exports.logout = (req, res) => {
     if (req.session) {
         delete req.session.user;
-        try { sessionStorage.removeItem("active_page_loaded"); } catch(e) {}
-        if (!req.session.admin) {
-            return req.session.destroy(err => {
-                if (err) console.error(err);
-                res.clearCookie("connect.sid");
-                res.redirect("/login");
-            });
-        }
-        return req.session.save(() => res.redirect("/login"));
+        req.session.destroy(err => {
+            if (err) console.error(err);
+            res.clearCookie("connect.sid");
+            return res.redirect("/login");
+        });
+        return;
     }
+    res.clearCookie("connect.sid");
     res.redirect("/login");
 };
 

@@ -13,6 +13,10 @@
     // forward from a previous page by the click-handler below) and store it
     // for this tab only, then strip it from the visible URL.
     try {
+        const currentPath = window.location.pathname.toLowerCase();
+        if (currentPath === "/login" || currentPath === "/admin-login" || currentPath === "/logout" || currentPath === "/register") {
+            sessionStorage.removeItem(TOKEN_KEY);
+        }
         const params = new URLSearchParams(window.location.search);
         const incoming = params.get("tk");
         if (incoming) {
