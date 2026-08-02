@@ -84,11 +84,22 @@
 <script>
 async function loadApplications() {
     try {
-        const response = await fetch("/my-applications-data");
+        const response = await fetch("/my-applications-data", { credentials: "same-origin" });
+        if (!response.ok) {
+            document.getElementById("applicationsContainer").innerHTML = `
+                <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 48px; text-align: center;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">📁</div>
+                    <h3 style="font-size: 18px; font-weight: 600; color: var(--text-main); margin-bottom: 8px;">No Applications Yet</h3>
+                    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">Browse and apply to our live placement drives to kickstart your tracking.</p>
+                    <a href="/placement-drives" class="btn btn-primary">Browse Companies</a>
+                </div>
+            `;
+            return;
+        }
         const applications = await response.json();
         
         const container = document.getElementById("applicationsContainer");
-        if (applications.length === 0) {
+        if (!Array.isArray(applications) || applications.length === 0) {
             container.innerHTML = `
                 <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 48px; text-align: center;">
                     <div style="font-size: 48px; margin-bottom: 16px;">📁</div>
