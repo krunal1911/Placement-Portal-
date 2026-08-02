@@ -550,37 +550,6 @@ const observer = new IntersectionObserver((entries) => {
 
 const statsSection = document.querySelector('.stats-section');
 if (statsSection) observer.observe(statsSection);
-
-// Detect active session on landing page and inform user or allow 1-click logout
-async function checkAuthSessionOnLanding() {
-    try {
-        const res = await fetch('/current-user', { credentials: 'same-origin' });
-        if (res.ok) {
-            const user = await res.json();
-            if (user && (user.name || user.email)) {
-                const navUl = document.querySelector('#mainNav ul');
-                if (navUl) {
-                    navUl.innerHTML = `
-                        <li><a href="#features">Features</a></li>
-                        <li><a href="/dashboard" style="color: #2563eb; font-weight: 700;">👤 Logged in: ${user.name || 'Student'}</a></li>
-                        <li><a href="/dashboard" class="nav-cta">Go to Dashboard →</a></li>
-                        <li><a href="/logout" style="color: #ef4444; font-weight: 600;">Logout 🚪</a></li>
-                    `;
-                }
-                const heroActions = document.querySelector('.hero-actions');
-                if (heroActions) {
-                    heroActions.innerHTML = `
-                        <a href="/dashboard" class="btn-primary">🎓 Continue as ${user.name || 'Student'} &nbsp;→</a>
-                        <a href="/logout" class="btn-secondary" style="color: #ef4444; border-color: #fca5a5;">Logout Active Session</a>
-                    `;
-                }
-            }
-        }
-    } catch (e) {
-        console.error(e);
-    }
-}
-checkAuthSessionOnLanding();
 </script>
 </body>
 </html>
