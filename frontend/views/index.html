@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://kit.fontawesome.com/6d2ea823d0.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="icon" type="image/png" href="/favicon.png">
     <link rel="stylesheet" href="/style.css?v=10.0">
     <link rel="icon" type="image/png" href="/favicon.png">
@@ -550,6 +551,44 @@ const observer = new IntersectionObserver((entries) => {
 
 const statsSection = document.querySelector('.stats-section');
 if (statsSection) observer.observe(statsSection);
+
+// Intercept feature card clicks on landing page for unauthenticated guests
+document.querySelectorAll('.feature-card').forEach(card => {
+    card.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const targetUrl = card.getAttribute('href');
+        
+        try {
+            const res = await fetch('/current-user', { credentials: 'same-origin' });
+            if (res.ok) {
+                const user = await res.json();
+                if (user && (user._id || user.id || user.name)) {
+                    window.location.href = targetUrl;
+                    return;
+                }
+            }
+        } catch (err) {}
+
+        if (window.Swal) {
+            Swal.fire({
+                icon: 'lock',
+                title: '🔐 Student Login Required',
+                text: 'Please log in to your student account first to access this feature.',
+                showCancelButton: true,
+                confirmButtonText: '🚀 Login Now',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#2563eb',
+                cancelButtonColor: '#94a3b8'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = `/login?redirect=${encodeURIComponent(targetUrl)}`;
+                }
+            });
+        } else {
+            window.location.href = `/login?redirect=${encodeURIComponent(targetUrl)}`;
+        }
+    });
+});
 </script>
 </body>
 </html>
