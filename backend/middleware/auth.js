@@ -59,7 +59,14 @@ function resolveUser(req) {
     return req.session.user || null;
 }
 
+function setNoCacheHeaders(res) {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private, max-age=0");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+}
+
 const requireUserOrAdmin = (req, res, next) => {
+    setNoCacheHeaders(res);
     req.admin = resolveAdmin(req);
     req.user = resolveUser(req);
     if (!req.user && !req.admin) {
@@ -72,6 +79,7 @@ const requireUserOrAdmin = (req, res, next) => {
 };
 
 const requireUser = (req, res, next) => {
+    setNoCacheHeaders(res);
     req.user = resolveUser(req);
     if (!req.user) {
         const isJsonRequest = req.xhr || 
@@ -89,6 +97,7 @@ const requireUser = (req, res, next) => {
 };
 
 const requireAdmin = (req, res, next) => {
+    setNoCacheHeaders(res);
     req.admin = resolveAdmin(req);
     if (!req.admin) {
         if (req.xhr || (req.headers.accept && req.headers.accept.indexOf('json') > -1)) {
@@ -100,6 +109,7 @@ const requireAdmin = (req, res, next) => {
 };
 
 const requireSuperAdmin = (req, res, next) => {
+    setNoCacheHeaders(res);
     req.admin = resolveAdmin(req);
     if (!req.admin) {
         if (req.xhr || (req.headers.accept && req.headers.accept.indexOf('json') > -1)) {

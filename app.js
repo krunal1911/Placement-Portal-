@@ -188,9 +188,9 @@ app.use(session({
     saveUninitialized: false,
     store: sessionStore,
     cookie: {
-        maxAge: 7 * 24 * 60 * 60 * 1000,   // 7 days
-        httpOnly: true,                     // Prevents client-side JS from reading cookie
-        secure: false,                      // Compatible across Vercel, Render and local proxies
+        maxAge: 2 * 60 * 60 * 1000,   // 2 hours active session timeout for shared device security
+        httpOnly: true,                // Prevents client-side JS from reading cookie
+        secure: false,                 // Compatible across Vercel, Render and local proxies
         sameSite: 'lax'
     }
 }));
