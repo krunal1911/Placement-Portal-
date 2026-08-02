@@ -48,17 +48,25 @@ router.get("/add-company", requireAdmin, adminController.showAddCompany);
 router.get("/manage-companies", requireAdmin, adminController.showManageCompanies);
 router.get("/results", requireAdmin, adminController.showResults);
 router.get("/applications", (req, res) => {
-    const { resolveAdmin, resolveUser } = require("../middleware/auth");
-    const admin = resolveAdmin(req);
-    const user = resolveUser(req);
+    try {
+        const { resolveAdmin, resolveUser } = require("../middleware/auth");
+        const studentController = require("../controllers/studentController");
+        let admin = null;
+        let user = null;
+        try { admin = resolveAdmin(req); } catch(e) {}
+        try { user = resolveUser(req); } catch(e) {}
 
-    if (admin) {
-        return adminController.showApplications(req, res);
+        if (admin) {
+            return adminController.showApplications(req, res);
+        }
+        if (user) {
+            return studentController.showMyApplications(req, res);
+        }
+        return res.redirect("/login");
+    } catch (err) {
+        console.error("Safe /applications route fallback:", err);
+        return res.redirect("/login");
     }
-    if (user) {
-        return res.redirect("/my-applications");
-    }
-    return res.redirect("/login");
 });
 router.get("/proctoring", requireAdmin, adminController.showProctoring);
 router.get("/update-status", requireAdmin, adminController.showUpdateStatus);
