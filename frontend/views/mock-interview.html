@@ -34,12 +34,19 @@
 
         .category-card {
             background: var(--bg-card);
-            border: 2px solid var(--border);
+            border: 1px solid var(--border);
             border-radius: 16px;
             padding: 24px;
+            cursor: pointer !important;
+            user-select: none !important;
+            -webkit-tap-highlight-color: transparent !important;
+            touch-action: manipulation !important;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             text-align: center;
-            cursor: pointer;
-            transition: all 0.25s ease;
+        }
+
+        .category-card * {
+            pointer-events: none !important;
         }
 
         .category-card:hover, .category-card.selected {
@@ -316,8 +323,9 @@
     };
 
     function selectTrack(element, track) {
+        const card = element.closest ? element.closest(".category-card") : element;
         document.querySelectorAll(".category-card").forEach(c => c.classList.remove("selected"));
-        element.classList.add("selected");
+        if (card) card.classList.add("selected");
         selectedTrack = track;
 
         const badge = document.getElementById("activeTrackBadge");

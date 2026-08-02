@@ -143,11 +143,12 @@
             </div>
         </div>
         <form id="uploadResumeForm" onsubmit="triggerUploadResume(event)" style="width: 100%; max-width: 600px;">
-            <input type="file" id="resumeFileInput" name="resume" accept=".pdf,application/pdf" style="display: none !important;" onchange="updateFileLabel(this)">
-            
-            <button type="button" id="selectPdfBtn" onclick="triggerPhoneFilePicker()" style="width: 100%; padding: 16px 20px; font-weight: 600; font-size: 15px; border: 2px dashed #2563eb; background: var(--bg-card); color: #2563eb; border-radius: 12px; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; text-align: center; box-sizing: border-box;">
-                <span id="fileLabel">📁 Choose PDF File</span>
-            </button>
+            <div style="position: relative; width: 100%; min-height: 54px; margin-bottom: 16px;">
+                <div id="selectPdfBtn" style="width: 100%; padding: 16px 20px; font-weight: 600; font-size: 15px; border: 2px dashed #2563eb; background: var(--bg-card); color: #2563eb; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; text-align: center; box-sizing: border-box;">
+                    <span id="fileLabel">📁 Choose PDF File</span>
+                </div>
+                <input type="file" id="resumeFileInput" name="resume" accept=".pdf,application/pdf" onchange="updateFileLabel(this)" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.001; cursor: pointer; z-index: 999; display: block !important;">
+            </div>
             
             <button type="submit" class="btn btn-primary" style="padding: 14px 28px; font-weight: 600; width: 100%; border-radius: 12px;">📤 Upload & Scan ATS Score</button>
         </form>
@@ -160,8 +161,8 @@
         </h3>
         <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;" id="resumeFilenameText">Loading resume attachment...</p>
         <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
-            <button type="button" id="viewResumeBtn" onclick="viewMyResume()" class="btn" style="padding: 10px 22px; font-weight: 600; background: #94a3b8; color: #ffffff; border: none; border-radius: 8px; cursor: pointer;">👁 View PDF</button>
-            <button type="button" id="deleteResumeBtn" onclick="removeResume()" class="btn" style="padding: 10px 22px; font-weight: 600; background: #94a3b8; color: #ffffff; border: none; border-radius: 8px; cursor: pointer;">🗑 Delete Resume</button>
+            <a id="viewResumeBtn" href="/view-resume" target="_blank" rel="noopener" class="btn" style="padding: 12px 24px; font-weight: 600; background: #2563eb; color: #ffffff; border: none; border-radius: 10px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer;">👁 View PDF</a>
+            <button type="button" id="deleteResumeBtn" onclick="removeResume()" class="btn" style="padding: 12px 24px; font-weight: 600; background: #ef4444; color: #ffffff; border: none; border-radius: 10px; cursor: pointer;">🗑 Delete Resume</button>
         </div>
     </div>
 
@@ -259,10 +260,23 @@ function viewMyResume() {
 async function triggerUploadResume(e) {
     if (e) e.preventDefault();
     const fileInput = document.getElementById("resumeFileInput");
-    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-        // Automatically open file picker if user clicks Upload without choosing a file first
-        document.getElementById("resumeFileInput").click();
-        return;
+    const hasFile = fileInput && fileInput.files && fileInput.files.length > 0;
+
+    if (!hasFile) {
+        if (currentActiveUser && currentActiveUser.resume) {
+            Swal.fire({
+                title: "Scanning Active Resume...",
+                text: `Calculating ATS Readability Score for ${currentActiveUser.resume}`,
+                timer: 1500,
+                showConfirmButton: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+            runATSCheck();
+            return;
+        } else {
+            Swal.fire("Select a PDF File", "Please tap 'Choose PDF File' above to select your PDF resume first.", "info");
+            return;
+        }
     }
 
     const formData = new FormData();
@@ -337,14 +351,15 @@ async function loadResume() {
             if (textElem) textElem.innerText = `Filename: ${currentActiveUser.resume}`;
             
             if (viewBtn) {
+                viewBtn.href = "/view-resume";
                 viewBtn.style.background = "#2563eb";
                 viewBtn.style.opacity = "1";
-                viewBtn.style.cursor = "pointer";
+                viewBtn.style.pointerEvents = "auto";
             }
             if (deleteBtn) {
                 deleteBtn.style.background = "#ef4444";
                 deleteBtn.style.opacity = "1";
-                deleteBtn.style.cursor = "pointer";
+                deleteBtn.style.pointerEvents = "auto";
             }
 
             runATSCheck();
@@ -353,14 +368,15 @@ async function loadResume() {
             if (textElem) textElem.innerText = `Choose a PDF file above and click 'Upload & Scan ATS Score' to attach your resume.`;
             
             if (viewBtn) {
+                viewBtn.href = "#";
                 viewBtn.style.background = "#94a3b8";
-                viewBtn.style.opacity = "0.75";
-                viewBtn.style.cursor = "pointer";
+                viewBtn.style.opacity = "0.6";
+                viewBtn.style.pointerEvents = "none";
             }
             if (deleteBtn) {
                 deleteBtn.style.background = "#94a3b8";
-                deleteBtn.style.opacity = "0.75";
-                deleteBtn.style.cursor = "pointer";
+                deleteBtn.style.opacity = "0.6";
+                deleteBtn.style.pointerEvents = "none";
             }
         }
     } catch (e) {
