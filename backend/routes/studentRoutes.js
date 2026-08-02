@@ -14,9 +14,17 @@ const upload = multer({
     storage: memStorage,
     limits: { fileSize: 5 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
-        file.mimetype === "application/pdf"
-            ? cb(null, true)
-            : cb(new Error("Only PDF files are allowed."), false);
+        const mime = (file.mimetype || "").toLowerCase();
+        const fname = (file.originalname || "").toLowerCase();
+        
+        const isPdfMime = mime.includes("pdf") || mime.includes("octet-stream") || mime.includes("binary") || mime.includes("download") || mime === "";
+        const isPdfExt = fname.endsWith(".pdf") || fname.endsWith(".doc") || fname.endsWith(".docx");
+
+        if (isPdfMime || isPdfExt) {
+            cb(null, true);
+        } else {
+            cb(new Error("Only PDF files are allowed."), false);
+        }
     }
 });
 
@@ -70,7 +78,16 @@ router.get("/api/verify-token", studentController.verifyTokenAPI);
 // ==========================================
 router.post("/update-profile", requireUser, studentController.updateProfile);
 router.post("/upload-profile", requireUser, profileUpload.single("profileImage"), studentController.uploadProfileImage);
-router.post("/upload-resume", requireUser, upload.single("resume"), studentController.uploadResume);
+router.post("/upload-resume", requireUser, (req, res, next) => {
+    upload.single("resume")(req, res, (err) => {
+        if (err instanceof multer.MulterError) {
+            return res.status(400).send("Upload Error: " + err.message);
+        } else if (err) {
+            return res.status(400).send(err.message || "Please select a valid PDF file.");
+        }
+        next();
+    });
+}, studentController.uploadResume);
 router.post("/build-resume", requireUser, studentController.buildResume);
 router.post("/delete-resume", requireUser, studentController.deleteResume);
 router.post("/submit-test", requireUser, studentController.submitTest);
