@@ -1222,7 +1222,14 @@ const streamResume = async (user, res) => {
 
 exports.viewOwnResume = async (req, res) => {
     try {
-        const user = await User.findById(req.session.user._id);
+        const activeUser = req.user || (req.session && req.session.user);
+        if (!activeUser) {
+            return res.redirect("/login");
+        }
+        const user = await User.findById(activeUser._id || activeUser.id);
+        if (!user) {
+            return res.status(404).send("User profile not found.");
+        }
         await streamResume(user, res);
     } catch (err) {
         console.error(err);
