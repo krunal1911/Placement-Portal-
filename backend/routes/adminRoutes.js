@@ -47,15 +47,19 @@ router.get("/import-questions", requireAdmin, adminController.showImportQuestion
 router.get("/add-company", requireAdmin, adminController.showAddCompany);
 router.get("/manage-companies", requireAdmin, adminController.showManageCompanies);
 router.get("/results", requireAdmin, adminController.showResults);
-router.get("/applications", (req, res, next) => {
-    if (req.session && req.session.user) {
-        const { resolveAdmin } = require("../middleware/auth");
-        if (!resolveAdmin(req)) {
-            return res.redirect("/my-applications");
-        }
+router.get("/applications", (req, res) => {
+    const { resolveAdmin, resolveUser } = require("../middleware/auth");
+    const admin = resolveAdmin(req);
+    const user = resolveUser(req);
+
+    if (admin) {
+        return adminController.showApplications(req, res);
     }
-    next();
-}, requireAdmin, adminController.showApplications);
+    if (user) {
+        return res.redirect("/my-applications");
+    }
+    return res.redirect("/login");
+});
 router.get("/proctoring", requireAdmin, adminController.showProctoring);
 router.get("/update-status", requireAdmin, adminController.showUpdateStatus);
 

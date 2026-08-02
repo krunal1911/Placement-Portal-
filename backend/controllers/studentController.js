@@ -188,16 +188,18 @@ exports.getCompanies = async (req, res) => {
 // Get student submitted drive application statuses
 exports.getMyApplicationsData = async (req, res) => {
     try {
-        if (!req.session.user) {
-            return res.status(401).send("Login First");
+        const user = req.user || req.session.user;
+        if (!user) {
+            return res.status(401).json({ error: "Login First" });
         }
+        const userId = user._id || user.id;
         const applications = await Application.find({
-            userId: req.session.user._id
+            userId: userId
         }).populate('companyId');
         res.json(applications);
     } catch (err) {
         console.log(err);
-        res.status(500).send("Error");
+        res.status(500).json({ error: err.message });
     }
 };
 
