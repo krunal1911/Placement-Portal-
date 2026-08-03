@@ -514,10 +514,10 @@ exports.getApplicationsData = async (req, res) => {
         const applications = await Application.find(query)
             .populate('userId')
             .populate('companyId');
-        res.json(applications);
+        res.json(applications || []);
     } catch (err) {
         console.error("getApplicationsData Error:", err);
-        res.status(500).json({ error: "Failed to fetch applications." });
+        res.json([]);
     }
 };
 

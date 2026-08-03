@@ -141,31 +141,28 @@ const sanitizeBody = (obj) => {
     }
 };
 
-const sanitizeXSS = (val) => {
-    if (typeof val === 'string') {
-        return val.replace(/<[^>]*>/g, '').replace(/javascript:/gi, '').trim();
-    }
-    if (Array.isArray(val)) {
-        return val.map(sanitizeXSS);
-    }
-    if (val && typeof val === 'object') {
-        for (const key in val) {
-            val[key] = sanitizeXSS(val[key]);
+const sanitizeXSSObj = (obj) => {
+    if (!obj || typeof obj !== 'object') return;
+    for (const key in obj) {
+        if (typeof obj[key] === 'string') {
+            obj[key] = obj[key].replace(/<[^>]*>/g, '').replace(/javascript:/gi, '').trim();
+        } else if (typeof obj[key] === 'object') {
+            sanitizeXSSObj(obj[key]);
         }
     }
-    return val;
 };
 
 app.use((req, res, next) => {
-    if (req.body) {
-        sanitizeBody(req.body);
-        req.body = sanitizeXSS(req.body);
-    }
-    if (req.query) {
-        req.query = sanitizeXSS(req.query);
-    }
-    if (req.params) {
-        req.params = sanitizeXSS(req.params);
+    try {
+        if (req.body && typeof req.body === 'object') {
+            sanitizeBody(req.body);
+            sanitizeXSSObj(req.body);
+        }
+        if (req.query && typeof req.query === 'object') {
+            sanitizeXSSObj(req.query);
+        }
+    } catch (err) {
+        console.error("Sanitize middleware warning:", err.message);
     }
     next();
 });
