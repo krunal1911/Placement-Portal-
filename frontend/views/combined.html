@@ -666,15 +666,18 @@ function triggerCheatingWarning(incidentType, details) {
     
     warningCount++;
     logCheatingIncident(incidentType, details || "Security policy violation detected during live exam.");
-    try { navigator.clipboard.writeText("Assessment Security Notice: Screenshots are strictly prohibited."); } catch(e) {}
+    try { navigator.clipboard.writeText("Assessment Security Notice: Screenshots and copying are strictly prohibited."); } catch(e) {}
 
     if (warningCount >= MAX_WARNINGS) {
         isExamActive = false;
+        if (document.fullscreenElement) {
+            document.exitFullscreen().catch(() => {});
+        }
         Swal.fire({
             icon: "error",
-            title: "Test Disqualified & Submitted",
-            html: `⚠️ <b>3 Warning Limit Exceeded!</b><br><br>You have reached <b>${warningCount} out of ${MAX_WARNINGS}</b> warnings due to tab switching / security violations.<br><br>Your assessment is being automatically submitted now.`,
-            confirmButtonText: "Submit Test Now",
+            title: "🚨 Test Terminated & Auto-Submitted",
+            html: `⚠️ <b>Maximum 3 Warnings Exceeded!</b><br><br>You have reached <b>${warningCount} out of ${MAX_WARNINGS} warnings</b> due to repeated security violations (${incidentType}).<br><br>Your assessment has been automatically submitted for evaluation.`,
+            confirmButtonText: "View Results",
             confirmButtonColor: "#ef4444",
             allowOutsideClick: false,
             allowEscapeKey: false
@@ -684,12 +687,14 @@ function triggerCheatingWarning(incidentType, details) {
     } else {
         Swal.fire({
             icon: "warning",
-            title: "⚠️ Security Warning Alert",
-            html: `<b>${incidentType} Detected!</b><br><br>Do not switch tabs, exit fullscreen, take screenshots, or leave the assessment window.<br><br><span style="color:#ef4444; font-size:16px; font-weight:bold;">Warning ${warningCount} of ${MAX_WARNINGS}</span><br><small style="color:#64748b;">(Exceeding 3 warnings will automatically submit your test)</small>`,
-            confirmButtonText: "Return to Exam",
+            title: `⚠️ Security Violation (${incidentType})`,
+            html: `<b>Proctoring Warning Alert!</b><br><br>Do not exit fullscreen mode, press ESC/F11 keys, copy content, switch tabs, or minimize the window.<br><br><span style="color:#ef4444; font-size:18px; font-weight:800;">Warning ${warningCount} of ${MAX_WARNINGS}</span><br><small style="color:#64748b; font-weight:600;">(Reaching 3 warnings will immediately submit & terminate your test)</small>`,
+            confirmButtonText: "🔒 Return to Fullscreen & Resume Exam",
             confirmButtonColor: "#2563eb",
             allowOutsideClick: false,
             allowEscapeKey: false
+        }).then(() => {
+            enterFullscreenMode();
         });
     }
 }
@@ -697,11 +702,11 @@ function triggerCheatingWarning(incidentType, details) {
 function enterFullscreenMode() {
     const elem = document.documentElement;
     if (elem.requestFullscreen) {
-        elem.requestFullscreen();
+        elem.requestFullscreen().catch(() => {});
     } else if (elem.webkitRequestFullscreen) {
-        elem.webkitRequestFullscreen();
+        elem.webkitRequestFullscreen().catch(() => {});
     } else if (elem.msRequestFullscreen) {
-        elem.msRequestFullscreen();
+        elem.msRequestFullscreen().catch(() => {});
     }
 }
 
@@ -719,7 +724,7 @@ function setupProctoring() {
 
     document.addEventListener("fullscreenchange", () => {
         if (isExamActive && !document.fullscreenElement) {
-            triggerCheatingWarning("Exit Fullscreen", "User exited fullscreen mode.");
+            triggerCheatingWarning("Exit Fullscreen / ESC Key", "Candidate exited fullscreen mode or pressed ESC key.");
         }
     });
 
@@ -744,7 +749,7 @@ function setupProctoring() {
     document.addEventListener("cut", (e) => {
         if (isExamActive) {
             e.preventDefault();
-            triggerCheatingWarning("Copy Action", "User attempted to cut text.");
+            triggerCheatingWarning("Cut Action", "User attempted to cut text.");
         }
     });
     document.addEventListener("paste", (e) => {
@@ -759,78 +764,59 @@ function setupProctoring() {
             triggerCheatingWarning("Text Selection", "User attempted to select question text.");
         }
     });
-    window.addEventListener("pagehide", () => {
+    document.addEventListener("pagehide", () => {
         if (isExamActive) {
             triggerCheatingWarning("App Switch / Background", "Candidate navigated away or minimized exam window.");
         }
     });
 
-    const handleScreenshotKey = (e) => {
-        if (!isExamActive) return;
-        if (e.key === "PrintScreen" || e.keyCode === 44 || e.code === "PrintScreen" || e.key === "Snapshot" || (e.metaKey && e.shiftKey && (e.key === "S" || e.key === "s" || e.key === "4" || e.key === "3"))) {
-            if (e.preventDefault) e.preventDefault();
-            try { navigator.clipboard.writeText(""); } catch (err) {}
-            triggerCheatingWarning("Screenshot / Snipping Tool Attempt", "Candidate attempted screen capture / PrintScreen shortcut.");
-        }
-    };
-
-    document.addEventListener("keydown", (e) => {
-        if (isExamActive) {
-            if (e.key === "PrintScreen" || e.keyCode === 44 || e.code === "PrintScreen" || e.key === "Snapshot") {
-                handleScreenshotKey(e);
-            } else if (e.key === "Escape" || e.keyCode === 27) {
-                e.preventDefault();
-                triggerCheatingWarning("ESC Key Pressed", "User pressed ESC key to exit exam mode.");
-            } else if ((e.ctrlKey || e.metaKey) && (e.key === "c" || e.key === "C" || e.key === "v" || e.key === "V" || e.key === "p" || e.key === "P")) {
-                e.preventDefault();
-                triggerCheatingWarning("Copy/Print Shortcut", "User attempted copy/print keyboard shortcut.");
-            } else if (e.key === "F12" || (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "S" || e.key === "C"))) {
-                e.preventDefault();
-                triggerCheatingWarning("Developer/Snipping Tools", "User attempted to open developer/snipping tools.");
-            }
-        }
-    });
-
-    document.addEventListener("keyup", handleScreenshotKey);
-
-    window.addEventListener("keyup", handleScreenshotKey);
-
     document.addEventListener("contextmenu", (e) => {
         if (isExamActive) {
             e.preventDefault();
-            Swal.fire({
-                icon: "warning",
-                title: "Action Restricted",
-                text: "Right-click is disabled during the exam.",
-                confirmButtonColor: "#2563eb"
-            });
+            triggerCheatingWarning("Right-Click Context Menu", "Candidate attempted right-click context menu.");
         }
     });
 
-    document.addEventListener("keydown", (e) => {
+    const handleKeyPolicy = (e) => {
         if (!isExamActive) return;
+        const key = (e.key || "").toLowerCase();
+        const code = (e.code || "").toLowerCase();
 
-        if (e.key === "PrintScreen" || e.keyCode === 44) {
-            e.preventDefault();
-            triggerCheatingWarning("Screenshot Attempt", "User pressed the PrintScreen key.");
-            return;
+        // 1. Intercept ESC key & Fullscreen Exits
+        if (key === "escape" || e.keyCode === 27 || code === "escape" || key === "esc") {
+            if (e.preventDefault) e.preventDefault();
+            if (e.stopPropagation) e.stopPropagation();
+            triggerCheatingWarning("ESC Key Pressed", "User pressed ESC key to exit exam mode.");
+            return false;
         }
 
-        const isCtrl = e.ctrlKey || e.metaKey;
-        const key = e.key.toLowerCase();
-
-        if (isCtrl && (key === 'c' || key === 'v' || key === 'x' || key === 'a' || key === 'u' || key === 'p' || key === 's')) {
-            e.preventDefault();
-            triggerCheatingWarning("Copy Action", `User pressed keyboard shortcut: Ctrl+${key.toUpperCase()}`);
-            return;
+        // 2. Intercept PrintScreen / Screenshot shortcuts
+        if (key === "printscreen" || e.keyCode === 44 || code === "printscreen" || key === "snapshot" || (e.metaKey && e.shiftKey && (key === "s" || key === "4" || key === "3"))) {
+            if (e.preventDefault) e.preventDefault();
+            try { navigator.clipboard.writeText(""); } catch (err) {}
+            triggerCheatingWarning("Screenshot Attempt", "Candidate attempted screen capture / PrintScreen shortcut.");
+            return false;
         }
 
-        if (e.key === "F12" || (isCtrl && e.shiftKey && key === 'i')) {
-            e.preventDefault();
-            triggerCheatingWarning("Developer Tools", "User attempted to open browser developer tools.");
-            return;
+        // 3. Intercept F11 & F12 Developer Tools
+        if (key === "f12" || key === "f11" || e.keyCode === 122 || e.keyCode === 123) {
+            if (e.preventDefault) e.preventDefault();
+            triggerCheatingWarning("Function Key Shortcut (F11/F12)", `Candidate pressed ${key.toUpperCase()} key.`);
+            return false;
         }
-    });
+
+        // 4. Intercept Ctrl / Cmd Copy, Cut, Paste, Print, Save, Developer shortcuts
+        if (e.ctrlKey || e.metaKey || e.altKey) {
+            if (["c", "v", "x", "a", "u", "p", "s", "i", "j", "k"].includes(key)) {
+                if (e.preventDefault) e.preventDefault();
+                triggerCheatingWarning("Restricted Shortcut", `Candidate used restricted shortcut: Ctrl/Cmd+${key.toUpperCase()}`);
+                return false;
+            }
+        }
+    };
+
+    document.addEventListener("keydown", handleKeyPolicy, true);
+    document.addEventListener("keyup", handleKeyPolicy, true);
 }
 
 loadQuestions();
