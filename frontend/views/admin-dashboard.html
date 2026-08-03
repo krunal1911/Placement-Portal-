@@ -351,35 +351,30 @@ async function checkAdminRole() {
             return;
         }
         const admin = await response.json();
-        
-        // Render name/role badge dynamically
+
         const heroText = document.querySelector(".hero h1");
         if (heroText) {
             heroText.innerHTML = `👨‍💼 Admin Dashboard <span class="role-pill">${admin.role.toUpperCase()}</span>`;
         }
 
-        // Filter features and navigation based on admin role
         if (admin.role === "admin") {
-            // Display company name in hero title
             if (heroText) {
                 heroText.innerHTML = `🏢 ${admin.companyName || 'Company'} Admin Dashboard <span class="role-pill">COMPANY ADMIN</span>`;
             }
 
-            // Hide superadmin-only navigation links
             document.querySelectorAll("nav ul li").forEach(li => {
                 const a = li.querySelector("a");
                 if (a && a.getAttribute("href") === "/students") {
                     li.style.display = "none";
                 }
             });
-            
+
             const heroBtn = document.querySelector(".heroBtn");
             if (heroBtn) {
                 heroBtn.textContent = "+ Manage My Drive";
                 heroBtn.setAttribute("href", "/add-company");
             }
-            
-            // Allow company admins to access question management, PDF/Excel import, applications, results, proctoring, and placement drives
+
             document.querySelectorAll(".features .feature-card").forEach(card => {
                 const h3 = card.querySelector("h3");
                 if (h3) {
@@ -391,6 +386,9 @@ async function checkAdminRole() {
                     }
                 }
             });
+
+            // Load the Company Admin Drive Panel
+            loadMyDrivePanel(admin);
         } else if (admin.role === "superadmin") {
             const featuresSec = document.querySelector(".features");
             if (featuresSec && !document.getElementById("manageAdminsCard")) {
@@ -410,11 +408,183 @@ async function checkAdminRole() {
     }
 }
 
+async function loadMyDrivePanel(admin) {
+    try {
+        const res = await fetch("/my-drive");
+        const data = await res.json();
+        const heroSec = document.querySelector(".hero");
+        if (!heroSec) return;
+
+        let panelHtml = "";
+
+        if (!data.drive) {
+            panelHtml = `
+            <div id="myDrivePanel" style="background:linear-gradient(135deg,#1e40af,#2563eb);color:white;border-radius:18px;padding:32px;margin:24px 0;box-shadow:0 8px 32px rgba(37,99,235,0.3);">
+                <div style="display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap;">
+                    <div style="font-size:48px;">📋</div>
+                    <div style="flex:1;min-width:220px;">
+                        <div style="display:inline-block;background:rgba(255,255,255,0.2);color:white;font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">STEP 1 OF 3 — SETUP REQUIRED</div>
+                        <h2 style="font-size:22px;font-weight:700;margin-bottom:8px;">Welcome, ${admin.companyName} Recruiter! 👋</h2>
+                        <p style="opacity:0.9;font-size:14px;margin-bottom:20px;">Your account is active. To start receiving student applications, <strong>first register your placement drive</strong> with the job role, salary package, and application deadline.</p>
+                        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                            <a href="/add-company" style="background:white;color:#1e40af;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:700;font-size:14px;display:inline-flex;align-items:center;gap:8px;">➕ Register My Placement Drive</a>
+                            <a href="/applications" style="background:rgba(255,255,255,0.15);color:white;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:600;font-size:14px;border:1px solid rgba(255,255,255,0.3);display:inline-flex;align-items:center;gap:8px;">📄 View Applications</a>
+                        </div>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.1);border-radius:14px;padding:20px;min-width:200px;border:1px solid rgba(255,255,255,0.2);">
+                        <div style="font-size:12px;opacity:0.75;text-transform:uppercase;font-weight:600;margin-bottom:8px;">3-Step Process</div>
+                        <div style="font-size:13px;line-height:2.2;">
+                            <div>🔵 <strong>Step 1:</strong> Register Drive Details</div>
+                            <div style="opacity:0.5;">⬜ <strong>Step 2:</strong> Students Apply</div>
+                            <div style="opacity:0.5;">⬜ <strong>Step 3:</strong> Review &amp; Shortlist</div>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        } else {
+            const drive = data.drive;
+            const totalApps = data.applicationCount || 0;
+            const statusMap = data.statusMap || {};
+            const shortlisted = statusMap["Shortlisted"] || 0;
+            const selected = statusMap["Selected"] || 0;
+            const rejected = statusMap["Rejected"] || 0;
+            const inReview = Math.max(0, totalApps - shortlisted - selected - rejected);
+            const deadline = drive.deadline || drive.lastDate || "Flexible";
+            const driveJson = JSON.stringify(drive).replace(/"/g, '&quot;');
+
+            panelHtml = `
+            <div id="myDrivePanel" style="background:var(--bg-card);border:1px solid var(--border);border-radius:18px;padding:28px;margin:24px 0;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;margin-bottom:24px;">
+                    <div>
+                        <div style="display:inline-block;background:#d1fae5;color:#065f46;font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">✅ Drive Active</div>
+                        <h2 style="font-size:20px;font-weight:700;color:var(--text-main);margin-bottom:4px;">🏢 My Placement Drive — ${drive.companyName}</h2>
+                        <p style="color:var(--text-muted);font-size:13px;">💼 ${drive.jobRole} &nbsp;|&nbsp; ₹ ${drive.package} &nbsp;|&nbsp; 📍 ${drive.location} &nbsp;|&nbsp; ⭐ Min CGPA: ${drive.eligibility} &nbsp;|&nbsp; 📅 Deadline: ${deadline}</p>
+                    </div>
+                    <button onclick="openEditDriveModal('${drive._id}', ${driveJson})" style="background:var(--primary);color:white;border:none;padding:10px 20px;border-radius:10px;font-weight:600;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;">✏️ Edit Drive Details</button>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:16px;margin-bottom:20px;">
+                    <div style="background:var(--bg-main);border-radius:12px;padding:16px;text-align:center;border:1px solid var(--border);">
+                        <div style="font-size:26px;font-weight:800;color:var(--primary);">${totalApps}</div>
+                        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Total Applicants</div>
+                    </div>
+                    <div style="background:var(--bg-main);border-radius:12px;padding:16px;text-align:center;border:1px solid var(--border);">
+                        <div style="font-size:26px;font-weight:800;color:#f59e0b;">${shortlisted}</div>
+                        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Shortlisted</div>
+                    </div>
+                    <div style="background:var(--bg-main);border-radius:12px;padding:16px;text-align:center;border:1px solid var(--border);">
+                        <div style="font-size:26px;font-weight:800;color:#10b981;">${selected}</div>
+                        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Selected</div>
+                    </div>
+                    <div style="background:var(--bg-main);border-radius:12px;padding:16px;text-align:center;border:1px solid var(--border);">
+                        <div style="font-size:26px;font-weight:800;color:#ef4444;">${rejected}</div>
+                        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Rejected</div>
+                    </div>
+                    <div style="background:var(--bg-main);border-radius:12px;padding:16px;text-align:center;border:1px solid var(--border);">
+                        <div style="font-size:26px;font-weight:800;color:#6366f1;">${inReview}</div>
+                        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">In Review</div>
+                    </div>
+                </div>
+                <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                    <a href="/applications" style="background:var(--primary);color:white;padding:10px 20px;border-radius:10px;text-decoration:none;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:8px;">📄 Review &amp; Update Application Status</a>
+                    <a href="/results" style="background:var(--bg-main);color:var(--text-main);border:1px solid var(--border);padding:10px 20px;border-radius:10px;text-decoration:none;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:8px;">📊 View Exam Results</a>
+                    <a href="/add-company" style="background:var(--bg-main);color:var(--text-muted);border:1px solid var(--border);padding:10px 20px;border-radius:10px;text-decoration:none;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:8px;">🏢 Manage Drives</a>
+                </div>
+            </div>
+
+            <!-- Edit Drive Modal -->
+            <div id="editDriveModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;">
+                <div style="background:var(--bg-card);border-radius:20px;padding:32px;max-width:520px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);position:relative;max-height:90vh;overflow-y:auto;">
+                    <button onclick="document.getElementById('editDriveModal').style.display='none'" style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-muted);">✕</button>
+                    <h2 style="font-size:20px;font-weight:700;color:var(--text-main);margin-bottom:20px;">✏️ Update Placement Drive Details</h2>
+                    <input type="hidden" id="editDriveId">
+                    <div style="margin-bottom:14px;">
+                        <label style="font-size:12px;font-weight:600;text-transform:uppercase;color:var(--text-muted);display:block;margin-bottom:6px;">Job Role / Profile</label>
+                        <input id="editJobRole" type="text" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg-main);color:var(--text-main);box-sizing:border-box;">
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+                        <div>
+                            <label style="font-size:12px;font-weight:600;text-transform:uppercase;color:var(--text-muted);display:block;margin-bottom:6px;">Salary Package (LPA)</label>
+                            <input id="editPackage" type="text" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg-main);color:var(--text-main);">
+                        </div>
+                        <div>
+                            <label style="font-size:12px;font-weight:600;text-transform:uppercase;color:var(--text-muted);display:block;margin-bottom:6px;">Location</label>
+                            <input id="editLocation" type="text" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg-main);color:var(--text-main);">
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;">
+                        <div>
+                            <label style="font-size:12px;font-weight:600;text-transform:uppercase;color:var(--text-muted);display:block;margin-bottom:6px;">Min CGPA Eligibility</label>
+                            <input id="editEligibility" type="number" step="0.1" min="0" max="10" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg-main);color:var(--text-main);">
+                        </div>
+                        <div>
+                            <label style="font-size:12px;font-weight:600;text-transform:uppercase;color:var(--text-muted);display:block;margin-bottom:6px;">Application Deadline</label>
+                            <input id="editDeadline" type="text" placeholder="e.g. 2024-09-15" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg-main);color:var(--text-main);">
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:12px;">
+                        <button onclick="saveEditDrive()" id="saveEditBtn" style="flex:2;background:var(--primary);color:white;border:none;padding:12px;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer;">💾 Save Changes</button>
+                        <button onclick="document.getElementById('editDriveModal').style.display='none'" style="flex:1;background:var(--bg-main);color:var(--text-muted);border:1px solid var(--border);padding:12px;border-radius:10px;font-weight:600;font-size:14px;cursor:pointer;">Cancel</button>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        heroSec.insertAdjacentHTML("afterend", panelHtml);
+    } catch(e) {
+        console.error("loadMyDrivePanel error:", e);
+    }
+}
+
+function openEditDriveModal(driveId, drive) {
+    document.getElementById("editDriveId").value = driveId;
+    document.getElementById("editJobRole").value = drive.jobRole || "";
+    document.getElementById("editPackage").value = drive.package || "";
+    document.getElementById("editLocation").value = drive.location || "";
+    document.getElementById("editEligibility").value = drive.eligibility || "";
+    document.getElementById("editDeadline").value = drive.deadline || drive.lastDate || "";
+    document.getElementById("editDriveModal").style.display = "flex";
+}
+
+async function saveEditDrive() {
+    const id = document.getElementById("editDriveId").value;
+    const saveBtn = document.getElementById("saveEditBtn");
+    saveBtn.disabled = true;
+    saveBtn.textContent = "⏳ Saving...";
+    const payload = {
+        jobRole: document.getElementById("editJobRole").value,
+        package: document.getElementById("editPackage").value,
+        location: document.getElementById("editLocation").value,
+        eligibility: document.getElementById("editEligibility").value,
+        deadline: document.getElementById("editDeadline").value
+    };
+    try {
+        const res = await fetch(`/update-company/${id}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (res.ok) {
+            document.getElementById("editDriveModal").style.display = "none";
+            showToast(data.message || "Drive updated successfully!", "success");
+            setTimeout(() => window.location.reload(), 1200);
+        } else {
+            showToast(data.message || "Failed to update drive.", "error");
+            saveBtn.disabled = false;
+            saveBtn.textContent = "💾 Save Changes";
+        }
+    } catch(e) {
+        showToast("Server error. Please try again.", "error");
+        saveBtn.disabled = false;
+        saveBtn.textContent = "💾 Save Changes";
+    }
+}
+
 loadAnalytics();
 loadRecentActivity();
 checkAdminRole();
-// Auto-sync dashboard analytics in real-time every 5 seconds without manual page refresh
 setInterval(loadAnalytics, 5000);
 </script>
 </body>
 </html>
+

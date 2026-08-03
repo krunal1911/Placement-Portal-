@@ -88,6 +88,9 @@ router.delete("/delete-student/:id", requireAdmin, adminController.deleteStudent
 router.get("/delete-student/:id", requireAdmin, adminController.deleteStudent);
 router.get("/export-students", requireSuperAdmin, adminController.exportStudents);
 router.get("/companies-list", requireAdmin, adminController.getCompaniesList);
+router.get("/my-drive", requireAdmin, adminController.getMyDrive);
+router.put("/update-company/:id", requireAdmin, adminController.updateCompanyDrive);
+router.post("/update-company/:id", requireAdmin, adminController.updateCompanyDrive);
 
 router.get("/download-question-template", requireAdmin, adminController.downloadQuestionTemplate);
 

@@ -1816,6 +1816,74 @@ exports.addCompany = async (req, res) => {
     }
 };
 
+// Get the placement drive registered by the logged-in company admin
+exports.getMyDrive = async (req, res) => {
+    try {
+        if (!req.admin || req.admin.role !== "admin" || !req.admin.companyName) {
+            return res.json({ drive: null });
+        }
+        const companyName = (req.admin.companyName || "").trim();
+        const regexCompany = new RegExp(`^${companyName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")}$`, "i");
+        const drive = await Company.findOne({ companyName: regexCompany }).sort({ createdAt: -1 });
+
+        if (!drive) return res.json({ drive: null });
+
+        // Count how many students have applied
+        const applicationCount = await Application.countDocuments({
+            $or: [
+                { companyId: drive._id },
+                { companyName: regexCompany }
+            ]
+        });
+
+        const statusBreakdown = await Application.aggregate([
+            { $match: { $or: [{ companyId: drive._id }, { companyName: { $regex: regexCompany } }] } },
+            { $group: { _id: "$status", count: { $sum: 1 } } }
+        ]);
+
+        const statusMap = {};
+        statusBreakdown.forEach(s => { statusMap[s._id] = s.count; });
+
+        res.json({ drive, applicationCount, statusMap });
+    } catch (err) {
+        console.error("getMyDrive error:", err);
+        res.json({ drive: null });
+    }
+};
+
+// Update an existing company drive (company admin only)
+exports.updateCompanyDrive = async (req, res) => {
+    try {
+        const { id } = req.params;
+        let { jobRole, package: pkg, location, eligibility, deadline } = req.body;
+
+        const drive = await Company.findById(id);
+        if (!drive) return res.status(404).json({ message: "Placement drive not found." });
+
+        // Security: company admin can only edit their own company drive
+        if (req.admin && req.admin.role === "admin") {
+            const adminCompany = (req.admin.companyName || "").trim().toLowerCase();
+            const driveCompany = (drive.companyName || "").trim().toLowerCase();
+            if (adminCompany !== driveCompany) {
+                return res.status(403).json({ message: "You can only update your own company drive." });
+            }
+        }
+
+        if (jobRole) drive.jobRole = String(jobRole).trim();
+        if (pkg) drive.package = String(pkg).trim();
+        if (location) drive.location = String(location).trim();
+        if (eligibility !== undefined) drive.eligibility = String(eligibility).trim();
+        if (deadline) drive.deadline = String(deadline).trim();
+
+        await drive.save();
+        res.json({ message: "Placement drive updated successfully!", drive });
+    } catch (err) {
+        console.error("updateCompanyDrive error:", err);
+        res.status(500).json({ message: "Failed to update drive.", error: err.message });
+    }
+};
+
+
 // Generate a secure signed exam link
 exports.generateSignedLink = async (req, res) => {
     try {
