@@ -132,12 +132,9 @@ exports.login = async (req, res) => {
         req.session.save((err) => {
             if (err) {
                 console.error("Session save error:", err);
-                return res.status(500).send("Session save failed. Please try again.");
+                return res.status(500).json({ error: "Session save failed. Please try again." });
             }
-            if (req.xhr || (req.headers.accept && req.headers.accept.indexOf('json') > -1)) {
-                return res.json({ success: true, message: "Login Successful", token });
-            }
-            res.send("Login Successful");
+            return res.json({ success: true, message: "Login Successful", token });
         });
     } catch (err) {
         console.error("Login Error:", err);

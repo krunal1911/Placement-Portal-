@@ -67,9 +67,7 @@
         const link = e.target && e.target.closest ? e.target.closest("a[href]") : null;
         if (!link) return;
 
-        const href = link.getAttribute("href");
-        if (!href || href.charAt(0) === "#" || /^(mailto:|tel:|javascript:)/i.test(href)) return;
-        if (link.target === "_blank" || link.hasAttribute("download")) return;
+        if (link.hasAttribute("download")) return;
 
         let url;
         try { url = new URL(href, window.location.origin); } catch (err) { return; }
