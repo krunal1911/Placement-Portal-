@@ -306,7 +306,7 @@ async function triggerUploadResume(e) {
                 showConfirmButton: false
             });
             await loadResume();
-            runATSCheck();
+            await runATSCheck(true);
         } else {
             const errText = await res.text();
             Swal.fire("Upload Failed", errText || "Failed to upload resume.", "error");
@@ -331,7 +331,7 @@ async function loadResume() {
         const viewBtn = document.getElementById("viewResumeBtn");
         const deleteBtn = document.getElementById("deleteResumeBtn");
 
-        if (currentActiveUser.resume) {
+        if (currentActiveUser && currentActiveUser.resume) {
             if (titleElem) titleElem.innerHTML = `<span>✅</span> Active Resume Attached`;
             if (textElem) textElem.innerText = `Filename: ${currentActiveUser.resume}`;
             
@@ -347,7 +347,7 @@ async function loadResume() {
                 deleteBtn.style.pointerEvents = "auto";
             }
 
-            runATSCheck();
+            runATSCheck(false);
         } else {
             if (titleElem) titleElem.innerHTML = `<span>ℹ️</span> No Resume Attached Yet`;
             if (textElem) textElem.innerText = `Choose a PDF file above and click 'Upload & Scan ATS Score' to attach your resume.`;
@@ -387,69 +387,145 @@ function renderEmptyATSState() {
     `;
 }
 
-async function runATSCheck() {
+async function runATSCheck(autoScroll = false) {
+    const resultsBox = document.getElementById("atsResultsBox");
+    if (!resultsBox) return;
+
     if (!currentActiveUser || !currentActiveUser.resume) {
         renderEmptyATSState();
         return;
     }
 
     const role = document.getElementById("atsTargetRole")?.value || "fullstack";
-    const resultsBox = document.getElementById("atsResultsBox");
-    if (!resultsBox) return;
 
     try {
         const res = await fetch("/api/ats-check", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json", "Accept": "application/json" },
             body: JSON.stringify({ role: role })
         });
 
-        const data = await res.json();
-        if (!res.ok || !data.hasResume) {
-            renderEmptyATSState();
-            return;
+        let data = null;
+        if (res.ok) {
+            data = await res.json();
         }
 
-        let badgeColor = "#ef4444";
-        let badgeBg = "rgba(239, 68, 68, 0.15)";
-        if (data.score >= 85) { badgeColor = "#10b981"; badgeBg = "rgba(16, 185, 129, 0.15)"; }
-        else if (data.score >= 75) { badgeColor = "#3b82f6"; badgeBg = "rgba(59, 130, 246, 0.15)"; }
-        else if (data.score >= 60) { badgeColor = "#f59e0b"; badgeBg = "rgba(245, 158, 11, 0.15)"; }
+        if (!data || !data.hasResume) {
+            data = calculateClientATSScore(currentActiveUser, role);
+        }
 
-        resultsBox.style.display = "block";
-        resultsBox.innerHTML = `
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 24px;">
-                <div class="card" style="text-align: center; padding: 24px; background: var(--bg-main); display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                    <h4 style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px;">ATS Readability Score</h4>
-                    <div style="font-size: 48px; font-weight: 800; color: ${badgeColor};" id="atsScoreValue">${data.score}%</div>
-                    <span id="atsBadgeGrade" style="margin-top: 8px; font-size: 12px; padding: 4px 12px; border-radius: 12px; font-weight: 700; color: ${badgeColor}; background: ${badgeBg};">GRADE ${data.grade}</span>
-                </div>
+        renderATSResults(data);
+        if (autoScroll) {
+            resultsBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+    } catch (e) {
+        console.error("ATS Check API fallback:", e);
+        const data = calculateClientATSScore(currentActiveUser, role);
+        renderATSResults(data);
+        if (autoScroll) {
+            resultsBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+    }
+}
 
-                <div class="card" style="padding: 24px; background: var(--bg-main);">
-                    <h4 style="font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 12px;">✅ Matched Industry Keywords (${data.matched ? data.matched.length : 0})</h4>
-                    <div id="atsMatchedKeywords" style="margin-bottom: 16px;">
-                        ${(data.matched && data.matched.length > 0) ? data.matched.map(k => `<span class="keyword-matched-pill">✓ ${k}</span>`).join('') : '<span style="font-size:13px; color:var(--text-muted);">None matched yet. Add skills in your Profile page!</span>'}
-                    </div>
+function calculateClientATSScore(user, role) {
+    const roleKeywordsMap = {
+        fullstack: ["react", "javascript", "node", "express", "sql", "mongodb", "git", "rest api", "html", "css", "data structures"],
+        python: ["python", "django", "flask", "sql", "oops", "data structures", "git", "api", "postgres", "linux"],
+        data: ["sql", "python", "pandas", "excel", "statistics", "tableau", "powerbi", "data cleaning", "numpy", "queries"],
+        core: ["oops", "dbms", "sql", "operating systems", "networking", "c++", "java", "data structures", "git", "algorithms"]
+    };
 
-                    <h4 style="font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 12px;">❌ Missing Critical Keywords for Role (${data.missing ? data.missing.length : 0})</h4>
-                    <div id="atsMissingKeywords">
-                        ${(data.missing && data.missing.length > 0) ? data.missing.map(k => `<span class="keyword-missing-pill">+ ${k}</span>`).join('') : '<span style="font-size:13px; color:#10b981;">Awesome! All key terms covered.</span>'}
-                    </div>
-                </div>
+    const targetKeywords = roleKeywordsMap[role] || roleKeywordsMap.fullstack;
+    const userSkillsStr = Array.isArray(user.skills) ? user.skills.join(' ') : (user.skills || '');
+    const userText = `${user.name || ''} ${userSkillsStr} ${user.branch || ''} ${user.resume || ''} ${JSON.stringify(user.projects || [])}`.toLowerCase();
+
+    const matched = [];
+    const missing = [];
+
+    targetKeywords.forEach(kw => {
+        if (userText.includes(kw.toLowerCase())) {
+            matched.push(kw.toUpperCase());
+        } else {
+            missing.push(kw.toUpperCase());
+        }
+    });
+
+    const matchPct = Math.round((matched.length / targetKeywords.length) * 100);
+
+    let bonus = 0;
+    if (user.resume) bonus += 15;
+    if (user.linkedin && user.linkedin.trim() !== "") bonus += 5;
+    if (user.github && user.github.trim() !== "") bonus += 5;
+    if (user.projects && user.projects.length > 0) bonus += 10;
+    if (user.cgpa && Number(user.cgpa) >= 7.5) bonus += 5;
+
+    const score = Math.min(100, Math.max(25, matchPct + bonus));
+
+    let grade = "C";
+    if (score >= 85) grade = "A+";
+    else if (score >= 75) grade = "A";
+    else if (score >= 60) grade = "B";
+
+    const recommendations = [];
+    if (missing.length > 0) {
+        recommendations.push(`Include target keywords like: <b>${missing.slice(0, 4).join(", ")}</b> in your resume skills and project descriptions.`);
+    }
+    if (!user.linkedin) recommendations.push("Add a professional LinkedIn profile URL to boost recruiter contactability.");
+    if (!user.github) recommendations.push("Add a GitHub profile link to showcase repository contributions.");
+    recommendations.push("Ensure clean standard section titles: Education, Skills, Technical Projects, Experience.");
+    recommendations.push("Use action verbs (e.g. Developed, Architected, Optimized) for project bullet points.");
+
+    return {
+        hasResume: true,
+        score,
+        grade,
+        matched,
+        missing,
+        recommendations
+    };
+}
+
+function renderATSResults(data) {
+    const resultsBox = document.getElementById("atsResultsBox");
+    if (!resultsBox) return;
+
+    let badgeColor = "#ef4444";
+    let badgeBg = "rgba(239, 68, 68, 0.15)";
+    if (data.score >= 85) { badgeColor = "#10b981"; badgeBg = "rgba(16, 185, 129, 0.15)"; }
+    else if (data.score >= 75) { badgeColor = "#3b82f6"; badgeBg = "rgba(59, 130, 246, 0.15)"; }
+    else if (data.score >= 60) { badgeColor = "#f59e0b"; badgeBg = "rgba(245, 158, 11, 0.15)"; }
+
+    resultsBox.style.display = "block";
+    resultsBox.innerHTML = `
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 24px;">
+            <div class="card" style="text-align: center; padding: 24px; background: var(--bg-main); display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                <h4 style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px;">ATS Readability Score</h4>
+                <div style="font-size: 48px; font-weight: 800; color: ${badgeColor};" id="atsScoreValue">${data.score}%</div>
+                <span id="atsBadgeGrade" style="margin-top: 8px; font-size: 12px; padding: 4px 12px; border-radius: 12px; font-weight: 700; color: ${badgeColor}; background: ${badgeBg};">GRADE ${data.grade}</span>
             </div>
 
             <div class="card" style="padding: 24px; background: var(--bg-main);">
-                <h4 style="font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 12px;">💡 Actionable ATS Recommendations</h4>
-                <ul id="atsRecommendationsList" style="padding-left: 20px; font-size: 14px; color: var(--text-main); line-height: 1.8;">
-                    ${(data.recommendations && data.recommendations.length > 0) ? data.recommendations.map(r => `<li>${r}</li>`).join('') : '<li>Ensure standard section titles: Education, Skills, Projects, Experience.</li>'}
-                </ul>
+                <h4 style="font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 12px;">✅ Matched Industry Keywords (${data.matched ? data.matched.length : 0})</h4>
+                <div id="atsMatchedKeywords" style="margin-bottom: 16px;">
+                    ${(data.matched && data.matched.length > 0) ? data.matched.map(k => `<span class="keyword-matched-pill">✓ ${k}</span>`).join('') : '<span style="font-size:13px; color:var(--text-muted);">None matched yet. Add skills in your Profile page!</span>'}
+                </div>
+
+                <h4 style="font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 12px;">❌ Missing Critical Keywords for Role (${data.missing ? data.missing.length : 0})</h4>
+                <div id="atsMissingKeywords">
+                    ${(data.missing && data.missing.length > 0) ? data.missing.map(k => `<span class="keyword-missing-pill">+ ${k}</span>`).join('') : '<span style="font-size:13px; color:#10b981;">Awesome! All key terms covered.</span>'}
+                </div>
             </div>
-        `;
-        resultsBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    } catch (e) {
-        console.error(e);
-        renderEmptyATSState();
-    }
+        </div>
+
+        <div class="card" style="padding: 24px; background: var(--bg-main);">
+            <h4 style="font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 12px;">💡 Actionable ATS Recommendations</h4>
+            <ul id="atsRecommendationsList" style="padding-left: 20px; font-size: 14px; color: var(--text-main); line-height: 1.8;">
+                ${(data.recommendations && data.recommendations.length > 0) ? data.recommendations.map(r => `<li>${r}</li>`).join('') : '<li>Ensure standard section titles: Education, Skills, Projects, Experience.</li>'}
+            </ul>
+        </div>
+    `;
 }
 
 
