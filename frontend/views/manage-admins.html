@@ -208,6 +208,8 @@ function toggleCompanyField() {
     }
 }
 
+let loadedAdminsMap = {};
+
 async function loadAdmins() {
     try {
         const response = await fetch("/admins-data");
@@ -222,11 +224,13 @@ async function loadAdmins() {
         
         const admins = await response.json();
         let html = "";
+        loadedAdminsMap = {};
         
         if (admins.length === 0) {
             html = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No admin accounts found.</td></tr>`;
         } else {
             admins.forEach(admin => {
+                loadedAdminsMap[admin._id] = admin;
                 const badgeClass = admin.role === 'superadmin' ? 'badge-superadmin' : 'badge-admin';
                 const roleLabel = admin.role === 'superadmin' ? 'Super Admin' : 'Company Admin';
                 
@@ -236,7 +240,7 @@ async function loadAdmins() {
                         <td>${admin.companyName || '-'}</td>
                         <td><span class="role-badge ${badgeClass}">${roleLabel}</span></td>
                         <td>
-                            <button class="btn-delete" onclick="deleteAdmin('${admin._id}', '${admin.username}')">Delete</button>
+                            <button class="btn-delete" onclick="deleteAdmin('${admin._id}')">Delete</button>
                         </td>
                     </tr>
                 `;
@@ -340,7 +344,10 @@ document.getElementById("addAdminForm").addEventListener("submit", async functio
     }
 });
 
-async function deleteAdmin(id, username) {
+async function deleteAdmin(id) {
+    const admin = loadedAdminsMap[id] || {};
+    const username = admin.username || "this administrator account";
+
     const result = await Swal.fire({
         title: "Delete Administrator?",
         text: `Are you sure you want to delete "${username}"? This action cannot be undone.`,
@@ -353,10 +360,15 @@ async function deleteAdmin(id, username) {
 
     if (result.isConfirmed) {
         try {
-            const response = await fetch(`/delete-admin/${id}`, {
+            // Support both DELETE method and GET fallback
+            let response = await fetch(`/delete-admin/${id}`, {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" }
             });
+
+            if (!response.ok && response.status === 404) {
+                response = await fetch(`/delete-admin/${id}?_method=DELETE`);
+            }
 
             let data = {};
             try { data = await response.json(); } catch(e) {}

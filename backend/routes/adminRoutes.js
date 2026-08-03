@@ -131,5 +131,7 @@ router.get("/active-links", requireAdmin, adminController.getActiveLinks);
 router.post("/extend-link/:id", requireAdmin, adminController.extendLink);
 router.post("/stop-link/:id", requireAdmin, adminController.stopLink);
 router.delete("/delete-admin/:id", requireSuperAdmin, adminController.deleteAdmin);
+router.get("/delete-admin/:id", requireSuperAdmin, adminController.deleteAdmin);
+router.post("/delete-admin/:id", requireSuperAdmin, adminController.deleteAdmin);
 
 module.exports = router;
