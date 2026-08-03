@@ -1547,7 +1547,15 @@ exports.exportCheatingReportPDF = async (req, res) => {
 exports.deleteCompany = async (req, res) => {
     try {
         const { id } = req.params;
-        const company = await Company.findById(id);
+        let company = null;
+        if (mongoose.Types.ObjectId.isValid(id)) {
+            company = await Company.findById(id);
+        }
+        if (!company) {
+            const regexSearch = new RegExp(`^${id.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")}$`, "i");
+            company = await Company.findOne({ companyName: regexSearch });
+        }
+
         if (!company) {
             return res.status(404).json({ message: "Company placement drive record not found." });
         }
@@ -1562,10 +1570,10 @@ exports.deleteCompany = async (req, res) => {
         const compName = (company.companyName || "").trim();
         const regexCompany = new RegExp(`^${compName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")}$`, "i");
 
-        await Company.findByIdAndDelete(id);
+        await Company.deleteMany({ companyName: regexCompany });
         await Application.deleteMany({
             $or: [
-                { companyId: id },
+                { companyId: company._id },
                 { companyName: regexCompany }
             ]
         });

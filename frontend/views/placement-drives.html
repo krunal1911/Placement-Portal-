@@ -104,6 +104,15 @@ function displayCompanies(companies){
             ? `<button disabled style="background:#94a3b8; width:100%; padding:12px; font-weight:700; cursor:not-allowed; border-radius:8px; color:#ffffff; border:none; opacity:0.85;">⏳ Application Closed</button>`
             : `<button onclick="applyCompany('${company._id}')" style="background:var(--primary); width:100%; padding:12px; font-weight:600; cursor:pointer; border-radius:8px; color:white; border:none;">Apply Now</button>`;
 
+        let adminDeleteBtn = "";
+        if (currentAdmin) {
+            const adminComp = (currentAdmin.companyName || "").trim().toLowerCase();
+            const driveComp = (company.companyName || "").trim().toLowerCase();
+            if (currentAdmin.role === "superadmin" || (adminComp && adminComp === driveComp)) {
+                adminDeleteBtn = `<button onclick="deleteCompanyDrive('${company._id}')" style="background:#fee2e2; color:#dc2626; border:1px solid #fecaca; width:100%; padding:10px; font-weight:700; cursor:pointer; border-radius:8px; margin-top:8px; font-size:13px; display:inline-flex; align-items:center; justify-content:center; gap:6px;">🗑️ Delete Placement Drive</button>`;
+            }
+        }
+
         const deadlineText = isExpired
             ? `<span style="color:#ef4444; font-weight:700;">📅 Deadline: ${deadlineDate} (Expired)</span>`
             : `<span>📅 Deadline: ${deadlineDate}</span>`;
@@ -126,6 +135,7 @@ function displayCompanies(companies){
             </div>
             <div style="margin-top: 14px;">
                 ${actionButton}
+                ${adminDeleteBtn}
             </div>
         </div>
         `;
@@ -283,9 +293,12 @@ async function checkUserSession() {
         });
     }
 }
+async function initDrivesPage() {
+    await checkAdminStatus();
+    await loadCompanies();
+}
 checkUserSession();
-loadCompanies();
-// Auto-sync placement drives in real-time every 5 seconds without manual page refresh
+initDrivesPage();
 setInterval(loadCompanies, 5000);
 </script>
 
