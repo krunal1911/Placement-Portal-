@@ -100,7 +100,11 @@ const requireAdmin = (req, res, next) => {
     setNoCacheHeaders(res);
     req.admin = resolveAdmin(req);
     if (!req.admin) {
-        if (req.xhr || (req.headers.accept && req.headers.accept.indexOf('json') > -1)) {
+        const isJsonRequest = req.xhr ||
+            (req.headers.accept && req.headers.accept.indexOf('json') > -1) ||
+            (req.headers['content-type'] && req.headers['content-type'].indexOf('json') > -1) ||
+            req.method === 'POST' || req.method === 'PUT' || req.method === 'DELETE' || req.method === 'PATCH';
+        if (isJsonRequest) {
             return res.status(401).json({ error: "Admin authentication required" });
         }
         return res.redirect('/admin-login');
@@ -112,13 +116,21 @@ const requireSuperAdmin = (req, res, next) => {
     setNoCacheHeaders(res);
     req.admin = resolveAdmin(req);
     if (!req.admin) {
-        if (req.xhr || (req.headers.accept && req.headers.accept.indexOf('json') > -1)) {
+        const isJsonRequest = req.xhr ||
+            (req.headers.accept && req.headers.accept.indexOf('json') > -1) ||
+            (req.headers['content-type'] && req.headers['content-type'].indexOf('json') > -1) ||
+            req.method === 'POST' || req.method === 'PUT' || req.method === 'DELETE' || req.method === 'PATCH';
+        if (isJsonRequest) {
             return res.status(401).json({ error: "Admin authentication required" });
         }
         return res.redirect('/admin-login');
     }
     if (req.admin.role !== "superadmin") {
-        if (req.xhr || (req.headers.accept && req.headers.accept.indexOf('json') > -1)) {
+        const isJsonRequest = req.xhr ||
+            (req.headers.accept && req.headers.accept.indexOf('json') > -1) ||
+            (req.headers['content-type'] && req.headers['content-type'].indexOf('json') > -1) ||
+            req.method === 'POST' || req.method === 'PUT' || req.method === 'DELETE' || req.method === 'PATCH';
+        if (isJsonRequest) {
             return res.status(403).json({ error: "Forbidden: Super Admin access required" });
         }
         return res.status(403).send("Forbidden: Super Admin access required.");

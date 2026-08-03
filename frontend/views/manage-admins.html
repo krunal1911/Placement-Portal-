@@ -343,26 +343,38 @@ document.getElementById("addAdminForm").addEventListener("submit", async functio
 async function deleteAdmin(id, username) {
     const result = await Swal.fire({
         title: "Delete Administrator?",
-        text: `Are you sure you want to delete "${username}"?`,
+        text: `Are you sure you want to delete "${username}"? This action cannot be undone.`,
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#ef4444",
-        confirmButtonText: "Yes, Delete"
+        confirmButtonText: "Yes, Delete",
+        cancelButtonText: "Cancel"
     });
 
     if (result.isConfirmed) {
         try {
-            const response = await fetch(`/delete-admin/${id}`, { method: "DELETE" });
-            const data = await response.json();
-            
+            const response = await fetch(`/delete-admin/${id}`, {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" }
+            });
+
+            let data = {};
+            try { data = await response.json(); } catch(e) {}
+
             if (response.ok) {
-                showToast("Administrator deleted.", "success");
+                showToast(`Administrator "${username}" deleted successfully.`, "success");
                 loadAdmins();
+            } else if (response.status === 401) {
+                showToast("Session expired. Please log in again.", "error");
+                setTimeout(() => window.location.href = "/admin-login", 1500);
+            } else if (response.status === 403) {
+                showToast(data.error || data.message || "Only Super Admins can delete administrators.", "error");
             } else {
-                showToast(data.message || "Could not delete administrator", "error");
+                showToast(data.message || data.error || "Could not delete administrator.", "error");
             }
         } catch (e) {
-            showToast("Error connecting to server", "error");
+            console.error("deleteAdmin error:", e);
+            showToast("Error connecting to server. Please try again.", "error");
         }
     }
 }
