@@ -1735,8 +1735,23 @@ exports.deleteAdmin = async (req, res) => {
             return res.status(403).json({ message: "Cannot delete SuperAdmin accounts." });
         }
 
+        // ──────────────────────────────────────────────────────────────────────
+        // IMPORTANT: Only the admin LOGIN ACCOUNT is deleted here.
+        // All associated data is intentionally PRESERVED:
+        //   ✅ Company placement drives (Company collection)
+        //   ✅ Questions added by the company (Question / TechnicalQuestion collections)
+        //   ✅ Student applications for that company (Application collection)
+        //   ✅ Student accounts and login credentials (User collection)
+        //   ✅ Exam results and proctoring logs (Result / CheatingLog collections)
+        //
+        // The superadmin can still view and manage all that data even after
+        // the company recruiter account is removed.
+        // ──────────────────────────────────────────────────────────────────────
         await Admin.findByIdAndDelete(id);
-        res.json({ message: `Administrator "${targetAdmin.username}" deleted successfully!` });
+
+        res.json({
+            message: `Administrator account "${targetAdmin.username}" has been removed. All company drives, questions, student applications, and exam data have been preserved.`
+        });
     } catch (err) {
         console.error("Error deleting admin:", err);
         res.status(500).json({ message: "Failed to delete administrator account." });
