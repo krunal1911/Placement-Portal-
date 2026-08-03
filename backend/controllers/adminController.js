@@ -1,6 +1,7 @@
 const path = require("path");
 const fs = require("fs");
 const bcrypt = require("bcryptjs");
+const mongoose = require("mongoose");
 
 const Admin = require("../../database/models/Admin");
 const User = require("../../database/models/User");
@@ -1336,8 +1337,12 @@ exports.exportResultPDF = async (req, res) => {
             return res.status(404).send("Result not found");
         }
         
-        if (req.admin.role !== "superadmin" && result.companyName !== req.admin.companyName) {
-            return res.status(403).send("Unauthorized to export this candidate's report");
+        if (req.admin.role !== "superadmin") {
+            const adminComp = (req.admin.companyName || "").trim().toLowerCase();
+            const resComp = (result.companyName || result.company || "").trim().toLowerCase();
+            if (adminComp && resComp && resComp !== "general" && resComp !== adminComp) {
+                return res.status(403).send("Unauthorized to export this candidate's report");
+            }
         }
         
         const cheatingLogs = await CheatingLog.find({

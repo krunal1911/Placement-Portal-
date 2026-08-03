@@ -1,5 +1,6 @@
 const path = require("path");
 const fs   = require("fs");
+const mongoose = require("mongoose");
 
 const { uploadFile } = require("../../database/config/cloudinary");
 
