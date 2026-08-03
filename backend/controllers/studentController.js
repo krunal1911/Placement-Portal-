@@ -80,26 +80,30 @@ exports.showMyApplications = (req, res) => {
 // Get Current User Profile details (with profileImage & resume fields)
 exports.getCurrentUser = async (req, res) => {
     try {
-        const activeUser = req.user || req.session.user;
+        const activeUser = req.user || (req.session && req.session.user);
         if (!activeUser) {
-            return res.status(401).send("Not Logged In");
+            return res.status(401).json({ error: "Not Logged In" });
         }
-        const user = await User.findById(activeUser._id || activeUser.id);
-        if (!user) {
-            return res.status(404).send("User not found");
+        const userId = activeUser._id || activeUser.id;
+        let user = null;
+        if (userId) {
+            user = await User.findById(userId).catch(() => null);
         }
+        
+        const fallbackObj = user || activeUser;
         res.json({
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-            branch: user.branch,
-            semester: user.semester,
-            resume: user.resume,
-            profileImage: user.profileImage || "default.png"
+            _id: fallbackObj._id || fallbackObj.id,
+            id: fallbackObj._id || fallbackObj.id,
+            name: fallbackObj.name || "Student User",
+            email: fallbackObj.email || "",
+            branch: fallbackObj.branch || "Engineering",
+            semester: fallbackObj.semester || "1",
+            resume: fallbackObj.resume || null,
+            profileImage: fallbackObj.profileImage || "default.png"
         });
     } catch (err) {
         console.error("getCurrentUser error:", err);
-        res.status(500).send("Server Error");
+        res.status(500).json({ error: "Server Error" });
     }
 };
 
@@ -1001,14 +1005,26 @@ exports.applyCompany = async (req, res) => {
 // Get profile completion metadata calculations
 exports.getUserCompletionData = async (req, res) => {
     try {
-        if (!req.session.user) {
-            return res.status(401).send("Not Logged In");
+        const activeUser = req.user || (req.session && req.session.user);
+        if (!activeUser) {
+            return res.status(401).json({ error: "Not Logged In" });
         }
 
-        const userId = req.session.user._id || req.session.user.id || req.session.user;
-        const user = await User.findById(userId);
+        const userId = activeUser._id || activeUser.id;
+        let user = null;
+        if (userId) {
+            user = await User.findById(userId).catch(() => null);
+        }
+
         if (!user) {
-            return res.status(404).send("User not found");
+            return res.json({
+                name: activeUser.name || "Student",
+                email: activeUser.email || "",
+                testsTaken: 0,
+                averageScore: 0,
+                profileCompletion: 50,
+                companiesApplied: 0
+            });
         }
 
         let completed = 0;
@@ -1068,7 +1084,7 @@ exports.getUserCompletionData = async (req, res) => {
         });
     } catch (err) {
         console.error("getUserCompletionData Error:", err);
-        res.status(500).json({ error: err.message, stack: err.stack });
+        res.status(500).json({ error: err.message });
     }
 };
 
