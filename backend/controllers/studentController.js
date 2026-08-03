@@ -998,21 +998,6 @@ exports.applyCompany = async (req, res) => {
     }
 };
 
-        await application.save();
-
-        await Notification.create({
-            userId: req.session.user._id,
-            title: "Application Submitted",
-            message: `Your application to ${company.companyName} has been submitted successfully.`
-        });
-
-        res.send("Application Submitted Successfully ✅");
-    } catch (err) {
-        console.log(err);
-        res.status(500).send("Error");
-    }
-};
-
 // Get profile completion metadata calculations
 exports.getUserCompletionData = async (req, res) => {
     try {
