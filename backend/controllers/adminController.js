@@ -749,19 +749,27 @@ exports.exportStudents = async (req, res) => {
 // Authenticate Administrator login
 exports.adminLogin = async (req, res) => {
     try {
-        const { username, password } = req.body;
-        console.log(`[DEBUG - Admin Login] Attempting login. Username: "${username}", Password: "${password}"`);
+        const username = String(req.body.username || "").trim();
+        const password = String(req.body.password || "").trim();
+
+        if (!username || !password) {
+            return res.json({ message: "Admin Not Found" });
+        }
+
+        console.log(`[DEBUG - Admin Login] Attempting login. Username: "${username}"`);
 
         delete req.session.admin;
         delete req.session.user;
 
-        const admin = await Admin.findOne({ username });
+        const regexUsername = new RegExp(`^${username.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")}$`, "i");
+        const admin = await Admin.findOne({ username: regexUsername });
+
         if (!admin) {
             console.log(`[DEBUG - Admin Login] Admin NOT found in DB for: "${username}"`);
             return res.json({ message: "Admin Not Found" });
         }
 
-        console.log(`[DEBUG - Admin Login] Admin found in DB. Stored hash: ${admin.password}`);
+        console.log(`[DEBUG - Admin Login] Admin found in DB. Verifying password...`);
         const isMatch = await bcrypt.compare(password, admin.password);
 
         if (!isMatch) {
@@ -776,17 +784,8 @@ exports.adminLogin = async (req, res) => {
             companyName: admin.companyName || ""
         };
 
-        // Session is kept as a fallback for requests that haven't picked up a
-        // per-tab token yet (e.g. the very first navigation right after login).
         req.session.admin = adminIdentity;
 
-        // A signed, per-tab token is the real fix for multi-tab admin sessions:
-        // the browser only has ONE session cookie shared by every tab, so if a
-        // second admin account logs in from another tab it would otherwise
-        // overwrite this session for everyone. The token is stored client-side
-        // in sessionStorage (isolated per tab) and sent on every subsequent
-        // request from THIS tab, so this tab's identity can never be clobbered
-        // by another tab logging in as someone else.
         const token = signAdminToken({
             type: "admin",
             id: String(admin._id),
@@ -804,7 +803,7 @@ exports.adminLogin = async (req, res) => {
             res.json({ message: "Success", token, admin: adminIdentity });
         });
     } catch (err) {
-        console.log(err);
+        console.error("Admin login error:", err);
         res.status(500).json({ message: "Login Failed" });
     }
 };
@@ -812,14 +811,22 @@ exports.adminLogin = async (req, res) => {
 // Add sub-admin profile
 exports.addAdmin = async (req, res) => {
     try {
-        const { username, password, role, companyName } = req.body;
+        const username = String(req.body.username || "").trim();
+        const password = String(req.body.password || "").trim();
+        const role = req.body.role;
+        const companyName = String(req.body.companyName || "").trim();
+
         if (!username || !password || !role) {
-            return res.status(400).send("All fields are required");
+            return res.status(400).json({ message: "All fields are required" });
         }
-        const existing = await Admin.findOne({ username });
+
+        const regexUsername = new RegExp(`^${username.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")}$`, "i");
+        const existing = await Admin.findOne({ username: regexUsername });
+
         if (existing) {
-            return res.status(400).send("Username already exists");
+            return res.status(400).json({ message: "Username already exists" });
         }
+
         const hashedPassword = await bcrypt.hash(password, 10);
         await Admin.create({
             username,
@@ -827,10 +834,11 @@ exports.addAdmin = async (req, res) => {
             role,
             companyName: companyName || ""
         });
-        res.send("Admin created successfully");
+
+        res.json({ message: "Admin created successfully" });
     } catch (err) {
-        console.error(err);
-        res.status(500).send("Failed to create admin");
+        console.error("addAdmin error:", err);
+        res.status(500).json({ message: "Failed to create admin" });
     }
 };
 

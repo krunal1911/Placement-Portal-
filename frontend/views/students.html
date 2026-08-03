@@ -149,12 +149,17 @@ function filterResetRequestsOnly() {
     filterStudents();
 }
 
+let loadedStudentsMap = {};
+
 function displayStudents(data) {
     let html = "";
+    loadedStudentsMap = {};
+
     if (data.length === 0) {
         html = `<tr><td colspan="8" style="text-align:center; color:var(--text-muted);">No student records match the filter criteria.</td></tr>`;
     } else {
         data.forEach(student => {
+            loadedStudentsMap[student._id] = student;
             const hasResetReq = student.passwordResetRequested === true;
             const rowStyle = hasResetReq ? 'background: rgba(254, 243, 199, 0.35);' : '';
             const resetBadge = hasResetReq ? `<span style="background:#fef3c7; color:#b45309; border:1px solid #fde68a; padding:2px 8px; border-radius:12px; font-size:11px; font-weight:700; margin-left:6px;">⚠️ RESET REQUESTED</span>` : '';
@@ -170,8 +175,8 @@ function displayStudents(data) {
                     <td><span style="font-weight: 700; color: #2563eb; background: var(--primary-light); padding: 4px 8px; border-radius: 6px; font-size: 12px;">${student.atsScore || 'Not Scanned'}</span></td>
                     <td style="text-align: center;">
                         <div style="display: inline-flex; gap: 6px; flex-wrap: wrap; justify-content: center;">
-                            <button onclick="resetStudentPassword('${student._id}', '${student.name.replace(/'/g, "\\'")}', '${student.email.replace(/'/g, "\\'")}')" class="btn" style="padding: 6px 12px; font-size: 11px; background: ${hasResetReq ? '#f59e0b' : '#dbeafe'}; color: ${hasResetReq ? '#ffffff' : '#1e40af'}; border: 1px solid ${hasResetReq ? '#d97706' : '#bfdbfe'}; font-weight: 700; cursor: pointer; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">🔑 Reset Password</button>
-                            <button onclick="deleteStudentAccount('${student._id}', '${student.name.replace(/'/g, "\\'")}')" class="btn" style="padding: 6px 12px; font-size: 11px; background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; font-weight: 600; cursor: pointer; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">🗑️ Delete</button>
+                            <button onclick="resetStudentPassword('${student._id}')" class="btn" style="padding: 6px 12px; font-size: 11px; background: ${hasResetReq ? '#f59e0b' : '#dbeafe'}; color: ${hasResetReq ? '#ffffff' : '#1e40af'}; border: 1px solid ${hasResetReq ? '#d97706' : '#bfdbfe'}; font-weight: 700; cursor: pointer; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">🔑 Reset Password</button>
+                            <button onclick="deleteStudentAccount('${student._id}')" class="btn" style="padding: 6px 12px; font-size: 11px; background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; font-weight: 600; cursor: pointer; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">🗑️ Delete</button>
                         </div>
                     </td>
                 </tr>
@@ -181,7 +186,11 @@ function displayStudents(data) {
     document.getElementById("studentTable").innerHTML = html;
 }
 
-async function resetStudentPassword(id, name, email) {
+async function resetStudentPassword(id) {
+    const student = loadedStudentsMap[id] || {};
+    const name = student.name || "Student";
+    const email = student.email || "";
+
     const { value: newPass } = await Swal.fire({
         title: `Reset Password for ${name}`,
         html: `
@@ -247,7 +256,10 @@ async function resetStudentPassword(id, name, email) {
     }
 }
 
-async function deleteStudentAccount(id, name) {
+async function deleteStudentAccount(id) {
+    const student = loadedStudentsMap[id] || {};
+    const name = student.name || "this student";
+
     const result = await Swal.fire({
         title: "Delete Student Account?",
         text: `Are you sure you want to permanently delete "${name}" and ALL their history (test records, applications, notifications, proctoring logs)?`,
@@ -259,7 +271,10 @@ async function deleteStudentAccount(id, name) {
 
     if (result.isConfirmed) {
         try {
-            const response = await fetch(`/delete-student/${id}`, { method: "DELETE" });
+            let response = await fetch(`/delete-student/${id}`, { method: "DELETE" });
+            if (!response.ok && response.status === 404) {
+                response = await fetch(`/delete-student/${id}?_method=DELETE`);
+            }
             const data = await response.json();
             if (response.ok) {
                 Swal.fire("Deleted!", data.message || "Student account removed.", "success")

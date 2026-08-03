@@ -131,11 +131,14 @@ async function checkAdminProfile() {
     }
 }
 
+let loadedCompaniesMap = {};
+
 async function loadExistingCompanies() {
     try {
         const res = await fetch("/companies-list");
         const companies = await res.json();
         const tbody = document.getElementById("companyTableBody");
+        loadedCompaniesMap = {};
 
         if (!companies || companies.length === 0) {
             tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 24px; color: var(--text-muted);">No placement drives registered yet.</td></tr>`;
@@ -144,6 +147,7 @@ async function loadExistingCompanies() {
 
         let html = "";
         companies.forEach(c => {
+            loadedCompaniesMap[c._id] = c;
             const deadlineDate = c.deadline || c.lastDate || "N/A";
             html += `
                 <tr style="border-bottom: 1px solid var(--border);">
@@ -153,7 +157,7 @@ async function loadExistingCompanies() {
                     <td style="padding: 14px 12px; color: var(--text-muted);">📍 ${c.location}</td>
                     <td style="padding: 14px 12px; color: var(--text-muted);">📅 ${deadlineDate}</td>
                     <td style="padding: 14px 12px; text-align: center;">
-                        <button onclick="deleteCompanyDrive('${c._id}', '${c.companyName}')" class="btn" style="padding: 6px 12px; font-size: 12px; background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; font-weight: 600; cursor: pointer; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">🗑️ Remove Company</button>
+                        <button onclick="deleteCompanyDrive('${c._id}')" class="btn" style="padding: 6px 12px; font-size: 12px; background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; font-weight: 600; cursor: pointer; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">🗑️ Remove Company</button>
                     </td>
                 </tr>
             `;
@@ -165,7 +169,10 @@ async function loadExistingCompanies() {
     }
 }
 
-async function deleteCompanyDrive(id, companyName) {
+async function deleteCompanyDrive(id) {
+    const company = loadedCompaniesMap[id] || {};
+    const companyName = company.companyName || "this placement drive";
+
     const result = await Swal.fire({
         title: `Delete ${companyName}?`,
         text: "Are you sure you want to remove this placement drive? All associated candidate applications will also be deleted. This action cannot be undone.",
@@ -177,7 +184,10 @@ async function deleteCompanyDrive(id, companyName) {
 
     if (result.isConfirmed) {
         try {
-            const res = await fetch(`/delete-company/${id}`, { method: "DELETE" });
+            let res = await fetch(`/delete-company/${id}`, { method: "DELETE" });
+            if (!res.ok && res.status === 404) {
+                res = await fetch(`/delete-company/${id}`);
+            }
             let data = {};
             try { data = await res.json(); } catch(e) {}
             if (res.ok) {

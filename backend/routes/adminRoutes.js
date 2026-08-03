@@ -115,7 +115,12 @@ router.post("/exam-settings/:type", requireAdmin, adminController.updateExamSett
 router.post("/update-question/:id", requireAdmin, adminController.updateQuestion);
 router.post("/update-technical/:id", requireAdmin, adminController.updateTechnicalQuestion);
 router.get("/delete-question/:id", requireAdmin, adminController.deleteQuestion);
+router.delete("/delete-question/:id", requireAdmin, adminController.deleteQuestion);
+router.post("/delete-question/:id", requireAdmin, adminController.deleteQuestion);
+
 router.get("/delete-technical/:id", requireAdmin, adminController.deleteTechnicalQuestion);
+router.delete("/delete-technical/:id", requireAdmin, adminController.deleteTechnicalQuestion);
+router.post("/delete-technical/:id", requireAdmin, adminController.deleteTechnicalQuestion);
 router.post("/import-questions", requireAdmin, fileUpload.single("importFile"), adminController.importQuestions);
 router.post("/add-company", requireAdmin, adminController.addCompany);
 router.post("/update-status", requireAdmin, adminController.updateStatus);
