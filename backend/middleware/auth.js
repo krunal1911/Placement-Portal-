@@ -198,5 +198,6 @@ module.exports = {
     requireAdmin,
     requireSuperAdmin,
     requireUserOrAdmin,
-    verifyExamLink
+    verifyExamLink,
+    resolveAdmin
 };

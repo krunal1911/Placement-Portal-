@@ -69,6 +69,8 @@
 
         if (link.hasAttribute("download")) return;
 
+        const href = link.getAttribute("href") || link.href;
+
         let url;
         try { url = new URL(href, window.location.origin); } catch (err) { return; }
         if (url.origin !== window.location.origin) return;

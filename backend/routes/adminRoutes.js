@@ -50,13 +50,13 @@ router.get("/results", requireAdmin, adminController.showResults);
 router.get("/applications", (req, res) => {
     try {
         const { resolveAdmin } = require("../middleware/auth");
-        const studentController = require("../controllers/studentController");
-        let admin = null;
-        try { admin = resolveAdmin(req); } catch(e) {}
-
+        const admin = resolveAdmin(req);
         if (admin) {
+            req.admin = admin;
             return adminController.showApplications(req, res);
         }
+        // Not an admin — serve student my-applications page
+        const studentController = require("../controllers/studentController");
         return studentController.showMyApplications(req, res);
     } catch (err) {
         console.error("Safe /applications route fallback:", err);
