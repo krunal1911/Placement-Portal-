@@ -189,6 +189,19 @@
         }
         .pill-success { background: #d1fae5; color: #047857; }
         .pill-danger { background: #fee2e2; color: #b91c1c; }
+
+        @media (max-width: 640px) {
+            .container { padding: 0 12px !important; margin: 16px auto !important; }
+            .interview-hero { padding: 20px 16px !important; border-radius: 14px !important; }
+            .interview-hero h1 { font-size: 22px !important; }
+            .category-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
+            .category-card { padding: 16px !important; border-radius: 14px !important; }
+            .simulator-box { padding: 20px 14px !important; border-radius: 14px !important; margin-bottom: 20px !important; }
+            .examiner-header { flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; }
+            .controls-bar { flex-direction: column !important; width: 100% !important; gap: 10px !important; }
+            .controls-bar button, .mic-btn { width: 100% !important; min-height: 46px !important; justify-content: center !important; font-size: 15px !important; }
+            .answer-textarea { font-size: 16px !important; height: 130px !important; }
+        }
     </style>
 </head>
 <body>
@@ -246,15 +259,18 @@
         </div>
 
         <div style="text-align: center; margin-bottom: 32px;" id="startBtnContainer">
-            <button onclick="startInterviewSession()" class="btn btn-primary" style="padding: 14px 36px; font-size: 16px; font-weight: 600; border-radius: 12px;">🚀 Start Live Interview Session</button>
+            <button onclick="startInterviewSession()" class="btn btn-primary" style="padding: 14px 36px; font-size: 16px; font-weight: 600; border-radius: 12px; min-height: 48px;">🚀 Start Live Interview Session</button>
         </div>
         <div class="simulator-box" id="simulatorConsole" style="display: none;">
             <div class="examiner-header">
                 <div class="avatar-circle">🤖</div>
-                <div>
+                <div style="flex: 1;">
                     <span class="question-badge" id="questionCounter">Question 1 of 5</span>
                     <span class="question-badge" id="activeTrackBadge" style="background: var(--primary); color: white; margin-left: 8px; font-weight: 600;">💻 Fullstack Developer Track</span>
-                    <h3 style="font-size: 16px; font-weight: 700; color: var(--text-main); margin: 6px 0 0 0;">AI Placement Examiner</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                        <h3 style="font-size: 16px; font-weight: 700; color: var(--text-main); margin: 6px 0 0 0;">AI Placement Examiner</h3>
+                        <button onclick="speakQuestionAI()" class="btn btn-secondary" style="font-size: 12px; padding: 4px 10px; margin-top: 4px;">🔊 Listen Question</button>
+                    </div>
                 </div>
             </div>
 
@@ -355,10 +371,12 @@
             interviewEvaluations = [];
 
             document.getElementById("startBtnContainer").style.display = "none";
-            document.getElementById("simulatorConsole").style.display = "block";
+            const consoleBox = document.getElementById("simulatorConsole");
+            consoleBox.style.display = "block";
             document.getElementById("finalScorecard").style.display = "none";
 
             renderActiveQuestion();
+            consoleBox.scrollIntoView({ behavior: "smooth", block: "start" });
         } catch (e) {
             console.error(e);
             showToast("Failed to initialize interview session.", "error");
@@ -370,6 +388,17 @@
         document.getElementById("questionCounter").innerText = `Question ${currentQuestionIdx + 1} of ${currentQuestions.length}`;
         document.getElementById("activeQuestionText").innerText = q.question;
         document.getElementById("candidateAnswerInput").value = "";
+    }
+
+    function speakQuestionAI() {
+        if (!window.speechSynthesis) return;
+        window.speechSynthesis.cancel();
+        const qText = document.getElementById("activeQuestionText")?.innerText;
+        if (!qText) return;
+        const utterance = new SpeechSynthesisUtterance(qText);
+        utterance.rate = 0.95;
+        utterance.pitch = 1.0;
+        window.speechSynthesis.speak(utterance);
     }
 
     async function submitAnswerForEvaluation() {
@@ -421,6 +450,8 @@
                 currentQuestionIdx++;
                 if (currentQuestionIdx < currentQuestions.length) {
                     renderActiveQuestion();
+                    const consoleBox = document.getElementById("simulatorConsole");
+                    if (consoleBox) consoleBox.scrollIntoView({ behavior: "smooth", block: "start" });
                 } else {
                     displayFinalScorecard();
                 }
@@ -437,7 +468,8 @@
 
     function displayFinalScorecard() {
         document.getElementById("simulatorConsole").style.display = "none";
-        document.getElementById("finalScorecard").style.display = "block";
+        const finalBox = document.getElementById("finalScorecard");
+        finalBox.style.display = "block";
 
         let totalTech = 0, totalConf = 0;
         let reviewHtml = "";
@@ -448,15 +480,14 @@
 
             reviewHtml += `
                 <div style="background: var(--bg-main); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px;">
-                    <h4 style="font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 8px;">Q${idx + 1}. ${item.questionText}</h4>
-                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;"><b>Your Response:</b> "${item.candidateAnswer}"</p>
-                    <div style="display: flex; gap: 16px; font-size: 13px; margin-bottom: 8px;">
-                        <span><b>Accuracy:</b> <span style="color:var(--primary); font-weight:700;">${item.accuracy}%</span></span>
-                        <span><b>Confidence:</b> <span style="color:var(--success); font-weight:700;">${item.confidence}%</span></span>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-weight: 700; color: var(--text-main);">Q${idx + 1}: ${item.questionText}</span>
+                        <span style="font-size: 12px; font-weight: 700; color: #2563eb;">${item.accuracy}% Accuracy</span>
                     </div>
-                    <div style="font-size: 13px; background: var(--bg-card); padding: 12px; border-radius: 8px; border: 1px solid var(--border); margin-top: 8px;">
-                        <p style="margin: 0 0 4px 0;"><b>Feedback:</b> ${item.feedback}</p>
-                        ${item.idealAnswer ? `<p style="margin: 4px 0 0 0; color: #10b981;"><b>💡 Ideal Answer:</b> ${item.idealAnswer}</p>` : ''}
+                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;"><b>Your Answer:</b> "${item.candidateAnswer}"</p>
+                    <div style="font-size: 12.5px;">
+                        <p style="margin-bottom: 4px;"><b>Feedback:</b> ${item.feedback}</p>
+                        ${item.idealAnswer ? `<p style="margin: 4px 0 0 0; color: #10b981;"><b>💡 Ideal Technical Answer:</b> ${item.idealAnswer}</p>` : ''}
                         ${item.explanation ? `<p style="margin: 4px 0 0 0; color: var(--text-muted); font-size: 12px;"><b>📘 Concept Explanation:</b> ${item.explanation}</p>` : ''}
                     </div>
                 </div>
@@ -470,43 +501,68 @@
         document.getElementById("summaryConfidenceScore").innerText = `${avgConf}%`;
         document.getElementById("summaryTotalQuestions").innerText = interviewEvaluations.length;
         document.getElementById("detailedReviewContainer").innerHTML = reviewHtml;
+
+        finalBox.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
     function toggleSpeechRecognition() {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
-            showToast("Speech recognition is not supported on this browser. Please type your answer.", "info");
+            showToast("Voice input is not supported on this browser. You can type your answer in the box.", "info");
             return;
         }
 
         if (!recognition) {
-            recognition = new SpeechRecognition();
-            recognition.continuous = true;
-            recognition.interimResults = true;
-            recognition.lang = "en-US";
+            try {
+                recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = "en-US";
 
-            recognition.onresult = (event) => {
-                let transcript = "";
-                for (let i = event.resultIndex; i < event.results.length; i++) {
-                    transcript += event.results[i][0].transcript;
-                }
-                document.getElementById("candidateAnswerInput").value = transcript;
-            };
+                recognition.onresult = (event) => {
+                    let transcript = "";
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        transcript += event.results[i][0].transcript;
+                    }
+                    document.getElementById("candidateAnswerInput").value = transcript;
+                };
 
-            recognition.onend = () => {
-                isListening = false;
-                document.getElementById("speechMicBtn").classList.remove("listening");
-                document.getElementById("micStatusText").innerText = "Start Voice Input";
-            };
+                recognition.onerror = (event) => {
+                    console.warn("Speech recognition error:", event.error);
+                    isListening = false;
+                    const micBtn = document.getElementById("speechMicBtn");
+                    if (micBtn) micBtn.classList.remove("listening");
+                    document.getElementById("micStatusText").innerText = "Start Voice Input";
+                    if (event.error === 'not-allowed') {
+                        showToast("Microphone access denied. You can type your answer in the text box.", "warning");
+                    }
+                };
+
+                recognition.onend = () => {
+                    isListening = false;
+                    const micBtn = document.getElementById("speechMicBtn");
+                    if (micBtn) micBtn.classList.remove("listening");
+                    document.getElementById("micStatusText").innerText = "Start Voice Input";
+                };
+            } catch (err) {
+                console.error(err);
+                showToast("Voice input unavailable. Please type your answer.", "info");
+                return;
+            }
         }
 
         if (isListening) {
-            recognition.stop();
+            try { recognition.stop(); } catch(e){}
         } else {
-            recognition.start();
-            isListening = true;
-            document.getElementById("speechMicBtn").classList.add("listening");
-            document.getElementById("micStatusText").innerText = "Listening... Click to Stop";
+            try {
+                recognition.start();
+                isListening = true;
+                document.getElementById("speechMicBtn").classList.add("listening");
+                document.getElementById("micStatusText").innerText = "Listening... Click to Stop";
+            } catch(e) {
+                console.error(e);
+                showToast("Voice input error. Please type your answer.", "info");
+            }
         }
     }
     </script>
