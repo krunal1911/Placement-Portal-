@@ -1559,8 +1559,18 @@ exports.deleteCompany = async (req, res) => {
             }
         }
 
+        const compName = (company.companyName || "").trim();
+        const regexCompany = new RegExp(`^${compName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")}$`, "i");
+
         await Company.findByIdAndDelete(id);
-        res.json({ message: "Placement drive deleted successfully!" });
+        await Application.deleteMany({
+            $or: [
+                { companyId: id },
+                { companyName: regexCompany }
+            ]
+        });
+
+        res.json({ message: `Placement drive "${company.companyName}" and all associated candidate applications deleted successfully!` });
     } catch (err) {
         console.error("Error deleting company drive:", err);
         res.status(500).json({ message: "Failed to delete company drive." });
@@ -1722,7 +1732,7 @@ exports.getResultsData = async (req, res) => {
     }
 };
 
-// Delete an Administrator Account (SuperAdmin Only)
+// Delete an Administrator Account & Associated Company Data (SuperAdmin Only)
 exports.deleteAdmin = async (req, res) => {
     try {
         const { id } = req.params;
@@ -1735,26 +1745,30 @@ exports.deleteAdmin = async (req, res) => {
             return res.status(403).json({ message: "Cannot delete SuperAdmin accounts." });
         }
 
-        // ──────────────────────────────────────────────────────────────────────
-        // IMPORTANT: Only the admin LOGIN ACCOUNT is deleted here.
-        // All associated data is intentionally PRESERVED:
-        //   ✅ Company placement drives (Company collection)
-        //   ✅ Questions added by the company (Question / TechnicalQuestion collections)
-        //   ✅ Student applications for that company (Application collection)
-        //   ✅ Student accounts and login credentials (User collection)
-        //   ✅ Exam results and proctoring logs (Result / CheatingLog collections)
-        //
-        // The superadmin can still view and manage all that data even after
-        // the company recruiter account is removed.
-        // ──────────────────────────────────────────────────────────────────────
+        const compName = (targetAdmin.companyName || "").trim();
+        if (compName) {
+            const regexCompany = new RegExp(`^${compName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")}$`, "i");
+
+            // Delete associated company placement drive listings
+            await Company.deleteMany({ companyName: regexCompany });
+
+            // Delete all candidate job applications submitted for this company
+            await Application.deleteMany({ companyName: regexCompany });
+
+            // Delete questions assigned specifically to this company
+            await Question.deleteMany({ companyName: regexCompany });
+            await TechnicalQuestion.deleteMany({ companyName: regexCompany });
+        }
+
+        // Delete the admin account itself
         await Admin.findByIdAndDelete(id);
 
         res.json({
-            message: `Administrator account "${targetAdmin.username}" has been removed. All company drives, questions, student applications, and exam data have been preserved.`
+            message: `Administrator account "${targetAdmin.username}" and all associated company placement drives, applications, and data have been permanently deleted!`
         });
     } catch (err) {
         console.error("Error deleting admin:", err);
-        res.status(500).json({ message: "Failed to delete administrator account." });
+        res.status(500).json({ message: "Failed to delete administrator account and company data." });
     }
 };
 
