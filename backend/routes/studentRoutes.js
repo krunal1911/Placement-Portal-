@@ -53,20 +53,7 @@ router.get("/career-guide", requireUser, studentController.showCareerGuide);
 router.get("/leaderboard", requireUser, studentController.showLeaderboard);
 router.get("/placement-drives", requireUserOrAdmin, studentController.showPlacementDrives);
 router.get("/history", requireUser, studentController.showHistory);
-router.get("/my-applications", (req, res) => {
-    try {
-        const { resolveUser } = require("../middleware/auth");
-        let user = null;
-        try { user = resolveUser(req); } catch(e) {}
-        if (user) {
-            return studentController.showMyApplications(req, res);
-        }
-        return res.redirect("/login");
-    } catch (err) {
-        console.error("Safe /my-applications fallback:", err);
-        return res.redirect("/login");
-    }
-});
+router.get("/my-applications", studentController.showMyApplications);
 router.get("/view-resume", requireUser, studentController.viewOwnResume);
 router.get("/view-resume/:studentId", requireAdmin, studentController.viewStudentResume);
 
