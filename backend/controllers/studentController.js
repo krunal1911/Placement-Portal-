@@ -1481,15 +1481,18 @@ exports.evaluateMockAnswer = async (req, res) => {
 // ATS Resume Scanner & Keyword Optimizer
 exports.analyzeATSResume = async (req, res) => {
     try {
-        if (!req.session.user) return res.status(401).json({ message: "Login required" });
+        const activeUser = req.user || (req.session && req.session.user);
+        if (!activeUser) return res.status(401).json({ message: "Login required" });
 
-        const user = await User.findById(req.session.user._id);
+        const userId = activeUser._id || activeUser.id;
+        const user = await User.findById(userId);
         if (!user) return res.status(404).json({ message: "User not found" });
 
         // Require active resume uploaded or built
         if (!user.resume && (!user.resumeBuffer || user.resumeBuffer.length === 0)) {
             return res.status(400).json({
-                message: "No active resume found! Please upload a PDF resume or click '⚡ Build PDF Resume' first before running the ATS scan."
+                hasResume: false,
+                message: "No active resume found! Please upload a PDF resume first before running the ATS scan."
             });
         }
 
@@ -1539,7 +1542,7 @@ exports.analyzeATSResume = async (req, res) => {
         if (user.projects && user.projects.length > 0) bonus += 10;
         if (user.cgpa && Number(user.cgpa) >= 7.5) bonus += 5;
 
-        const score = Math.min(100, Math.max(30, matchPct + bonus));
+        const score = Math.min(100, Math.max(0, matchPct + bonus));
 
         let grade = "C";
         if (score >= 85) grade = "A+";
@@ -1556,6 +1559,7 @@ exports.analyzeATSResume = async (req, res) => {
         recommendations.push("Use action verbs (e.g. Developed, Architected, Optimized) for project bullet points.");
 
         res.json({
+            hasResume: true,
             score,
             grade,
             matched,

@@ -363,93 +363,91 @@ async function loadResume() {
                 deleteBtn.style.opacity = "0.6";
                 deleteBtn.style.pointerEvents = "none";
             }
+
+            renderEmptyATSState();
         }
     } catch (e) {
         console.error(e);
+        renderEmptyATSState();
     }
 }
 
+function renderEmptyATSState() {
+    const resultsBox = document.getElementById("atsResultsBox");
+    if (!resultsBox) return;
+
+    resultsBox.style.display = "block";
+    resultsBox.innerHTML = `
+        <div style="text-align: center; padding: 40px; background: var(--bg-main); border-radius: 16px; border: 1px dashed var(--border);">
+            <div style="font-size: 48px; margin-bottom: 12px;">📁</div>
+            <h3 style="font-size: 18px; font-weight: 700; color: var(--text-main); margin-bottom: 8px;">No Resume Attached For ATS Analysis</h3>
+            <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px; max-width: 500px; margin-left: auto; margin-right: auto;">Please choose a PDF resume file above and click 'Upload & Scan ATS Score' to calculate your ATS Readability Score and keyword match index.</p>
+            <button onclick="triggerPhoneFilePicker()" class="btn btn-primary" style="padding: 12px 24px; font-weight: 600;">📁 Select PDF Resume File</button>
+        </div>
+    `;
+}
+
 async function runATSCheck() {
+    if (!currentActiveUser || !currentActiveUser.resume) {
+        renderEmptyATSState();
+        return;
+    }
+
+    const role = document.getElementById("atsTargetRole")?.value || "fullstack";
     const resultsBox = document.getElementById("atsResultsBox");
     if (!resultsBox) return;
 
     try {
-        const userRes = await fetch("/current-user");
-        if (!userRes.ok) return;
-        const user = await userRes.json();
+        const res = await fetch("/api/ats-check", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ role: role })
+        });
 
-        const role = document.getElementById("atsTargetRole")?.value || "fullstack";
-
-        const roleData = {
-            fullstack: {
-                title: "Fullstack Software Engineer",
-                keywords: ["javascript", "react", "node.js", "express", "mongodb", "html5", "css3", "git", "rest api", "sql"],
-                missing: ["docker", "typescript", "ci/cd", "jest"],
-            },
-            python: {
-                title: "Python Developer",
-                keywords: ["python", "django", "flask", "sql", "rest api", "git", "data structures", "algorithms"],
-                missing: ["fastapi", "docker", "pytest", "redis"],
-            },
-            data: {
-                title: "Data Analyst / Engineer",
-                keywords: ["python", "sql", "data analysis", "pandas", "numpy", "statistics", "excel", "visualization"],
-                missing: ["power bi", "tableau", "spark", "bigquery"],
-            },
-            core: {
-                title: "Core CS / Backend Engineer",
-                keywords: ["c++", "java", "dsa", "dbms", "operating systems", "computer networks", "oop", "sql"],
-                missing: ["system design", "microservices", "kubernetes", "linux"],
-            }
-        };
-
-        const currentRole = roleData[role] || roleData.fullstack;
-
-        let score = 65;
-        if (user.resume && user.resume !== "") score += 15;
-        if (user.skills && user.skills.length > 0) score += 10;
-        if (user.projects && user.projects.length > 0) score += 5;
-        if (user.github || user.linkedin) score += 5;
-        score = Math.min(98, score);
-
-        let grade = "GRADE B";
-        let badgeColor = "#f59e0b";
-        let badgeBg = "rgba(245, 158, 11, 0.15)";
-        if (score >= 90) { grade = "GRADE A+"; badgeColor = "#10b981"; badgeBg = "rgba(16, 185, 129, 0.15)"; }
-        else if (score >= 80) { grade = "GRADE A"; badgeColor = "#3b82f6"; badgeBg = "rgba(59, 130, 246, 0.15)"; }
-        else if (score >= 70) { grade = "GRADE B+"; badgeColor = "#8b5cf6"; badgeBg = "rgba(139, 92, 246, 0.15)"; }
-
-        document.getElementById("atsScoreValue").innerText = score + "%";
-        const gradeBadge = document.getElementById("atsBadgeGrade");
-        if (gradeBadge) {
-            gradeBadge.innerText = grade;
-            gradeBadge.style.color = badgeColor;
-            gradeBadge.style.background = badgeBg;
+        const data = await res.json();
+        if (!res.ok || !data.hasResume) {
+            renderEmptyATSState();
+            return;
         }
 
-        const matchedBox = document.getElementById("atsMatchedKeywords");
-        if (matchedBox) {
-            matchedBox.innerHTML = currentRole.keywords.map(k => `<span style="display:inline-block; margin:3px; padding:4px 10px; background:rgba(16,185,129,0.12); color:#059669; border:1px solid rgba(16,185,129,0.3); border-radius:100px; font-size:12px; font-weight:600;">✓ ${k.toUpperCase()}</span>`).join('');
-        }
-
-        const missingBox = document.getElementById("atsMissingKeywords");
-        if (missingBox) {
-            missingBox.innerHTML = currentRole.missing.map(k => `<span style="display:inline-block; margin:3px; padding:4px 10px; background:rgba(239,68,68,0.12); color:#dc2626; border:1px solid rgba(239,68,68,0.3); border-radius:100px; font-size:12px; font-weight:600;">+ ${k.toUpperCase()}</span>`).join('');
-        }
-
-        const recsList = document.getElementById("atsRecommendationsList");
-        if (recsList) {
-            recsList.innerHTML = `
-                <li><strong>Include Missing Keywords:</strong> Consider adding <em>${currentRole.missing.slice(0, 2).join(', ').toUpperCase()}</em> to boost your match rate for ${currentRole.title} positions.</li>
-                <li><strong>Quantify Achievements:</strong> Use bullet points starting with strong action verbs (e.g., <em>Developed, Optimized, Implemented</em>) and include measurable results (e.g. <em>"Improved performance by 25%"</em>).</li>
-                <li><strong>Formatting Check:</strong> Use single-column standard margins with ATS-friendly headings (Education, Experience, Projects, Skills) for best parser readability.</li>
-                <li><strong>Links & Portfolio:</strong> Ensure your GitHub and LinkedIn URLs are formatted properly at the top of your resume.</li>
-            `;
-        }
+        let badgeColor = "#ef4444";
+        let badgeBg = "rgba(239, 68, 68, 0.15)";
+        if (data.score >= 85) { badgeColor = "#10b981"; badgeBg = "rgba(16, 185, 129, 0.15)"; }
+        else if (data.score >= 75) { badgeColor = "#3b82f6"; badgeBg = "rgba(59, 130, 246, 0.15)"; }
+        else if (data.score >= 60) { badgeColor = "#f59e0b"; badgeBg = "rgba(245, 158, 11, 0.15)"; }
 
         resultsBox.style.display = "block";
+        resultsBox.innerHTML = `
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 24px;">
+                <div class="card" style="text-align: center; padding: 24px; background: var(--bg-main); display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                    <h4 style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px;">ATS Readability Score</h4>
+                    <div style="font-size: 48px; font-weight: 800; color: ${badgeColor};" id="atsScoreValue">${data.score}%</div>
+                    <span id="atsBadgeGrade" style="margin-top: 8px; font-size: 12px; padding: 4px 12px; border-radius: 12px; font-weight: 700; color: ${badgeColor}; background: ${badgeBg};">GRADE ${data.grade}</span>
+                </div>
+
+                <div class="card" style="padding: 24px; background: var(--bg-main);">
+                    <h4 style="font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 12px;">✅ Matched Industry Keywords (${data.matched ? data.matched.length : 0})</h4>
+                    <div id="atsMatchedKeywords" style="margin-bottom: 16px;">
+                        ${(data.matched && data.matched.length > 0) ? data.matched.map(k => `<span style="display:inline-block; margin:3px; padding:4px 10px; background:rgba(16,185,129,0.12); color:#059669; border:1px solid rgba(16,185,129,0.3); border-radius:100px; font-size:12px; font-weight:600;">✓ ${k}</span>`).join('') : '<span style="font-size:13px; color:var(--text-muted);">None matched yet. Add skills in your Profile page!</span>'}
+                    </div>
+
+                    <h4 style="font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 12px;">❌ Missing Critical Keywords for Role (${data.missing ? data.missing.length : 0})</h4>
+                    <div id="atsMissingKeywords">
+                        ${(data.missing && data.missing.length > 0) ? data.missing.map(k => `<span style="display:inline-block; margin:3px; padding:4px 10px; background:rgba(239,68,68,0.12); color:#dc2626; border:1px solid rgba(239,68,68,0.3); border-radius:100px; font-size:12px; font-weight:600;">+ ${k}</span>`).join('') : '<span style="font-size:13px; color:#10b981;">Awesome! All key terms covered.</span>'}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="padding: 24px; background: var(--bg-main);">
+                <h4 style="font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 12px;">💡 Actionable ATS Recommendations</h4>
+                <ul id="atsRecommendationsList" style="padding-left: 20px; font-size: 14px; color: var(--text-main); line-height: 1.8;">
+                    ${(data.recommendations && data.recommendations.length > 0) ? data.recommendations.map(r => `<li>${r}</li>`).join('') : '<li>Ensure standard section titles: Education, Skills, Projects, Experience.</li>'}
+                </ul>
+            </div>
+        `;
     } catch (e) {
-        console.error("ATS Check error:", e);
+        console.error(e);
+        renderEmptyATSState();
     }
 }
 
