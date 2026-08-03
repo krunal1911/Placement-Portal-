@@ -174,7 +174,7 @@
                 <p style="color: var(--text-muted); font-size: 14px;">Scan your active attached resume against target industry job descriptions (0–100% Readability Index).</p>
             </div>
             <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-                <select id="atsTargetRole" style="padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: var(--bg-main); color: var(--text-main);">
+                <select id="atsTargetRole" onchange="runATSCheck()" style="padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: var(--bg-main); color: var(--text-main);">
                     <option value="fullstack">Fullstack Software Engineer</option>
                     <option value="python">Python Developer</option>
                     <option value="data">Data Analyst / Data Engineer</option>
@@ -445,6 +445,7 @@ async function runATSCheck() {
                 </ul>
             </div>
         `;
+        resultsBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
     } catch (e) {
         console.error(e);
         renderEmptyATSState();
